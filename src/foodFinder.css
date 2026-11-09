@@ -1,0 +1,256 @@
+.food-finder {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #8cc56a;
+  color: #3a2618;
+}
+
+.food-finder[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.food-finder [hidden] {
+  display: none !important;
+}
+
+.food-finder header,
+.food-finder footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #fff6ece8;
+}
+
+.food-finder header strong {
+  font-size: 1.3rem;
+}
+
+.food-finder button {
+  padding: 6px 12px;
+  border: 1px solid #d9a46a;
+  border-radius: 8px;
+  color: #3a2618;
+  background: #fff6ec;
+  font: inherit;
+  cursor: pointer;
+}
+
+.food-finder button.primary {
+  border-color: #b8304a;
+  background: #d63c55;
+  color: #fff;
+  font-weight: 800;
+}
+
+.food-finder button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.finder-field {
+  position: absolute;
+  inset: 0;
+}
+
+.food-finder canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: pointer;
+}
+
+/* The food to find, big at the top. Tap it to hear it again. */
+.food-finder .finder-card {
+  position: absolute;
+  z-index: 1;
+  top: clamp(8px, 2vh, 18px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.5vw, 14px);
+  padding: 6px clamp(14px, 3vw, 26px) 6px clamp(12px, 2vw, 20px);
+  border: 4px solid #ffd23f;
+  border-radius: 22px;
+  background: #fffdf6;
+  box-shadow:
+    0 6px 0 #c99a2e,
+    0 10px 24px #0004;
+  color: #3a2618;
+  font:
+    800 clamp(1.2rem, 4vw, 2.1rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.finder-card img {
+  width: clamp(64px, min(14vh, 20vw), 120px);
+  height: clamp(64px, min(14vh, 20vw), 120px);
+  object-fit: contain;
+}
+
+.finder-find {
+  color: #8a6a4c;
+  font-weight: 700;
+}
+
+.finder-again {
+  font-size: 0.7em;
+  opacity: 0.6;
+}
+
+.finder-card.pop {
+  animation: finder-pop 0.45s ease-out;
+}
+
+.finder-card.nudge {
+  animation: finder-nudge 0.5s ease-in-out;
+}
+
+@keyframes finder-pop {
+  0% {
+    transform: translateX(-50%) scale(0.6);
+  }
+  60% {
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+@keyframes finder-nudge {
+  25% {
+    transform: translateX(-50%) scale(1.06) rotate(-2deg);
+  }
+  60% {
+    transform: translateX(-50%) scale(1.06) rotate(2deg);
+  }
+}
+
+/* One dot per food to find; they fill up as you go. */
+.finder-basket {
+  position: absolute;
+  z-index: 1;
+  right: clamp(10px, 2vw, 22px);
+  bottom: clamp(10px, 2vh, 20px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 50vw;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: #fff6ecd8;
+  list-style: none;
+  pointer-events: none;
+}
+
+.finder-basket li {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #d9a46a;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.finder-basket li.full {
+  border-color: #b8304a;
+  background: #ff5d8f;
+  animation: finder-fill 0.4s ease-out;
+}
+
+@keyframes finder-fill {
+  50% {
+    transform: scale(1.5);
+  }
+}
+
+.finder-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #fff6ecd0;
+  text-align: center;
+}
+
+.finder-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.finder-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.finder-modes button {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+}
+
+.finder-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.food-finder footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.95rem;
+}
+
+.food-finder footer > span {
+  max-width: min(46vw, 30em);
+  min-width: 12em;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fff6ece8;
+}
+
+.food-finder footer > span:empty {
+  display: none;
+}
+
+.food-finder footer button {
+  pointer-events: auto;
+  position: fixed;
+  top: clamp(8px, 2vh, 18px);
+  right: clamp(10px, 2vw, 22px);
+}
+
+/* Narrow screens: the card sits below the pause button. */
+@media (max-width: 620px) {
+  .food-finder .finder-card {
+    top: 54px;
+  }
+}

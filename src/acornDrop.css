@@ -1,0 +1,281 @@
+.acorn-drop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #24402a;
+  color: #fbf1d4;
+}
+
+.acorn-drop[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.acorn-drop [hidden] {
+  display: none !important;
+}
+
+.acorn-drop header,
+.acorn-drop footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #24402ae8;
+}
+
+.acorn-drop header strong {
+  font-size: 1.3rem;
+}
+
+.acorn-drop button {
+  padding: 6px 12px;
+  border: 1px solid #f0c06f;
+  border-radius: 8px;
+  color: #fbf1d4;
+  background: #3a6640;
+  font: inherit;
+  cursor: pointer;
+}
+
+.acorn-drop button.primary {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  border-color: #ffd98a;
+  background: #c8412f;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.acorn-field {
+  position: absolute;
+  inset: 0;
+}
+
+.acorn-drop canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.acorn-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #1a2f1fc4;
+  text-align: center;
+}
+
+.acorn-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.acorn-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.acorn-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.acorn-drop footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.9rem;
+}
+
+.acorn-drop footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #24402ae8;
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-weight: 700;
+}
+
+.acorn-drop footer > span:empty {
+  display: none;
+}
+
+.acorn-drop footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+.acorn-hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.5vw, 12px);
+  font-variant-numeric: tabular-nums;
+}
+
+.acorn-hud > span {
+  padding: 8px 14px;
+  border: 1px solid #f5cd7a;
+  border-radius: 10px;
+  background: #fff3cf;
+  color: #2c3b26;
+  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+  font-weight: 800;
+}
+
+/* Each pot's number, painted on its front, with that many dots under it. */
+.acorn-labels > span {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.acorn-pot-label b {
+  color: #fff8e6;
+  font:
+    900 clamp(1.3rem, 3.6vw, 2.4rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  -webkit-text-stroke: 2px #6b2c14;
+  paint-order: stroke fill;
+  text-shadow: 0 2px 0 #6b2c14;
+}
+
+.acorn-pot-label i {
+  display: flex;
+  gap: 2px;
+}
+
+.acorn-pot-label em {
+  width: clamp(4px, 0.8vw, 7px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff8e6;
+  box-shadow: 0 0 0 1px #6b2c14;
+}
+
+.acorn-pot-label.lit {
+  animation: acorn-lit 0.9s ease-out;
+}
+
+@keyframes acorn-lit {
+  30% {
+    transform: translate(-50%, -50%) scale(1.45);
+    filter: drop-shadow(0 0 8px #ffe27a);
+  }
+}
+
+.acorn-pops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.acorn-pop {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font:
+    900 clamp(1.4rem, 3.4vw, 2.1rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #3d7a2c,
+    0 0 8px #0006;
+  animation: acorn-pop 1.2s ease-out forwards;
+}
+
+.acorn-pop.big {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: #ffe27a;
+}
+
+@keyframes acorn-pop {
+  from {
+    transform: translate(-50%, -60%) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -100%) scale(1.15);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -260%) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Touch screens: walk and drop buttons along the bottom middle. */
+.acorn-pad {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
+  z-index: 2;
+  display: flex;
+  gap: clamp(10px, 3vw, 22px);
+  transform: translateX(-50%);
+}
+
+.acorn-drop .acorn-pad button {
+  width: clamp(64px, 17vw, 88px);
+  height: clamp(64px, 17vw, 88px);
+  padding: 0;
+  border: 3px solid #fff3cf;
+  border-radius: 50%;
+  background: #3a6640e6;
+  color: #fff3cf;
+  font-size: clamp(1.6rem, 6vw, 2.2rem);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.acorn-drop .acorn-pad button.drop {
+  width: clamp(96px, 26vw, 128px);
+  border-radius: 999px;
+  background: #c8412f;
+  font-size: clamp(1.2rem, 4.5vw, 1.6rem);
+  font-weight: 900;
+}
+
+/* On tall, narrow screens the footer wraps onto two lines; sit above it. */
+@media (max-aspect-ratio: 1/1) {
+  .acorn-drop .acorn-pad {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 130px);
+  }
+}

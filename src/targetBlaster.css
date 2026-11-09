@@ -1,0 +1,449 @@
+.target-blaster {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #1d3346;
+  color: #f2f6fb;
+}
+
+.target-blaster[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.target-blaster header,
+.target-blaster footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #1d3346e8;
+}
+
+.target-blaster header strong {
+  font-size: 1.3rem;
+}
+
+.target-blaster button {
+  padding: 6px 12px;
+  border: 1px solid #8fd3ff;
+  border-radius: 6px;
+  color: #f2f6fb;
+  background: #2b5677;
+}
+
+.target-blaster [hidden] {
+  display: none !important;
+}
+
+.blaster-field {
+  position: absolute;
+  inset: 0;
+}
+
+.target-blaster canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: none;
+  outline: none;
+}
+
+.blaster-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 10px;
+  background: #13263ac9;
+  text-align: center;
+}
+
+.blaster-panel h2 {
+  margin: 0;
+}
+
+.blaster-panel p {
+  max-width: 42ch;
+  margin: 8px 0 14px;
+}
+
+.blaster-panel button {
+  padding: 12px 26px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  background: #ffcf4a;
+  color: #22364a;
+}
+
+/* Crosshair: a water-drop ring that follows the aim. */
+.blaster-crosshair {
+  position: absolute;
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px #1d3346aa,
+    inset 0 0 0 2px #1d3346aa;
+  pointer-events: none;
+}
+
+.blaster-crosshair::before,
+.blaster-crosshair::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px #1d3346aa;
+}
+
+.blaster-crosshair::before {
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 50%;
+}
+
+.blaster-crosshair::after {
+  width: 64px;
+  height: 2px;
+  margin: -1px -32px;
+  background: linear-gradient(
+    90deg,
+    #fff 0 14px,
+    transparent 14px 50px,
+    #fff 50px
+  );
+  box-shadow: none;
+}
+
+.blaster-popups {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.blaster-popup {
+  position: absolute;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fffbea;
+  color: #22364a;
+  font:
+    800 1.1rem/1.2 Fredoka,
+    system-ui,
+    sans-serif;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  box-shadow: 0 4px 12px #0004;
+  animation: blaster-popup 1s ease-out forwards;
+}
+
+.blaster-popup.bullseye {
+  background: #ffe1dc;
+}
+
+.blaster-popup.top {
+  background: #ffd84a;
+  font-size: 1.35rem;
+}
+
+@keyframes blaster-popup {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -110%) scale(1.08);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -260%) scale(1);
+  }
+}
+
+.blaster-banner {
+  position: absolute;
+  z-index: 2;
+  top: 16%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 240px;
+  padding: 14px 28px 16px;
+  border: 3px solid #8fd3ff;
+  border-radius: 18px;
+  background: #f2fbff;
+  color: #22364a;
+  text-align: center;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 28px #0005;
+  pointer-events: none;
+  animation: blaster-banner 0.35s cubic-bezier(0.3, 1.6, 0.6, 1);
+}
+
+.blaster-banner strong {
+  font-size: 2rem;
+}
+
+.blaster-banner small {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #2f7fb8;
+}
+
+@keyframes blaster-banner {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* Pressure meter: a tall gauge with ten shot marks. */
+.blaster-meter {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: clamp(10px, 2.5vw, 28px);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 10px 8px;
+  border: 1px solid #8fd3ff;
+  border-radius: 12px;
+  background: #1d3346e0;
+  font-weight: 800;
+  font-size: 0.85rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.blaster-gauge {
+  position: relative;
+  width: 34px;
+  height: clamp(140px, 34vh, 260px);
+  overflow: hidden;
+  border: 3px solid #f2f6fb;
+  border-radius: 10px;
+  background: #0f1d29;
+}
+
+.blaster-gauge i {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: calc(var(--level, 1) * 100%);
+  background: linear-gradient(#8fe0ff, #2f8fe0);
+  transition: height 0.12s ease-out;
+}
+
+/* Tick marks every 10% (one shot each). */
+.blaster-gauge b {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to top,
+    transparent 0 calc(10% - 2px),
+    #0f1d29aa calc(10% - 2px) 10%
+  );
+}
+
+.blaster-meter small {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.blaster-meter.low .blaster-gauge i {
+  background: linear-gradient(#ffd27a, #f29a2e);
+}
+
+.blaster-meter.empty {
+  border-color: #ff8b7a;
+}
+
+.blaster-meter.empty small {
+  color: #ffb3a6;
+  animation: blaster-pulse 0.5s ease-in-out infinite alternate;
+}
+
+.blaster-meter.shake {
+  animation: blaster-shake 0.3s;
+}
+
+@keyframes blaster-shake {
+  25% {
+    transform: translate(-4px, -50%);
+  }
+  75% {
+    transform: translate(4px, -50%);
+  }
+}
+
+@keyframes blaster-pulse {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Tall, narrow screens: the meter becomes a bar across the top so it
+   doesn't cover the targets. */
+@media (max-aspect-ratio: 4/5) {
+  .blaster-meter {
+    top: 12px;
+    left: 50%;
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    transform: translateX(-50%);
+  }
+
+  .blaster-gauge {
+    width: clamp(120px, 42vw, 240px);
+    height: 26px;
+  }
+
+  .blaster-gauge i {
+    top: 0;
+    right: auto;
+    width: calc(var(--level, 1) * 100%);
+    height: auto;
+    transition-property: width;
+  }
+
+  .blaster-gauge b {
+    background: repeating-linear-gradient(
+      to right,
+      transparent 0 calc(10% - 2px),
+      #0f1d29aa calc(10% - 2px) 10%
+    );
+  }
+
+  .blaster-meter small {
+    min-width: 4.5em;
+  }
+
+  .blaster-meter.shake {
+    animation-name: blaster-shake-top;
+  }
+
+  .blaster-banner {
+    top: 22%;
+  }
+}
+
+@keyframes blaster-shake-top {
+  25% {
+    transform: translate(calc(-50% - 4px), 0);
+  }
+  75% {
+    transform: translate(calc(-50% + 4px), 0);
+  }
+}
+
+.target-blaster footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  min-height: 2.5em;
+  background: transparent;
+  pointer-events: none;
+  font-size: 0.9rem;
+}
+
+.target-blaster footer > span,
+.blaster-hud {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #1d3346e8;
+}
+
+.target-blaster footer > span:empty {
+  display: none;
+}
+
+.target-blaster footer .blaster-hud {
+  display: flex;
+  gap: clamp(8px, 2vw, 18px);
+  padding: 10px 14px;
+  border: 1px solid #8fd3ff;
+  background: #eaf7ff;
+  color: #22364a;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.blaster-hud .low {
+  color: #d23b2a;
+}
+
+.target-blaster footer button {
+  pointer-events: auto;
+}
+
+.target-blaster footer [data-pause] {
+  margin-left: auto;
+}
+
+/* Big tap target for pumping on touch screens. */
+.target-blaster .blaster-pump {
+  min-width: 150px;
+  min-height: 56px;
+  padding: 10px 26px;
+  border: 3px solid #eaf7ff;
+  border-radius: 999px;
+  background: #7bd64a;
+  color: #173016;
+  font-size: 1.3rem;
+  font-weight: 900;
+  touch-action: none;
+  user-select: none;
+}
+
+.target-blaster .blaster-pump:active {
+  transform: translateY(2px);
+}
+
+.target-blaster .blaster-pump.hot {
+  background: #ff8a2a;
+  color: #fff;
+  animation: blaster-pump 0.32s ease-out infinite alternate;
+}
+
+@keyframes blaster-pump {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}

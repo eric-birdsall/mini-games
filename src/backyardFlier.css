@@ -1,0 +1,242 @@
+.backyard-flier {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #1f3b55;
+  color: #fbf1d4;
+}
+
+.backyard-flier[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.backyard-flier [hidden] {
+  display: none !important;
+}
+
+.backyard-flier header,
+.backyard-flier footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #1f3b55e8;
+}
+
+.backyard-flier header strong {
+  font-size: 1.3rem;
+}
+
+.backyard-flier button {
+  padding: 6px 12px;
+  border: 1px solid #f0c06f;
+  border-radius: 8px;
+  color: #fbf1d4;
+  background: #2f5f8a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.backyard-flier button.primary {
+  border-color: #ffd98a;
+  background: #e0478a;
+  color: #fff;
+  font-weight: 800;
+}
+
+.flier-field {
+  position: absolute;
+  inset: 0;
+}
+
+.backyard-flier canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: pointer;
+}
+
+/* A white flash on a crash. */
+.backyard-flier.flash .flier-field::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+  animation: flier-flash 0.35s ease-out forwards;
+}
+
+@keyframes flier-flash {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.flier-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #14283bc4;
+  text-align: center;
+}
+
+.flier-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.flier-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.flier-modes button {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+}
+
+.flier-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+/* The score, big at the top middle. */
+.flier-score {
+  position: absolute;
+  z-index: 1;
+  top: clamp(16px, 6vh, 56px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font:
+    900 clamp(3rem, 10vw, 5.5rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  -webkit-text-stroke: 3px #1f2a1b;
+  paint-order: stroke fill;
+  text-shadow: 0 5px 0 #1f2a1b;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.flier-score.bump {
+  animation: flier-bump 0.25s ease-out;
+}
+
+@keyframes flier-bump {
+  40% {
+    transform: translateX(-50%) scale(1.25);
+  }
+}
+
+.flier-hint {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 62%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 22px;
+  border-radius: 18px;
+  background: #1f3b55d0;
+  color: #fff;
+  font:
+    800 clamp(1.3rem, 4vw, 1.9rem) / 1.1 Fredoka,
+    system-ui,
+    sans-serif;
+  cursor: pointer;
+  user-select: none;
+  animation: flier-hint 1.1s ease-in-out infinite;
+}
+
+/* A finger tapping. */
+.flier-tap {
+  width: 34px;
+  height: 34px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  animation: flier-tap 1.1s ease-in-out infinite;
+}
+
+@keyframes flier-hint {
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+@keyframes flier-tap {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.65);
+    opacity: 0.6;
+  }
+}
+
+.backyard-flier footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.9rem;
+}
+
+.backyard-flier footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1f3b55e8;
+}
+
+.backyard-flier footer > span:empty {
+  display: none;
+}
+
+.backyard-flier footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+.flier-hud > span {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid #f5cd7a;
+  border-radius: 10px;
+  background: #fff3cf;
+  color: #2c3b26;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}

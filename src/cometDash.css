@@ -1,0 +1,301 @@
+.comet-dash {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #1d1446;
+  color: #fff4fb;
+}
+
+.comet-dash[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.comet-dash [hidden] {
+  display: none !important;
+}
+
+.comet-dash header,
+.comet-dash footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #1d1446e8;
+}
+
+.comet-dash header strong {
+  font-size: 1.3rem;
+}
+
+.comet-dash button {
+  padding: 6px 12px;
+  border: 1px solid #ffb8e0;
+  border-radius: 8px;
+  color: #fff4fb;
+  background: #5b2f8f;
+  font: inherit;
+  cursor: pointer;
+}
+
+.comet-dash button.primary {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  border-color: #ffe2a0;
+  background: linear-gradient(90deg, #ff5a7a, #ffa04a, #a77aff);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-shadow: 0 1px 2px #0005;
+}
+
+.cd-field {
+  position: absolute;
+  inset: 0;
+}
+
+.comet-dash canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cd-hud {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: clamp(10px, 3vw, 30px);
+  right: clamp(10px, 3vw, 30px);
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.5vw, 12px);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-hud > span {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #1d1446b8;
+  border: 1px solid #ffffff40;
+  font-size: clamp(1rem, 2.4vw, 1.4rem);
+  font-weight: 800;
+}
+
+.cd-hud > span:empty {
+  display: none;
+}
+
+.cd-hud [data-stars] {
+  color: #ffe27a;
+  letter-spacing: 0.1em;
+}
+
+.cd-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #140f3dc4;
+  text-align: center;
+}
+
+.cd-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+}
+
+.cd-panel p {
+  max-width: 42ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.cd-keys {
+  margin-top: 14px;
+  max-width: 52ch;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.comet-dash footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+}
+
+.comet-dash footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1d1446e8;
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-weight: 700;
+}
+
+.comet-dash footer > span:empty {
+  display: none;
+}
+
+.comet-dash footer button {
+  pointer-events: auto;
+}
+
+.comet-dash footer [data-music] {
+  margin-left: auto;
+}
+
+.cd-banner {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font:
+    900 clamp(2rem, 6vw, 3.6rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 3px 0 #a3367a,
+    0 0 18px #ff8ad0;
+}
+
+.cd-banner.show {
+  animation: cd-banner 1.1s ease-out both;
+}
+
+@keyframes cd-banner {
+  from {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: translateX(-50%) scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 0;
+  }
+}
+
+.cd-pops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cd-pop {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font:
+    900 clamp(1.2rem, 3vw, 1.8rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #5b2f8f,
+    0 0 8px #0006;
+  animation: cd-pop 1s ease-out forwards;
+}
+
+.cd-pop.small {
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: #ffe27a;
+}
+
+.cd-pop.big {
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  color: #8ff4ff;
+  text-shadow:
+    0 2px 0 #2a2378,
+    0 0 10px #1d1446;
+}
+
+@keyframes cd-pop {
+  from {
+    transform: translate(-50%, -60%) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -100%) scale(1.1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -220%) scale(1);
+    opacity: 0;
+  }
+}
+
+.cd-touch {
+  position: absolute;
+  inset: auto 0 max(56px, env(safe-area-inset-bottom)) 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 4vw, 40px);
+  pointer-events: none;
+}
+
+.comet-dash .cd-touch button {
+  display: grid;
+  place-items: center;
+  width: clamp(84px, 18vw, 120px);
+  height: clamp(84px, 18vw, 120px);
+  border: 3px solid #ffffff80;
+  border-radius: 50%;
+  background: #ffffff26;
+  font-size: 2rem;
+  line-height: 1;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.cd-touch small {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .cd-touch {
+    bottom: calc(110px + env(safe-area-inset-bottom));
+  }
+}

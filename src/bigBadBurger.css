@@ -1,0 +1,245 @@
+.big-bad-burger {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #3a1630;
+  color: #fbf1d4;
+}
+
+.big-bad-burger[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.big-bad-burger [hidden] {
+  display: none !important;
+}
+
+.big-bad-burger header,
+.big-bad-burger footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #3a1630e8;
+}
+
+.big-bad-burger header strong {
+  font-size: 1.3rem;
+}
+
+.big-bad-burger button {
+  padding: 6px 12px;
+  border: 1px solid #f0c06f;
+  border-radius: 8px;
+  color: #fbf1d4;
+  background: #8e2b3b;
+  font: inherit;
+  cursor: pointer;
+}
+
+.big-bad-burger button.primary {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  border-color: #ffd98a;
+  background: #c8412f;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.bb-field {
+  position: absolute;
+  inset: 0;
+}
+
+.big-bad-burger canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.bb-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #24101fc4;
+  text-align: center;
+}
+
+.bb-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.bb-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.bb-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.big-bad-burger footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.9rem;
+}
+
+.big-bad-burger footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #3a1630e8;
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-weight: 700;
+}
+
+.big-bad-burger footer > span:empty {
+  display: none;
+}
+
+.big-bad-burger footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+.bb-hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.5vw, 12px);
+  font-variant-numeric: tabular-nums;
+}
+
+.bb-hud > span {
+  padding: 8px 14px;
+  border: 1px solid #f5cd7a;
+  border-radius: 10px;
+  background: #fff3cf;
+  color: #3a1630;
+  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+  font-weight: 800;
+}
+
+.bb-pops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bb-pop {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font:
+    900 clamp(1.4rem, 3.4vw, 2.1rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #9a2a2a,
+    0 0 8px #0006;
+  animation: bb-pop 1.2s ease-out forwards;
+}
+
+.bb-pop.big {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: #ffe27a;
+}
+
+@keyframes bb-pop {
+  from {
+    transform: translate(-50%, -60%) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -100%) scale(1.15);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -260%) scale(1);
+    opacity: 0;
+  }
+}
+
+.big-bad-burger canvas {
+  cursor: pointer;
+}
+
+.bb-hud > span:empty {
+  display: none;
+}
+
+/* The next ingredient, top right like a ticket on the rail. */
+.bb-next {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  right: clamp(12px, 3vw, 28px);
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  padding: 6px 14px 8px;
+  border: 3px solid #c93a3a;
+  border-radius: 12px;
+  background: #fffaf0;
+  color: #3a1630;
+  font:
+    900 clamp(1.6rem, 4vw, 2.3rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  box-shadow: 0 4px 0 #0003;
+  pointer-events: none;
+}
+
+.bb-next small {
+  font-size: 0.4em;
+  letter-spacing: 0.15em;
+  opacity: 0.7;
+}
+
+/* Wobbly warning: the height badge shakes. */
+.bb-hud .bb-wobbly {
+  animation: bb-shake 0.3s linear infinite;
+  background: #ffd9d0;
+}
+
+@keyframes bb-shake {
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}

@@ -1,0 +1,275 @@
+.backyard-fling {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #24402a;
+  color: #fbf1d4;
+}
+
+.backyard-fling[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.backyard-fling [hidden] {
+  display: none !important;
+}
+
+.backyard-fling header,
+.backyard-fling footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #24402ae8;
+}
+
+.backyard-fling header strong {
+  font-size: 1.3rem;
+}
+
+.backyard-fling button {
+  padding: 6px 12px;
+  border: 1px solid #f0c06f;
+  border-radius: 8px;
+  color: #fbf1d4;
+  background: #3a6640;
+  font: inherit;
+  cursor: pointer;
+}
+
+.backyard-fling button.primary {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  border-color: #ffd98a;
+  background: #c8412f;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.fling-field {
+  position: absolute;
+  inset: 0;
+}
+
+.backyard-fling canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.fling-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #1a2f1fc4;
+  text-align: center;
+}
+
+.fling-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.fling-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.fling-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.backyard-fling footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.9rem;
+}
+
+.backyard-fling footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #24402ae8;
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-weight: 700;
+}
+
+.backyard-fling footer > span:empty {
+  display: none;
+}
+
+.backyard-fling footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+.fling-hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.5vw, 12px);
+  font-variant-numeric: tabular-nums;
+}
+
+.fling-hud > span {
+  padding: 8px 14px;
+  border: 1px solid #f5cd7a;
+  border-radius: 10px;
+  background: #fff3cf;
+  color: #2c3b26;
+  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+  font-weight: 800;
+}
+
+.fling-pops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fling-pop {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font:
+    900 clamp(1.4rem, 3.4vw, 2.1rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #3d7a2c,
+    0 0 8px #0006;
+  animation: fling-pop 1.2s ease-out forwards;
+}
+
+.fling-pop.big {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: #ffe27a;
+}
+
+@keyframes fling-pop {
+  from {
+    transform: translate(-50%, -60%) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -100%) scale(1.15);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -260%) scale(1);
+    opacity: 0;
+  }
+}
+
+/* The yard's name, and "Yard cleared!", across the middle for a moment. */
+.fling-banner {
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  font:
+    900 clamp(2rem, 6vw, 3.6rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #ffe27a;
+  white-space: nowrap;
+  text-shadow:
+    0 3px 0 #8a4b16,
+    0 0 12px #0006;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fling-banner.show {
+  animation: fling-banner 2s ease-out;
+}
+
+@keyframes fling-banner {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -70%) scale(1);
+    opacity: 0;
+  }
+}
+
+.backyard-fling canvas {
+  cursor: default;
+}
+
+/* Touch screens: big steer buttons in the bottom corners. */
+.fling-pad {
+  position: absolute;
+  inset: auto 0 calc(env(safe-area-inset-bottom, 0px) + 70px) 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 clamp(12px, 4vw, 40px);
+  pointer-events: none;
+}
+
+.backyard-fling .fling-pad button {
+  width: clamp(76px, 20vw, 110px);
+  height: clamp(76px, 20vw, 110px);
+  padding: 0;
+  border: 3px solid #fff3cf;
+  border-radius: 50%;
+  background: #3a6640cc;
+  color: #fff3cf;
+  font-size: clamp(1.8rem, 7vw, 2.6rem);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.backyard-fling.steering .fling-pad button {
+  opacity: 1;
+  background: #c8412fe6;
+}

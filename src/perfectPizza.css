@@ -1,0 +1,374 @@
+.perfect-pizza {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #cfe9e2;
+  color: #3a2618;
+}
+
+.perfect-pizza[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.perfect-pizza [hidden] {
+  display: none !important;
+}
+
+.perfect-pizza header,
+.perfect-pizza footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #fff6ece8;
+}
+
+.perfect-pizza header strong {
+  font-size: 1.3rem;
+}
+
+.perfect-pizza button {
+  padding: 6px 12px;
+  border: 1px solid #d9a46a;
+  border-radius: 8px;
+  color: #3a2618;
+  background: #fff6ec;
+  font: inherit;
+  cursor: pointer;
+}
+
+.perfect-pizza button.primary {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  border-color: #b8304a;
+  background: #d63c55;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.pizza-field {
+  position: absolute;
+  inset: 0;
+}
+
+.perfect-pizza canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: pointer;
+}
+
+/* The order: a big picture of the dish, top left. Tap it to hear it again. */
+.perfect-pizza .pizza-card {
+  position: absolute;
+  z-index: 1;
+  top: clamp(8px, 2vh, 18px);
+  left: clamp(8px, 2vw, 22px);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px clamp(8px, 1.5vw, 14px) 8px;
+  border: 4px solid #ffd23f;
+  border-radius: 22px;
+  background: #fffdf6;
+  box-shadow:
+    0 6px 0 #c99a2e,
+    0 10px 24px #0004;
+  color: #3a2618;
+  font:
+    800 clamp(1rem, 2.6vw, 1.5rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  user-select: none;
+}
+
+.pizza-card img {
+  width: clamp(96px, min(26vh, 22vw), 210px);
+  height: clamp(96px, min(26vh, 22vw), 210px);
+  object-fit: contain;
+}
+
+.pizza-label {
+  color: #8a6a4c;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.75em;
+}
+
+.pizza-again {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+.pizza-card.pop {
+  animation: pizza-pop 0.5s ease-out;
+}
+
+@keyframes pizza-pop {
+  0% {
+    transform: scale(0.5) rotate(-6deg);
+  }
+  60% {
+    transform: scale(1.08) rotate(2deg);
+  }
+}
+
+/* One plate per order; it fills with the dish when it's served. */
+.pizza-plates {
+  position: absolute;
+  z-index: 1;
+  top: clamp(52px, 8vh, 70px);
+  right: clamp(10px, 2vw, 22px);
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: #fff6ecd8;
+  list-style: none;
+  pointer-events: none;
+}
+
+.pizza-plates li {
+  display: grid;
+  place-items: center;
+  width: clamp(34px, 5vw, 48px);
+  aspect-ratio: 1;
+  border: 3px dashed #d9a46a;
+  border-radius: 50%;
+  background: #fff;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+}
+
+.pizza-plates li.full {
+  border: 3px solid #3fbf5a;
+  animation: pizza-fill 0.5s ease-out;
+}
+
+@keyframes pizza-fill {
+  50% {
+    transform: scale(1.5);
+  }
+}
+
+/* The cooking ring over the cooker. */
+.pizza-timer {
+  --fill: 0deg;
+  --ring: #3fbf5a;
+  position: absolute;
+  z-index: 1;
+  width: clamp(54px, 8vw, 84px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -100%);
+  border-radius: 50%;
+  background: conic-gradient(var(--ring) var(--fill), #ffffffa8 0);
+  box-shadow: 0 4px 12px #0003;
+  pointer-events: none;
+}
+
+.pizza-timer i {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background: #fffdf6;
+}
+
+.pizza-timer b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(1.2rem, 2.6vw, 2rem);
+}
+
+.pizza-timer[data-phase="ready"] {
+  animation: pizza-ready 1s ease-in-out infinite;
+}
+
+.pizza-timer[data-phase="warn"] {
+  animation: pizza-warn 0.35s ease-in-out infinite;
+}
+
+@keyframes pizza-ready {
+  50% {
+    transform: translate(-50%, -100%) scale(1.12);
+  }
+}
+
+@keyframes pizza-warn {
+  50% {
+    transform: translate(-50%, -100%) scale(1.18) rotate(6deg);
+  }
+}
+
+/* "E" (or ✋) over whatever the chef can use from where it stands. */
+.pizza-use {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-width: 1.9em;
+  height: 1.9em;
+  padding: 0 0.3em;
+  transform: translate(-50%, -100%);
+  border: 3px solid #2a7fff;
+  border-radius: 10px;
+  background: #fffdf6;
+  box-shadow: 0 4px 0 #1b5bc0;
+  color: #1b5bc0;
+  font:
+    900 clamp(1.1rem, 2.4vw, 1.5rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  pointer-events: none;
+  animation: pizza-bob 0.9s ease-in-out infinite;
+}
+
+@keyframes pizza-bob {
+  50% {
+    transform: translate(-50%, calc(-100% - 6px));
+  }
+}
+
+/* Touch: hold-to-walk arrows bottom left, a big use button bottom right. */
+.pizza-pad {
+  position: absolute;
+  z-index: 2;
+  left: clamp(10px, 2vw, 22px);
+  bottom: clamp(10px, 3vh, 26px);
+  display: grid;
+  grid-template:
+    ". up ." auto
+    "left down right" auto / auto auto auto;
+  gap: 6px;
+}
+
+.pizza-pad [data-dir="up"] {
+  grid-area: up;
+}
+.pizza-pad [data-dir="left"] {
+  grid-area: left;
+}
+.pizza-pad [data-dir="down"] {
+  grid-area: down;
+}
+.pizza-pad [data-dir="right"] {
+  grid-area: right;
+}
+
+.perfect-pizza .pizza-pad button {
+  width: clamp(56px, 9vw, 76px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 3px solid #d9a46a;
+  border-radius: 16px;
+  background: #fff6ecdd;
+  font-size: 1.6rem;
+  touch-action: none;
+  user-select: none;
+}
+
+.perfect-pizza .pizza-use-button {
+  position: absolute;
+  z-index: 2;
+  right: clamp(12px, 3vw, 30px);
+  bottom: clamp(12px, 3vh, 30px);
+  width: clamp(88px, 14vw, 120px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 4px solid #b8304a;
+  border-radius: 50%;
+  background: #d63c55;
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  touch-action: none;
+  user-select: none;
+  opacity: 0.75;
+}
+
+.perfect-pizza .pizza-use-button.ready {
+  opacity: 1;
+  box-shadow: 0 0 0 6px #ffd23f;
+}
+
+.pizza-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #fff6ecd0;
+  text-align: center;
+}
+
+.pizza-panel h2 {
+  margin: 0;
+  font:
+    800 clamp(2rem, 6vw, 3.4rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #d63c55;
+}
+
+.pizza-panel p {
+  max-width: 42ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.pizza-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.perfect-pizza footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.95rem;
+}
+
+.perfect-pizza footer > span {
+  max-width: min(60vw, 34em);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #fff6ece8;
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+  font-weight: 700;
+}
+
+.perfect-pizza footer > span:empty {
+  display: none;
+}
+
+.perfect-pizza footer button {
+  pointer-events: auto;
+  position: fixed;
+  top: clamp(8px, 2vh, 18px);
+  right: clamp(10px, 2vw, 22px);
+}

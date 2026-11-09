@@ -1,0 +1,235 @@
+.pond-fishing {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #19342f;
+  color: #f5ebca;
+}
+
+.pond-fishing[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.pond-fishing header,
+.pond-fishing footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #19342fe8;
+}
+
+.pond-fishing header strong {
+  font-size: 1.3rem;
+}
+
+.pond-fishing button {
+  padding: 6px 12px;
+  border: 1px solid #e9bd70;
+  border-radius: 6px;
+  color: #f5ebca;
+  background: #285449;
+}
+
+.pond-fishing [hidden] {
+  display: none !important;
+}
+
+.pond-field {
+  position: absolute;
+  inset: 0;
+}
+
+.pond-fishing canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+  outline: none;
+}
+
+.pond-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 10px;
+  background: #122720c9;
+  text-align: center;
+}
+
+.pond-panel h2 {
+  margin: 0;
+}
+
+.pond-panel p {
+  max-width: 40ch;
+  margin: 8px 0 14px;
+}
+
+.pond-panel button {
+  padding: 12px 26px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  background: #f5cd5a;
+  color: #263b30;
+}
+
+/* The bite indicator floats over the bobber. */
+.pond-bite {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: -78px 0 0 -32px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #f0533f;
+  color: #fff;
+  font:
+    900 2.6rem/1 Fredoka,
+    system-ui,
+    sans-serif;
+  box-shadow: 0 6px 18px #0006;
+  pointer-events: none;
+  animation: pond-bite 0.32s ease-out infinite alternate;
+}
+
+@keyframes pond-bite {
+  from {
+    transform: scale(0.9) rotate(-6deg);
+  }
+  to {
+    transform: scale(1.12) rotate(6deg);
+  }
+}
+
+.pond-catch {
+  position: absolute;
+  z-index: 2;
+  top: 14%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 220px;
+  padding: 14px 26px 16px;
+  border: 3px solid #f5cd7a;
+  border-radius: 18px;
+  background: #fff6d6;
+  color: #263b30;
+  text-align: center;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 28px #0005;
+  animation: pond-catch 0.35s cubic-bezier(0.3, 1.6, 0.6, 1);
+}
+
+.pond-catch span {
+  font-size: 3rem;
+  line-height: 1.1;
+}
+
+.pond-catch.bigFish span {
+  font-size: 4.2rem;
+}
+
+.pond-catch.goldenFish {
+  background: #ffe68a;
+  border-color: #e0a420;
+}
+
+.pond-catch strong {
+  font-size: 1.5rem;
+}
+
+.pond-catch small {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #3f7d4f;
+}
+
+@keyframes pond-catch {
+  from {
+    transform: translateX(-50%) scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.pond-fishing footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  min-height: 2.5em;
+  background: transparent;
+  pointer-events: none;
+  font-size: 0.9rem;
+}
+
+.pond-fishing footer > span,
+.pond-hud {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #19342fe8;
+}
+
+.pond-fishing footer > span:empty {
+  display: none;
+}
+
+.pond-fishing footer .pond-hud {
+  display: flex;
+  gap: clamp(8px, 2vw, 18px);
+  padding: 10px 14px;
+  border: 1px solid #f5cd7a;
+  background: #fff0c5;
+  color: #263b30;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.pond-fishing footer button {
+  pointer-events: auto;
+}
+
+.pond-fishing footer [data-pause] {
+  margin-left: auto;
+}
+
+/* Big tap target for casting and reeling on touch screens. */
+.pond-fishing .pond-action {
+  min-width: 150px;
+  min-height: 56px;
+  padding: 10px 26px;
+  border: 3px solid #fff3c4;
+  border-radius: 999px;
+  background: #2f7f9a;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.pond-fishing .pond-action.hot {
+  background: #f0533f;
+  animation: pond-bite 0.32s ease-out infinite alternate;
+}

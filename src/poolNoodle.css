@@ -1,0 +1,254 @@
+.pool-noodle {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #1f3b55;
+  color: #fbf1d4;
+}
+
+.pool-noodle[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.pool-noodle [hidden] {
+  display: none !important;
+}
+
+.pool-noodle header,
+.pool-noodle footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #1f3b55e8;
+}
+
+.pool-noodle header strong {
+  font-size: 1.3rem;
+}
+
+.pool-noodle button {
+  padding: 6px 12px;
+  border: 1px solid #f0c06f;
+  border-radius: 8px;
+  color: #fbf1d4;
+  background: #2f5f8a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pool-noodle button.primary {
+  border-color: #ffd98a;
+  background: #e0478a;
+  color: #fff;
+  font-weight: 800;
+}
+
+.noodle-field {
+  position: absolute;
+  inset: 0;
+}
+
+.pool-noodle canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}
+
+.noodle-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #14283bc4;
+  text-align: center;
+}
+
+.noodle-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.noodle-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.noodle-modes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.noodle-modes button {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+}
+
+.noodle-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.pool-noodle footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.9rem;
+}
+
+.pool-noodle footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1f3b55e8;
+}
+
+.pool-noodle footer > span:empty {
+  display: none;
+}
+
+.pool-noodle footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+.noodle-hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.5vw, 12px);
+  font-variant-numeric: tabular-nums;
+}
+
+.noodle-hud > span {
+  padding: 8px 14px;
+  border: 1px solid #f5cd7a;
+  border-radius: 10px;
+  background: #fff3cf;
+  color: #2c3b26;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  font-weight: 800;
+}
+
+.noodle-tags > * {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Name tags over each player's head. */
+.noodle-tag {
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: var(--who, #ffb347);
+  color: #1f2a1b;
+  font-weight: 800;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.noodle-tag.human {
+  opacity: 1;
+  font-size: 1rem;
+  box-shadow: 0 0 0 3px #fff;
+}
+
+/* Each station's total, big, on the grass in front of the player. */
+.noodle-station-score {
+  transform: translate(-50%, -50%);
+  color: var(--who, #ffb347);
+  font:
+    900 clamp(1.8rem, 5vw, 3.2rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  -webkit-text-stroke: 2px #1f2a1b;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #1f2a1b;
+  font-variant-numeric: tabular-nums;
+}
+
+.noodle-pops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.noodle-pop {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font:
+    900 1.9rem/1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  text-shadow:
+    0 2px 0 #3d7a2c,
+    0 0 8px #0006;
+  animation: noodle-pop 0.85s ease-out forwards;
+}
+
+.noodle-pop.perfect {
+  font-size: 2.4rem;
+  color: #fff6a8;
+  text-shadow:
+    0 2px 0 #b06a00,
+    0 0 12px #ffd23f;
+}
+
+.noodle-pop.high,
+.noodle-pop.miss {
+  font-size: 2rem;
+  color: #ffe0c2;
+  text-shadow:
+    0 2px 0 #7a3d1c,
+    0 0 8px #0008;
+}
+
+.noodle-pop.small {
+  font-size: 1.2rem;
+  opacity: 0.85;
+}
+
+@keyframes noodle-pop {
+  from {
+    transform: translate(-50%, -60%) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -100%) scale(1.15);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -220%) scale(1);
+    opacity: 0;
+  }
+}

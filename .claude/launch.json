@@ -1,0 +1,60 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mini-games",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "start"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "mini-games-alt",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3007",
+        "node",
+        "--watch",
+        "server/index.js"
+      ],
+      "port": 3007
+    },
+    {
+      "name": "mini-games-3009",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3009",
+        "node",
+        "--watch",
+        "server/index.js"
+      ],
+      "port": 3009,
+      "autoPort": false
+    },
+    {
+      "name": "mini-games-3013",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3013",
+        "node",
+        "--watch",
+        "server/index.js"
+      ],
+      "port": 3013,
+      "autoPort": false
+    },
+    {
+      "name": "mini-games-3021",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3021",
+        "node",
+        "--watch",
+        "server/index.js"
+      ],
+      "port": 3021,
+      "autoPort": false
+    }
+  ]
+}

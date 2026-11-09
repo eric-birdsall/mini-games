@@ -1,0 +1,262 @@
+.river-crossing {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #173a44;
+  color: #f2f0d8;
+}
+
+.river-crossing[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.river-crossing header,
+.river-crossing footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #173a44e8;
+}
+
+.river-crossing header strong {
+  font-size: 1.3rem;
+}
+
+.river-crossing button {
+  padding: 6px 12px;
+  border: 1px solid #9fd8c4;
+  border-radius: 6px;
+  color: #f2f0d8;
+  background: #24606b;
+}
+
+.river-crossing [hidden] {
+  display: none !important;
+}
+
+.river-field {
+  position: absolute;
+  inset: 0;
+}
+
+.river-crossing canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.river-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 10px;
+  background: #0f2a31c9;
+  text-align: center;
+}
+
+.river-panel h2 {
+  margin: 0;
+}
+
+.river-panel p {
+  max-width: 40ch;
+  margin: 8px 0 14px;
+}
+
+.river-panel button {
+  padding: 12px 26px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  background: #f5cd5a;
+  color: #22393a;
+}
+
+/* "Splash!" floats up from the player. */
+.river-pop {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -100%);
+  color: #fff;
+  font:
+    900 1.8rem/1 Fredoka,
+    system-ui,
+    sans-serif;
+  text-shadow:
+    0 2px 0 #2a7fa0,
+    0 4px 12px #0007;
+  pointer-events: none;
+  animation: river-pop 0.9s ease-out forwards;
+}
+
+@keyframes river-pop {
+  from {
+    transform: translate(-50%, -60%) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -100%) scale(1.15);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -190%) scale(1);
+    opacity: 0;
+  }
+}
+
+.river-banner {
+  position: absolute;
+  z-index: 2;
+  top: 14%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 220px;
+  padding: 14px 26px 16px;
+  border: 3px solid #9fd8c4;
+  border-radius: 18px;
+  background: #f4fbf3;
+  color: #22393a;
+  text-align: center;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 28px #0005;
+  pointer-events: none;
+  animation: river-banner 0.35s cubic-bezier(0.3, 1.6, 0.6, 1);
+}
+
+.river-banner strong {
+  font-size: 1.6rem;
+}
+
+.river-banner small {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #2f7d72;
+}
+
+@keyframes river-banner {
+  from {
+    transform: translateX(-50%) scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.river-crossing footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  align-items: flex-end;
+  min-height: 2.5em;
+  background: transparent;
+  pointer-events: none;
+  font-size: 0.9rem;
+}
+
+.river-crossing footer > span,
+.river-hud {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #173a44e8;
+}
+
+.river-crossing footer > span:empty {
+  display: none;
+}
+
+.river-crossing footer .river-hud {
+  display: flex;
+  gap: clamp(8px, 2vw, 18px);
+  padding: 10px 14px;
+  border: 1px solid #9fd8c4;
+  background: #eef9ef;
+  color: #22393a;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.river-crossing footer button {
+  pointer-events: auto;
+}
+
+.river-crossing footer [data-pause] {
+  order: 4;
+  margin-left: auto;
+}
+
+/* Big arrow buttons for touch screens, laid out like a D-pad. */
+.river-pad {
+  order: 5;
+  display: grid;
+  grid-template:
+    ". up ." 56px
+    "left down right" 56px / 56px 56px 56px;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.river-crossing .river-pad button {
+  padding: 0;
+  border: 3px solid #e9f8ee;
+  border-radius: 14px;
+  background: #2b8095d9;
+  color: #fff;
+  font-size: 1.4rem;
+  touch-action: none;
+}
+
+.river-crossing .river-pad button:active {
+  background: #3fa3b8;
+}
+
+.river-pad [data-hop="up"] {
+  grid-area: up;
+}
+
+.river-pad [data-hop="left"] {
+  grid-area: left;
+}
+
+.river-pad [data-hop="down"] {
+  grid-area: down;
+}
+
+.river-pad [data-hop="right"] {
+  grid-area: right;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .river-pad {
+    grid-template:
+      ". up ." 40px
+      "left down right" 40px / 40px 40px 40px;
+    gap: 4px;
+    opacity: 0.8;
+  }
+  .river-crossing .river-pad button {
+    font-size: 1rem;
+    border-width: 2px;
+  }
+}

@@ -1,0 +1,387 @@
+.leaf-piles {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #3b2a1c;
+  color: #fbf1d4;
+}
+
+.leaf-piles[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.leaf-piles [hidden] {
+  display: none !important;
+}
+
+.leaf-piles header,
+.leaf-piles footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #3b2a1ce8;
+}
+
+.leaf-piles header strong {
+  font-size: 1.3rem;
+}
+
+.leaf-piles button {
+  padding: 6px 12px;
+  border: 1px solid #f0c06f;
+  border-radius: 8px;
+  color: #fbf1d4;
+  background: #6b4524;
+  font: inherit;
+  cursor: pointer;
+}
+
+.leaf-piles button.primary {
+  border-color: #ffd98a;
+  background: #d4612a;
+  color: #fff;
+  font-weight: 800;
+}
+
+.leaf-field {
+  position: absolute;
+  inset: 0;
+}
+
+.leaf-piles canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}
+
+.leaf-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #2a1d12c4;
+  text-align: center;
+}
+
+.leaf-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.leaf-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.leaf-modes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.leaf-modes button {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+}
+
+.leaf-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.leaf-piles footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.9rem;
+}
+
+.leaf-piles footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #3b2a1ce8;
+}
+
+.leaf-piles footer > span:empty {
+  display: none;
+}
+
+.leaf-piles footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+.leaf-hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.5vw, 12px);
+  font-variant-numeric: tabular-nums;
+}
+
+.leaf-hud > span {
+  padding: 8px 14px;
+  border: 1px solid #f5cd7a;
+  border-radius: 10px;
+  background: #fff3cf;
+  color: #2c3b26;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  font-weight: 800;
+}
+
+.leaf-tags > * {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Name tags over each player's head. */
+.leaf-tag {
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: var(--who, #ffb347);
+  color: #1f2a1b;
+  font-weight: 800;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.leaf-tag.human {
+  opacity: 1;
+  font-size: 1rem;
+  box-shadow: 0 0 0 3px #fff;
+}
+
+/* Each lane's total, big, on the grass in front of the player. */
+.leaf-score {
+  transform: translate(-50%, -50%);
+  color: var(--who, #ffb347);
+  font:
+    900 clamp(1.8rem, 5vw, 3.2rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  -webkit-text-stroke: 2px #1f2a1b;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #1f2a1b;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaf-hud > span.hurry {
+  border-color: #ff9b7a;
+  background: #ffd9cc;
+  color: #8a2312;
+  animation: leaf-hurry 1s ease-in-out infinite;
+}
+
+@keyframes leaf-hurry {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* The pile size, big, in each corner, with a star per round won. */
+.leaf-score {
+  transform: translate(-50%, -50%);
+}
+
+.leaf-score::after {
+  content: attr(data-wins);
+  display: block;
+  margin-top: 2px;
+  color: #ffe27a;
+  font-size: 0.45em;
+  letter-spacing: 0.1em;
+  text-align: center;
+  -webkit-text-stroke: 1px #1f2a1b;
+}
+
+.leaf-score.bump {
+  animation: leaf-bump 0.3s ease-out;
+}
+
+@keyframes leaf-bump {
+  40% {
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+}
+
+.leaf-banner {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  max-width: 92vw;
+  padding: 10px 26px;
+  border-radius: 18px;
+  background: #3b2a1ce0;
+  color: #fff4dc;
+  font:
+    900 clamp(1.6rem, 5vw, 2.8rem) / 1.1 Fredoka,
+    system-ui,
+    sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+
+.leaf-banner:empty {
+  display: none;
+}
+
+.leaf-banner.count {
+  font-size: clamp(2.4rem, 9vw, 5rem);
+  background: transparent;
+  -webkit-text-stroke: 3px #3b2a1c;
+  paint-order: stroke fill;
+}
+
+.leaf-banner.go {
+  background: #d4612a;
+}
+
+.leaf-banner.win {
+  background: #d4612a;
+  box-shadow: 0 0 0 4px #ffe27a;
+}
+
+/* Touch: a floating stick wherever you press, and a big rake button. */
+.leaf-touch {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.leaf-stick {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  margin: -55px 0 0 -55px;
+  border: 3px solid #fff8;
+  border-radius: 50%;
+  background: #0002;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.leaf-stick.on {
+  opacity: 1;
+}
+
+.leaf-stick span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: #fff4dc;
+}
+
+.leaf-piles .leaf-rake {
+  position: absolute;
+  right: 22px;
+  bottom: 78px;
+  width: 96px;
+  height: 96px;
+  border: 4px solid #ffe27a;
+  border-radius: 50%;
+  background: #d4612a;
+  font-size: 2.6rem;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.leaf-piles .leaf-rake:active {
+  transform: scale(0.94);
+}
+
+/* Four players: a card per corner; joining lights it up in that colour. */
+.leaf-seats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 15em));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.leaf-seat {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 12px 10px;
+  border: 3px dashed #f0c06f80;
+  border-radius: 14px;
+  background: #3b2a1cb0;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.leaf-seat b {
+  font-size: 1.6rem;
+  color: var(--who);
+}
+
+.leaf-seat span {
+  font-weight: 700;
+}
+
+.leaf-seat small {
+  opacity: 0.75;
+}
+
+.leaf-seat.taken {
+  border-style: solid;
+  border-color: var(--who);
+  background: color-mix(in srgb, var(--who) 30%, #3b2a1c);
+  transform: scale(1.04);
+}
+
+.leaf-seat.taken b {
+  color: #fff;
+}
+
+.leaf-lobby .leaf-keys {
+  max-width: 44ch;
+}
+
+.leaf-lobby:focus {
+  outline: none;
+}
+
+@media (max-width: 420px) {
+  .leaf-seats {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+}

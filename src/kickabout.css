@@ -1,0 +1,350 @@
+.kickabout {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #2f6b2a;
+  color: #fffbea;
+  --ka-you: #ffb347;
+  --ka-them: #5cc8ff;
+}
+
+.kickabout[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.kickabout [hidden] {
+  display: none !important;
+}
+
+.kickabout header,
+.kickabout footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #234f1fe8;
+}
+
+.kickabout header strong {
+  font-size: 1.3rem;
+}
+
+.kickabout button {
+  padding: 6px 12px;
+  border: 1px solid #d9f5c0;
+  border-radius: 8px;
+  color: #fffbea;
+  background: #3d7d35;
+  font: inherit;
+  cursor: pointer;
+}
+
+.kickabout button.primary {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  border-color: #fff3b0;
+  background: #ffd23f;
+  color: #2a3a12;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.ka-field {
+  position: absolute;
+  inset: 0;
+}
+
+.kickabout canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ka-hud {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.ka-score {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.4vw, 12px);
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #1c3d18d9;
+  border: 1px solid #ffffff40;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.ka-score b {
+  min-width: 1.1em;
+  text-align: center;
+}
+
+.ka-team {
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: #22301a;
+  font-size: 0.6em;
+  letter-spacing: 0.08em;
+}
+
+.ka-team.you {
+  background: var(--ka-you);
+}
+
+.ka-team.them {
+  background: var(--ka-them);
+}
+
+.ka-dash {
+  opacity: 0.7;
+}
+
+.ka-clock {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: #1c3d18d9;
+  font-size: clamp(0.95rem, 2.2vw, 1.2rem);
+  font-weight: 800;
+}
+
+.ka-clock.golden {
+  background: #ffd23f;
+  color: #3a2a00;
+  letter-spacing: 0.06em;
+}
+
+.ka-power {
+  position: absolute;
+  z-index: 1;
+  width: 64px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #0006;
+  overflow: hidden;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+
+.ka-power span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ffe14a, #ff8a3d, #ff4a5a);
+}
+
+.ka-power.full {
+  box-shadow: 0 0 10px #ffe14a;
+}
+
+.ka-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #1c3d18b8;
+  text-align: center;
+}
+
+.ka-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+}
+
+.ka-panel p {
+  max-width: 44ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.ka-keys {
+  margin-top: 14px;
+  max-width: 56ch;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.kickabout footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+}
+
+.kickabout footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1c3d18e8;
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-weight: 700;
+}
+
+.kickabout footer > span:empty {
+  display: none;
+}
+
+.kickabout footer button {
+  margin-left: auto;
+  pointer-events: auto;
+}
+
+.ka-banner {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font:
+    900 clamp(2rem, 6vw, 3.6rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 3px 0 #2c5a26,
+    0 0 16px #0007;
+}
+
+.ka-banner.goal {
+  font-size: clamp(3rem, 11vw, 6rem);
+  color: var(--ka-you);
+  text-shadow:
+    0 4px 0 #fff,
+    0 0 24px #fff8;
+}
+
+.ka-banner.them {
+  color: var(--ka-them);
+}
+
+.ka-banner.go {
+  color: #ffe14a;
+}
+
+.ka-banner.show {
+  animation: ka-banner 1.4s ease-out both;
+}
+
+@keyframes ka-banner {
+  from {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: translateX(-50%) scale(1.12);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 0;
+  }
+}
+
+.ka-stick {
+  position: absolute;
+  z-index: 1;
+  width: 132px;
+  height: 132px;
+  margin: -66px 0 0 -66px;
+  border: 3px solid #ffffff80;
+  border-radius: 50%;
+  background: #ffffff1f;
+  pointer-events: none;
+}
+
+.ka-stick span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: #ffffffb0;
+}
+
+.ka-touch {
+  position: absolute;
+  right: clamp(12px, 4vw, 40px);
+  bottom: max(56px, env(safe-area-inset-bottom));
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  pointer-events: none;
+}
+
+.kickabout .ka-touch button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: clamp(80px, 17vw, 112px);
+  height: clamp(80px, 17vw, 112px);
+  border: 3px solid #ffffff80;
+  border-radius: 50%;
+  background: #ffffff2e;
+  font-size: 1.9rem;
+  line-height: 1;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.kickabout .ka-touch [data-touch-shoot] {
+  width: clamp(96px, 21vw, 132px);
+  height: clamp(96px, 21vw, 132px);
+  margin-bottom: 40px;
+  background: #ffd23f5c;
+}
+
+.ka-touch small {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .ka-touch {
+    bottom: calc(90px + env(safe-area-inset-bottom));
+  }
+}

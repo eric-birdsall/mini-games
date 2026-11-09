@@ -1,0 +1,474 @@
+.pop-patrol {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #9fdcf5;
+  color: #fffbea;
+  font-family: Nunito, system-ui, sans-serif;
+}
+
+.pop-patrol[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.pop-patrol [hidden] {
+  display: none !important;
+}
+
+.pop-patrol header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 4;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #2f6b2ae8;
+}
+
+.pop-patrol header strong {
+  font:
+    700 1.3rem Fredoka,
+    system-ui,
+    sans-serif;
+}
+
+.pop-patrol button {
+  padding: 6px 12px;
+  border: 2px solid #fff3c4;
+  border-radius: 10px;
+  color: #fffbea;
+  background: #3d7f35;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pop-patrol button:focus-visible {
+  outline: 4px solid #ffe066;
+  outline-offset: 2px;
+}
+
+.pop-patrol button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pop-patrol button.primary {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  border-color: #fff;
+  background: #ffcf33;
+  color: #4a3200;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.pp-field {
+  position: absolute;
+  inset: 0;
+}
+
+.pop-patrol canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* --- Top bar: lives, money, wave and the wave buttons ---------------------- */
+.pp-hud {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: clamp(8px, 2vw, 24px);
+  right: clamp(8px, 2vw, 24px);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.pp-hud > span {
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: #2f6b2ad0;
+  border: 2px solid #ffffff55;
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  font-weight: 900;
+}
+
+.pp-hud [data-lives].low {
+  background: #c43b3bd8;
+  animation: pp-throb 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pp-throb {
+  to {
+    transform: scale(1.08);
+  }
+}
+
+.pp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+  pointer-events: auto;
+}
+
+.pp-controls button {
+  min-height: 44px;
+  background: #2f6b2ad8;
+}
+
+.pop-patrol .pp-go {
+  background: #ff8a3d;
+  border-color: #fff;
+  font-size: 1.05rem;
+}
+
+.pop-patrol .pp-go.ready {
+  animation: pp-ready 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes pp-ready {
+  to {
+    background: #ffb03d;
+    transform: scale(1.06);
+  }
+}
+
+.pop-patrol [data-fast].on {
+  background: #ffcf33;
+  color: #4a3200;
+}
+
+/* --- Shop along the bottom ------------------------------------------------- */
+.pp-shop {
+  position: absolute;
+  left: 50%;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 2;
+  transform: translateX(-50%);
+  display: flex;
+  gap: clamp(4px, 1vw, 10px);
+  max-width: calc(100% - 16px);
+  padding: 6px;
+  border-radius: 16px;
+  background: #2f6b2ac8;
+}
+
+.pp-shop.open {
+  outline: 4px solid #ffe066;
+}
+
+.pop-patrol .pp-buy {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  width: clamp(64px, 15vw, 118px);
+  min-height: 84px;
+  padding: 6px 4px;
+  border-radius: 12px;
+  background: #fffbea;
+  color: #2c4a1f;
+  line-height: 1.1;
+}
+
+.pp-buy .pp-icon {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+}
+
+.pp-buy .pp-name {
+  font-size: clamp(0.66rem, 1.5vw, 0.85rem);
+}
+
+.pp-buy .pp-cost {
+  font-weight: 900;
+  color: #b06a00;
+}
+
+.pp-buy .pp-key {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  font-size: 0.7rem;
+  opacity: 0.5;
+}
+
+.pop-patrol .pp-buy.poor {
+  filter: grayscale(0.8);
+  opacity: 0.6;
+}
+
+.pop-patrol .pp-buy.on {
+  background: #ffe066;
+  border-color: #ff8a3d;
+  transform: translateY(-6px);
+}
+
+/* --- Selected defender ------------------------------------------------------ */
+.pp-tower {
+  position: absolute;
+  right: clamp(8px, 2vw, 24px);
+  bottom: 118px;
+  z-index: 3;
+  display: grid;
+  gap: 8px;
+  width: min(300px, calc(100% - 16px));
+  padding: 12px;
+  border: 3px solid #fff3c4;
+  border-radius: 16px;
+  background: #2f6b2af0;
+  box-shadow: 0 6px 20px #0004;
+}
+
+.pp-tower-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font:
+    700 1.2rem Fredoka,
+    system-ui,
+    sans-serif;
+}
+
+.pp-tower-head [data-t-icon] {
+  font-size: 1.8rem;
+}
+
+.pop-patrol .pp-close {
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.pp-tower p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.pop-patrol .pp-up {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  align-items: center;
+  background: #ffcf33;
+  color: #4a3200;
+  text-align: left;
+}
+
+.pop-patrol .pp-up.path-b {
+  background: #7fe3ff;
+  color: #0c3a4a;
+}
+
+.pop-patrol .pp-up.poor {
+  opacity: 0.6;
+}
+
+.pp-tower-row {
+  display: flex;
+  gap: 8px;
+}
+
+.pp-tower-row button {
+  flex: 1;
+  min-height: 44px;
+}
+
+.pop-patrol .pp-sell {
+  background: #c45a3b;
+}
+
+/* --- Start panel, message, banner, floaters ------------------------------- */
+.pp-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #2f6b2ac0;
+  text-align: center;
+}
+
+.pp-panel h2 {
+  margin: 0;
+  font:
+    700 clamp(1.8rem, 5vw, 3rem) Fredoka,
+    system-ui,
+    sans-serif;
+  text-shadow: 0 3px 0 #1f4a1b;
+}
+
+.pp-panel p {
+  max-width: 44ch;
+  margin: 10px 0 16px;
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+
+.pp-keys {
+  margin-top: 14px;
+  max-width: 56ch;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.pop-patrol footer {
+  grid-row: 3;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 0 8px 120px;
+  pointer-events: none;
+}
+
+.pop-patrol footer > span {
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: #2f6b2ae8;
+  font-size: clamp(0.95rem, 2.2vw, 1.2rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.pop-patrol footer > span:empty {
+  display: none;
+}
+
+.pp-banner {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  pointer-events: none;
+  font:
+    700 clamp(2rem, 6vw, 3.6rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 3px 0 #2f6b2a,
+    0 0 18px #3d7fd8;
+}
+
+.pp-banner.show {
+  animation: pp-banner 1.4s ease-out both;
+}
+
+@keyframes pp-banner {
+  from {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: translateX(-50%) scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 0;
+  }
+}
+
+.pp-pops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pp-pop {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font:
+    700 clamp(1rem, 2.4vw, 1.5rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow:
+    0 2px 0 #2f6b2a,
+    0 0 6px #0006;
+  animation: pp-pop 1.2s ease-out forwards;
+}
+
+.pp-pop.cost,
+.pp-pop.leak {
+  color: #ffb3b3;
+}
+
+.pp-pop.bonus {
+  color: #ffe066;
+  font-size: clamp(1.3rem, 3vw, 2rem);
+}
+
+.pp-pop.upgrade {
+  color: #bff4ff;
+}
+
+@keyframes pp-pop {
+  from {
+    transform: translate(-50%, -60%) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -100%) scale(1.1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -220%) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .pp-tower {
+    bottom: 104px;
+  }
+  .pp-shop {
+    padding: 4px;
+  }
+  .pop-patrol .pp-buy {
+    min-height: 76px;
+  }
+  .pp-buy .pp-name {
+    display: none;
+  }
+  .pp-controls {
+    width: 100%;
+    margin-left: 0;
+  }
+}

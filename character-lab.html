@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>MINI GAMES — Character Lab</title
+  ><style>
+    body {
+      margin: 0;
+      background: #18202a;
+      color: #eee;
+      font: 14px system-ui;
+    }
+    header {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      right: 24px;
+    }
+    h1 {
+      font-size: 20px;
+    }
+    button,
+    a {
+      color: #eee;
+      background: #354354;
+      border: 1px solid #66768a;
+      border-radius: 5px;
+      padding: 9px 16px;
+      cursor: pointer;
+    }
+    footer {
+      position: absolute;
+      bottom: 25px;
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      font-size: 19px;
+      letter-spacing: 3px;
+    }
+    small {
+      display: block;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #b8c5d4;
+      margin-top: 8px;
+    }
+  </style>
+  <header>
+    <h1>MINI GAMES / CHARACTER LAB</h1>
+    <p>Textured operators · independent skeletons · blended locomotion</p>
+    <button data-pose="idle">Stand</button>
+    <button data-pose="walk">Walk</button> <button data-pose="run">Run</button>
+    <button data-pose="crouch">Crouch</button>
+    <button data-pose="crawl">Crawl</button>
+    <button id="turn">Turn around</button> <a href="/">Game</a>
+    <p id="status">Loading characters…</p>
+  </header>
+  <footer>
+    <div>INFILTRATOR<small>Sand / olive · light harness</small></div>
+    <div>SENTINEL<small>Navy / slate · armored carrier</small></div>
+  </footer>
+  <script type="module" src="/src/characterLab.js"></script>
+</html>

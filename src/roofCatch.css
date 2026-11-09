@@ -1,0 +1,121 @@
+.roof-catch {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #19342f;
+  color: #f5ebca;
+}
+
+.roof-catch[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.roof-catch header,
+.roof-catch footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #19342fe8;
+}
+
+.roof-catch header strong {
+  font-size: 1.3rem;
+}
+
+.roof-catch button {
+  padding: 6px 12px;
+  border: 1px solid #e9bd70;
+  border-radius: 6px;
+  color: #f5ebca;
+  background: #285449;
+}
+
+.roof-catch-field {
+  position: absolute;
+  inset: 0;
+}
+
+.roof-catch canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.roof-catch-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 10px;
+  background: #122720c9;
+  text-align: center;
+}
+
+.roof-catch-panel h2 {
+  margin: 0;
+}
+
+.roof-catch-panel p {
+  max-width: 36ch;
+  margin: 8px 0 12px;
+}
+
+.roof-catch [hidden] {
+  display: none;
+}
+
+.roof-catch footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.85rem;
+}
+
+.roof-catch footer > span,
+.roof-catch-hud {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #19342fe8;
+}
+
+.roof-catch footer > span:empty {
+  display: none;
+}
+
+.roof-catch-hud {
+  display: flex;
+  gap: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.roof-catch footer .roof-catch-hud {
+  gap: clamp(8px, 2vw, 18px);
+  padding: 10px 14px;
+  border: 1px solid #f5cd7a;
+  background: #fff0c5;
+  color: #263b30;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  font-weight: 800;
+}
+
+.roof-catch footer button { pointer-events: auto; }

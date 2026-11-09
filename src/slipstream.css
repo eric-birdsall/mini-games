@@ -1,0 +1,152 @@
+#slipstream {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #9fb9be;
+  color: #f5f0df;
+  font-family: "Nunito", sans-serif;
+}
+#slipstream canvas {
+  position: absolute;
+  inset: 0;
+}
+.ss-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 22px 30px;
+  display: flex;
+  justify-content: space-between;
+  background: #20383dc9;
+  font: 13px var(--mono);
+  letter-spacing: 2px;
+}
+#slipstream button {
+  padding: 14px 20px;
+  background: #294d53;
+  border: 1px solid #abc5bb;
+  color: #fff5dc;
+}
+.ss-setup {
+  position: absolute;
+  left: 6%;
+  top: 14%;
+  padding: 30px 36px;
+  max-width: 680px;
+  background: #19363ded;
+  box-shadow: 0 20px 80px #102d3544;
+}
+.ss-setup h1 {
+  font:
+    600 clamp(40px, 5vw, 76px)/1.05 "Fredoka",
+    serif;
+  margin: 18px 0;
+}
+.ss-setup em {
+  color: #e7bd6e;
+}
+.ss-setup small {
+  font: 12px var(--mono);
+  letter-spacing: 2px;
+  color: #b5d2c5;
+}
+.ss-modes {
+  display: flex;
+  gap: 8px;
+  margin: 24px 0;
+}
+.ss-modes button {
+  font: 12px var(--mono);
+  text-align: left;
+  flex: 1;
+}
+.ss-modes strong {
+  display: block;
+  margin-top: 10px;
+  font: 13px "Nunito";
+}
+.ss-modes .selected {
+  background: #b78336 !important;
+  border-color: #f4d391 !important;
+}
+.ss-instructions {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #cee0d6;
+}
+.ss-start {
+  background: #d6b365 !important;
+  color: #20373c !important;
+  font-weight: bold;
+  font-size: 16px;
+}
+.ss-best {
+  font: 11px var(--mono);
+  letter-spacing: 1px;
+}
+.ss-hud {
+  position: absolute;
+  top: 18px;
+  left: 4%;
+  right: 4%;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font: 15px var(--mono);
+  text-shadow: 0 2px 4px #152d35;
+  background: transparent;
+  padding: 16px;
+}
+.ss-hud b {
+  font-size: 24px;
+  color: #9af1d5;
+}
+.ss-foot {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 12px var(--mono);
+  background: #19363dce;
+  padding: 14px;
+}
+@media (max-height: 750px) {
+  .ss-setup {
+    top: 11%;
+    padding: 18px 28px;
+  }
+  .ss-setup h1 {
+    font-size: 44px;
+    margin: 12px 0;
+  }
+  .ss-modes {
+    margin: 14px 0;
+  }
+  .ss-instructions {
+    line-height: 1.6;
+  }
+}
+@media (max-width: 650px) {
+  .ss-setup {
+    left: 3%;
+    right: 3%;
+    padding: 20px;
+  }
+  .ss-modes {
+    gap: 4px;
+  }
+  #slipstream button {
+    padding: 10px;
+  }
+  .ss-top {
+    padding: 15px;
+    font-size: 10px;
+  }
+  .ss-foot {
+    font-size: 9px;
+  }
+}
+
+#slipstream:has(.ss-top:not([hidden])) .ss-hud { top: 90px; }

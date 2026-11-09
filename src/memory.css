@@ -1,0 +1,594 @@
+#memory-game {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: #f5f0d9;
+  background: radial-gradient(ellipse at 80% 70%, #172c2c, #080f1c 70%);
+  font-family: "Nunito", sans-serif;
+  overflow: auto;
+}
+#memory-game::backdrop {
+  background: #122d29;
+}
+#memory-game button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #8fa88b66;
+  border-radius: 12px;
+  background: #ffffff09;
+  color: #f5f0d9;
+  padding: 12px 18px;
+}
+#memory-game button:focus-visible {
+  outline: 3px solid #ffdf78;
+  outline-offset: 5px;
+}
+.memory-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 4vw;
+  border-bottom: 1px solid #8fa88b33;
+  font: 12px var(--mono, monospace);
+  letter-spacing: 2px;
+  gap: 20px;
+}
+.memory-layout {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 50px 5vw;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  align-items: center;
+  gap: 70px;
+}
+.memory-kicker {
+  color: #bed38e;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.memory-intro h1 {
+  font:
+    600 clamp(50px, 7vw, 94px)/0.95 "Fredoka",
+    sans-serif;
+  margin: 24px 0;
+  letter-spacing: -2px;
+}
+.memory-intro h1 em {
+  color: #f9df7d;
+  font-style: normal;
+}
+.memory-intro p {
+  line-height: 1.8;
+  color: #c7d4bf;
+}
+.memory-stats {
+  display: flex;
+  gap: 32px;
+  margin: 32px 0;
+}
+.memory-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.memory-stats small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #a5bb9f;
+}
+.memory-stats strong {
+  font-size: 21px;
+  color: #f9df7d;
+}
+.memory-help {
+  font-size: 13px;
+}
+#memory-game .memory-start {
+  display: block;
+  background: #f9df7d;
+  color: #193b2c;
+  font-weight: 900;
+  margin: 24px 0 12px;
+  padding: 16px 28px;
+}
+.memory-intro > button:not(.memory-start) {
+  font-size: 11px !important;
+  margin: 0 8px 8px 0;
+}
+.memory-status {
+  min-height: 80px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.memory-status strong {
+  font-family: "Fredoka", sans-serif;
+  font-size: 26px;
+  font-weight: 500;
+}
+.memory-status span {
+  font-size: 12px;
+  color: #bed0b8;
+}
+.memory-grid {
+  position: relative;
+  isolation: isolate;
+  height: clamp(360px, 45vw, 510px);
+  /* Diamond of fireflies around the campfire: centre and reach. */
+  --cx: 50%;
+  --cy: 55%;
+  --r: clamp(105px, min(16vw, 24vh), 240px);
+  overflow: hidden;
+  border: 1px solid #829b9d33;
+  border-radius: 32px;
+  background:
+    radial-gradient(ellipse at 50% 60%, #71512b44, transparent 42%),
+    linear-gradient(#091222 0%, #152b2c 48%, #10251e 49%, #081a15 100%);
+  box-shadow: 0 20px 70px #0006;
+}
+.memory-moon {
+  position: absolute;
+  top: 8%;
+  right: 13%;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e1e9d0;
+  box-shadow: 0 0 45px #d5e8dd44;
+}
+.memory-fence {
+  position: absolute;
+  top: 37%;
+  width: 100%;
+  height: 18%;
+  background: repeating-linear-gradient(
+    90deg,
+    #162321 0 23px,
+    #0b1818 24px 27px
+  );
+  border-block: 5px solid #1e302a;
+  transform: skewY(-2deg);
+}
+.memory-tent {
+  position: absolute;
+  top: 30%;
+  left: 3%;
+  width: 30%;
+  height: 30%;
+  background: #7c7750;
+  clip-path: polygon(48% 0, 100% 88%, 30% 100%, 0 86%);
+  filter: drop-shadow(0 8px 5px #000);
+}
+.memory-tent::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #b09c60;
+  clip-path: polygon(48% 0, 60% 94%, 100% 88%);
+}
+.memory-tent span {
+  position: absolute;
+  inset: 20% 40% 0 18%;
+  background: #162420;
+  clip-path: polygon(70% 0, 100% 100%, 0 100%);
+}
+.memory-fire {
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  width: 65px;
+  height: 82px;
+  transform: translate(-50%, -60%);
+}
+.memory-fire::before {
+  content: "";
+  position: absolute;
+  inset: -30px -50px;
+  background: radial-gradient(ellipse, #ffa73730, transparent 65%);
+}
+.memory-fire::after,
+.memory-fire span {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  width: 58px;
+  height: 12px;
+  border-radius: 8px;
+  background: #61402c;
+  transform: rotate(20deg);
+  box-shadow: inset 0 3px #99704a;
+}
+.memory-fire span {
+  transform: rotate(-20deg);
+}
+.memory-fire i {
+  position: absolute;
+  bottom: 9px;
+  left: 15px;
+  width: 38px;
+  height: 62px;
+  border-radius: 70% 20% 55% 45%;
+  background: #ff923e;
+  transform: rotate(-15deg);
+  box-shadow: 0 0 25px #ff9e4355;
+  animation: memory-flame 1.4s ease-in-out infinite alternate;
+}
+.memory-fire i:nth-child(2) {
+  left: 30px;
+  height: 45px;
+  width: 27px;
+  background: #ffbe52;
+  animation-delay: -0.7s;
+}
+.memory-fire i:nth-child(3) {
+  left: 23px;
+  height: 32px;
+  width: 22px;
+  background: #ffe6a0;
+  animation-delay: -0.3s;
+}
+#memory-game .memory-tile {
+  position: absolute;
+  left: calc(var(--cx) + var(--dx) * var(--r));
+  top: calc(var(--cy) + var(--dy) * var(--r));
+  width: 72px;
+  height: 72px;
+  margin: -36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--fly-color);
+  animation: memory-orbit 7s linear infinite;
+  animation-delay: var(--delay);
+  touch-action: manipulation;
+}
+.memory-fly {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  background: var(--fly-color);
+  opacity: 0.65;
+  box-shadow:
+    0 0 15px var(--fly-color),
+    0 0 30px var(--fly-color);
+  transition:
+    opacity 0.12s,
+    box-shadow 0.12s,
+    transform 0.12s;
+}
+.memory-fly::before,
+.memory-fly::after {
+  content: "";
+  position: absolute;
+  width: 13px;
+  height: 8px;
+  top: -4px;
+  background: #e7f4eb99;
+  border-radius: 90% 20%;
+  transform: rotate(25deg);
+  left: -8px;
+}
+.memory-fly::after {
+  left: auto;
+  right: -8px;
+  transform: rotate(-25deg) scaleX(-1);
+}
+.memory-tile small {
+  position: absolute;
+  top: 58px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transform: translateX(-50%);
+  font: 12px var(--mono, monospace);
+  color: #d4dfd7;
+  white-space: nowrap;
+}
+.memory-tile small b {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--fly-color);
+  color: #10140f;
+  font:
+    700 12px "Fredoka",
+    sans-serif;
+}
+#memory-game .memory-tile:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.memory-tile.lit .memory-fly {
+  opacity: 1;
+  transform: scale(1.5);
+  box-shadow:
+    0 0 12px #fff,
+    0 0 30px var(--fly-color),
+    0 0 65px 15px var(--fly-color);
+}
+#memory-game .memory-tile.wrong {
+  outline: 2px dashed #ff9a88;
+  outline-offset: 3px;
+}
+@keyframes memory-orbit {
+  from {
+    transform: rotate(0deg) translateX(6px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(6px) rotate(-360deg);
+  }
+}
+@keyframes memory-flame {
+  from {
+    transform: rotate(-12deg) scale(0.94, 1);
+  }
+  to {
+    transform: rotate(-3deg) scale(1, 0.88);
+  }
+}
+.memory-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 0;
+}
+.memory-progress i {
+  width: 9px;
+  height: 9px;
+  border: 1px solid #92a778;
+  border-radius: 50%;
+}
+.memory-progress i.filled {
+  background: #f9df7d;
+  border-color: #f9df7d;
+}
+@media (max-width: 760px) {
+  .memory-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    padding: 28px 6vw;
+  }
+  .memory-intro h1 {
+    font-size: 52px;
+  }
+  .memory-intro h1 br {
+    display: none;
+  }
+  .memory-intro p {
+    margin: 12px 0;
+  }
+  .memory-stats {
+    margin: 20px 0;
+  }
+  .memory-grid {
+    max-width: 440px;
+    margin: auto;
+  }
+  .memory-top {
+    padding: 14px 5vw;
+    font-size: 9px;
+  }
+  .memory-fly {
+    font-size: 38px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #memory-game .memory-tile {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memory-fire i {
+    animation: none;
+  }
+}
+
+/* The backyard is the play surface; controls stay in the compact top bar. */
+#memory-game {
+  overflow: hidden;
+}
+.memory-top {
+  position: relative;
+  z-index: 2;
+  min-height: 76px;
+  box-sizing: border-box;
+  padding: 12px 24px;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: #080f1cf2;
+}
+.memory-top h1 {
+  margin: 0;
+  font:
+    500 24px "Fredoka",
+    sans-serif;
+  white-space: nowrap;
+}
+.memory-top .memory-stats {
+  margin: 0;
+  gap: 22px;
+}
+.memory-top .memory-stats div {
+  gap: 4px;
+}
+.memory-top .memory-stats strong {
+  font-size: 16px;
+}
+.memory-rounds {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+.memory-rounds span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #718576;
+  border-radius: 50%;
+  color: #a1b3a7;
+  font-size: 12px;
+}
+.memory-rounds span.current {
+  border-color: #f9df7d;
+  color: #f9df7d;
+  box-shadow: 0 0 0 3px #f9df7d18;
+}
+.memory-rounds span.filled {
+  background: #f9df7d;
+  border-color: #f9df7d;
+  color: #193b2c;
+}
+.memory-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+#memory-game .memory-actions button {
+  padding: 9px 12px;
+  font-size: 11px;
+}
+.memory-layout {
+  display: block;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  height: calc(100% - 77px);
+}
+.memory-garden {
+  position: relative;
+  height: 100%;
+}
+.memory-grid {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+.memory-status {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 90%;
+  min-height: 0;
+  padding: 12px 24px;
+  border-radius: 18px;
+  background: #08121bc9;
+  pointer-events: none;
+}
+.memory-fire {
+  transform: translate(-50%, -55%) scale(1.4);
+}
+.memory-intro-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #030913aa;
+  backdrop-filter: blur(7px);
+  overflow: auto;
+}
+.memory-intro-overlay[hidden] {
+  display: none;
+}
+.memory-instructions {
+  width: min(440px, 100%);
+  box-sizing: border-box;
+  padding: 32px;
+  border: 1px solid #8fa88b55;
+  border-radius: 24px;
+  background: #10231f;
+  box-shadow: 0 24px 100px #0009;
+}
+.memory-instructions h2 {
+  font:
+    500 36px "Fredoka",
+    sans-serif;
+  margin: 16px 0;
+}
+.memory-instructions p {
+  color: #c7d4bf;
+  line-height: 1.7;
+  font-size: 14px;
+}
+@media (max-width: 1000px) {
+  .memory-top {
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .memory-rounds {
+    order: 4;
+    flex-basis: 100%;
+  }
+  .memory-actions {
+    margin-left: auto;
+  }
+  .memory-layout {
+    height: calc(100% - 119px);
+  }
+}
+@media (max-width: 600px) {
+  .memory-top h1 {
+    font-size: 18px;
+  }
+  .memory-top .memory-stats {
+    gap: 12px;
+    margin-left: auto;
+  }
+  .memory-top .memory-stats small {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .memory-top .memory-stats strong {
+    font-size: 13px;
+  }
+  .memory-actions {
+    order: 5;
+    width: 100%;
+    justify-content: center;
+  }
+  .memory-layout {
+    height: calc(100% - 162px);
+  }
+  .memory-status {
+    top: 12px;
+    padding: 8px 16px;
+  }
+  .memory-status strong {
+    font-size: 22px;
+  }
+  .memory-status span {
+    font-size: 11px;
+  }
+  .memory-instructions {
+    padding: 24px;
+  }
+}
+
+#memory-game[open] { display: flex; flex-direction: column; }
+#memory-game .memory-top { flex-shrink: 0; }
+#memory-game .memory-layout { flex: 1; min-height: 0; height: auto; width: 100%; }
+
+#memory-game .memory-top { order: 1; }

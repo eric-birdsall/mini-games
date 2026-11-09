@@ -1,0 +1,240 @@
+#toy-box-game {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #f5efdf;
+  color: #263f45;
+  font-family: "Nunito", sans-serif;
+  overflow: auto;
+}
+#toy-box-game::backdrop {
+  background: #263f45;
+}
+#toy-box-game button {
+  font: inherit;
+  cursor: pointer;
+}
+#toy-box-game button:focus-visible,
+#toy-box-game canvas:focus-visible {
+  outline: 3px solid #bc5c3a;
+  outline-offset: 4px;
+}
+#toy-box-game button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.tb-eyebrow {
+  font: 11px var(--mono, monospace);
+  letter-spacing: 2px;
+  color: #617875;
+}
+.tb-console h1 {
+  font: 500 28px "Fredoka", sans-serif;
+  margin: 0 0 12px;
+}
+.tb-bottom button {
+  border: 1px solid #263f4533;
+  border-radius: 30px;
+  padding: 12px 20px;
+  background: transparent;
+  color: inherit;
+}
+.tb-layout {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 36px 4vw;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 36px;
+  align-items: center;
+}
+.tb-machine {
+  background: #35525b;
+  border: 9px solid #35525b;
+  border-radius: 28px;
+  box-shadow:
+    0 18px 0 #243c48,
+    0 27px 35px #263f4526;
+  overflow: hidden;
+}
+.tb-machine-label,
+.tb-machine-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  color: #f6ddb0;
+  padding: 17px 20px;
+  font: 11px var(--mono, monospace);
+  letter-spacing: 2px;
+}
+.tb-machine-foot {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.tb-machine-foot i {
+  font-style: normal;
+  color: #acd4be;
+}
+.tb-machine canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9/7;
+  touch-action: none;
+}
+.tb-console {
+  text-align: center;
+}
+.tb-target {
+  margin: 20px 0;
+}
+.tb-target > [data-icon] {
+  display: block;
+  font-size: 68px;
+}
+.tb-target h2 {
+  font:
+    500 30px "Fredoka",
+    sans-serif;
+  margin: 10px 0;
+}
+.tb-target p {
+  font-size: 13px;
+  color: #697c79;
+  margin: 0;
+}
+.tb-status {
+  font-size: 14px;
+  min-height: 56px;
+  line-height: 1.5;
+}
+.tb-grab {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  background: #df815b;
+  color: #fff9eb;
+  padding: 20px 12px;
+  box-shadow: 0 5px 0 #b75c3a;
+  font-weight: 800 !important;
+  letter-spacing: 1px;
+}
+.tb-grab kbd {
+  margin-left: 10px;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.tb-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(3, 40px);
+  gap: 5px;
+  justify-content: center;
+  margin: 25px 0 10px;
+}
+.tb-pad button {
+  border: 1px solid #bcc8bc;
+  background: #e5e9da;
+  border-radius: 10px;
+  font-size: 24px !important;
+  color: #35525b;
+  touch-action: none;
+  user-select: none;
+}
+.tb-pad [data-dir="up"] {
+  grid-column: 2;
+}
+.tb-pad [data-dir="left"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+.tb-pad span {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+}
+.tb-pad [data-dir="right"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+.tb-pad [data-dir="down"] {
+  grid-column: 2;
+  grid-row: 3;
+}
+.tb-help {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #697c79;
+}
+.tb-shelf {
+  min-height: 50px;
+  border-top: 1px dashed #bbc4b7;
+  padding: 15px 0;
+  font-size: 24px;
+}
+.tb-shelf:empty {
+  font-size: 12px;
+}
+.tb-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: 10px var(--mono, monospace);
+  color: #617875;
+}
+.tb-bottom button {
+  padding: 8px 12px;
+}
+@media (max-width: 850px) {
+  .tb-layout {
+    grid-template-columns: 1fr;
+    padding: 22px 4vw;
+    gap: 35px;
+  }
+  .tb-console {
+    max-width: 420px;
+    width: 100%;
+    margin: auto;
+  }
+  .tb-machine-label {
+    font-size: 9px;
+    padding: 12px;
+  }
+  .tb-machine-foot {
+    font-size: 8px;
+    padding: 12px 5px;
+  }
+  .tb-target {
+    margin: 10px;
+  }
+  .tb-target > [data-icon] {
+    font-size: 48px;
+  }
+  .tb-pad {
+    margin: 20px 0 0;
+  }
+}
+
+.toybox-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    #e9d2ad 0 32px,
+    #dfc29b 33px 34px
+  );
+  border: 8px solid #35525b;
+  font-size: 26px;
+}
+.toybox-preview b {
+  color: #35525b;
+  font-size: 34px;
+  line-height: 1;
+}

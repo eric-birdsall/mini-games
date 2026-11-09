@@ -1,0 +1,284 @@
+.perch-hop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #1f3b55;
+  color: #fbf1d4;
+}
+
+.perch-hop[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.perch-hop [hidden] {
+  display: none !important;
+}
+
+.perch-hop header,
+.perch-hop footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #1f3b55e8;
+}
+
+.perch-hop header strong {
+  font-size: 1.3rem;
+}
+
+.perch-hop button {
+  padding: 6px 12px;
+  border: 1px solid #f0c06f;
+  border-radius: 8px;
+  color: #fbf1d4;
+  background: #2f5f8a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.perch-hop button.primary {
+  border-color: #ffd98a;
+  background: #e0478a;
+  color: #fff;
+  font-weight: 800;
+}
+
+.hop-field {
+  position: absolute;
+  inset: 0;
+}
+
+.perch-hop canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.hop-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #14283bc4;
+  text-align: center;
+}
+
+.hop-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.hop-panel p {
+  max-width: 40ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.hop-modes button {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+}
+
+.hop-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+/* The clock and the row of flags, top middle. */
+.hop-top {
+  position: absolute;
+  z-index: 1;
+  top: clamp(10px, 3vh, 28px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hop-clock {
+  color: #fff;
+  font:
+    900 clamp(2rem, 7vw, 3.6rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  -webkit-text-stroke: 3px #1f2a1b;
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 #1f2a1b;
+  font-variant-numeric: tabular-nums;
+}
+
+.hop-flags {
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: #1f3b55c0;
+}
+
+.hop-flags span {
+  width: clamp(14px, 3vw, 22px);
+  height: clamp(14px, 3vw, 22px);
+  clip-path: polygon(0 0, 100% 45%, 0 90%);
+  background: #ffffff;
+  opacity: 0.85;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.hop-flags span.up {
+  background: #ffd84a;
+  opacity: 1;
+  transform: translateY(-3px);
+}
+
+/* "Ready…", "GO!", "Done!", "Splash!" */
+.hop-call {
+  position: absolute;
+  z-index: 1;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font:
+    900 clamp(3rem, 12vw, 6.5rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  -webkit-text-stroke: 4px #1f2a1b;
+  paint-order: stroke fill;
+  text-shadow: 0 6px 0 #1f2a1b;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.hop-call.pop {
+  animation: hop-pop 0.35s ease-out;
+}
+
+@keyframes hop-pop {
+  from {
+    transform: translate(-50%, -50%) scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* Touch buttons along the bottom. */
+.hop-pad {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: clamp(52px, 9vh, 80px);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 clamp(12px, 3vw, 32px);
+  pointer-events: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hop-move {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.perch-hop .hop-pad button {
+  pointer-events: auto;
+  width: clamp(64px, 16vw, 92px);
+  height: clamp(64px, 16vw, 92px);
+  padding: 0;
+  border: 3px solid #ffffffb0;
+  border-radius: 50%;
+  background: #1f3b5599;
+  color: #fff;
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.perch-hop .hop-pad [data-hold="down"] {
+  width: clamp(50px, 12vw, 70px);
+  height: clamp(50px, 12vw, 70px);
+  font-size: clamp(1rem, 4vw, 1.5rem);
+}
+
+.perch-hop .hop-pad .hop-jump {
+  width: clamp(92px, 24vw, 132px);
+  height: clamp(92px, 24vw, 132px);
+  background: #e0478acc;
+  font-weight: 800;
+  font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+}
+
+.perch-hop .hop-pad button.held {
+  background: #ffd84acc;
+  color: #1f2a1b;
+  transform: scale(0.94);
+}
+
+.perch-hop footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.9rem;
+}
+
+.perch-hop footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1f3b55e8;
+}
+
+.perch-hop footer > span:empty {
+  display: none;
+}
+
+.perch-hop footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+.hop-hud > span {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid #f5cd7a;
+  border-radius: 10px;
+  background: #fff3cf;
+  color: #2c3b26;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
