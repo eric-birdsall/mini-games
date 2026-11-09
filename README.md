@@ -6,7 +6,7 @@ A playable first-person tactical stealth vertical slice. Built with Three.js, No
 
 [Play Mini Games](https://eric-birdsall.github.io/mini-games/) in your browser.
 Practice, AI opponents, and games that share one device run on GitHub Pages.
-The public build uses fallback characters in place of the purchased Chibi Critters models.
+The public build uses the Pop character designs with procedurally generated bodies and animations.
 Private matches across devices use the Node.js server below.
 
 ## Run locally

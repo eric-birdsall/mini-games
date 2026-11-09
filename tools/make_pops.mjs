@@ -10,7 +10,7 @@
 // Astronaut, Baby and Shark versions start from the generated models, so
 // run their tools/make_<name>.mjs first. The Dog is already Pop-shaped.
 
-import { INK, WHITE, color, popFigure } from "./popKit.mjs";
+import { INK, WHITE, color, popFigure, writePop } from "./popKit.mjs";
 
 const c = color;
 
@@ -512,8 +512,8 @@ const POPS = {
   },
 };
 
-const wanted = process.argv.slice(2);
+const wanted = process.argv.slice(2).filter((arg) => arg !== "--public");
 for (const name of wanted.length ? wanted : Object.keys(POPS)) {
   if (!POPS[name]) throw new Error(`No Pop figure called ${name}`);
-  POPS[name]().pop.write();
+  await writePop(POPS[name]().pop);
 }

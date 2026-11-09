@@ -9,12 +9,29 @@ import {
   add,
   color,
   loadCritter,
+  hexAt,
   onRoundedBox,
   scale,
   sub,
 } from "./critterKit.mjs";
 
+import { buildPopBody, writePublicPop } from "./publicPopRig.mjs";
+
 export { add, color, scale };
+
+const publicBuild = process.argv.includes("--public");
+const publicModels = new URL("../public-pages/pops/", import.meta.url);
+
+export function loadPopSource(name, fur, accent) {
+  if (!publicBuild) return loadCritter(name);
+  return buildPopBody(new Critter(name), name, fur, accent);
+}
+
+export function writePop(figure) {
+  return publicBuild
+    ? writePublicPop(figure, publicModels, hexAt)
+    : figure.write();
+}
 
 export const INK = color("#1f1a24");
 export const WHITE = color("#ffffff");
@@ -34,7 +51,7 @@ const BODY = ["root", "hips", "arm_L", "arm_R", "leg_L", "leg_R", "tail"];
  * body (with optional `recolor`) and adding the big head in `headColor`.
  */
 export function popFigure(name, source, headColor, { recolor = {} } = {}) {
-  const src = loadCritter(source);
+  const src = loadPopSource(source, headColor, color("#f7e8cd"));
   const pop = new Critter(name, src);
   pop.addPart(src, (v) => BODY.includes(v.bone), { recolor });
   pop.addRoundedBox(POP_HEAD, headColor, "head");

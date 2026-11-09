@@ -8,6 +8,7 @@
     "dev": "node --watch server/index.js",
     "start": "node --watch server/index.js",
     "build": "vite build",
+    "build:pages": "node tools/make_pops.mjs --public && node tools/make_dog.mjs --public && vite build --mode pages",
     "test": "node --test tests/*.test.js",
     "format": "prettier --write src shared server tests index.html README.md",
     "test:network": "node tests/network-smoke.js"

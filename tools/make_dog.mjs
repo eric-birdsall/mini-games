@@ -12,10 +12,11 @@ import {
   Critter,
   add,
   color,
-  loadCritter,
   onRoundedBox,
   scale,
 } from "./critterKit.mjs";
+
+import { loadPopSource, writePop } from "./popKit.mjs";
 
 const FUR = color("#efe6cf");
 const BROWN = color("#b37845");
@@ -25,7 +26,7 @@ const BLUSH = color("#ff9aa8");
 const COLLAR = color("#d63c3c");
 const TAG = color("#ffd84a");
 
-const bear = loadCritter("Bear");
+const bear = loadPopSource("Bear", FUR, WHITE);
 const dog = new Critter("Dog", bear);
 
 // The pack's small body, arms and legs: cream fur, white belly, brown socks.
@@ -125,4 +126,4 @@ dog.addTube(
 );
 dog.addEllipsoid(tailTip, [0.034, 0.045, 0.034], BROWN, "tail");
 
-dog.write();
+await writePop(dog);

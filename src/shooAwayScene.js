@@ -54,7 +54,7 @@ function cutArm(asset) {
   const arm = bones.findIndex((b) => b.name === "arm_R");
   if (arm < 0) return null;
   const g = skinned.geometry;
-  const { position, normal, uv, skinIndex, skinWeight } = g.attributes;
+  const { position, normal, uv, color, skinIndex, skinWeight } = g.attributes;
   const boneOf = (i) => {
     let best = 0;
     for (let k = 1; k < 4; k++)
@@ -80,6 +80,7 @@ function cutArm(asset) {
   out.setAttribute("position", copy(position, 3));
   if (normal) out.setAttribute("normal", copy(normal, 3));
   if (uv) out.setAttribute("uv", copy(uv, 2));
+  if (color) out.setAttribute("color", copy(color, color.itemSize));
   // Into the bind pose's space, then shoulder to the origin.
   out.applyMatrix4(skinned.bindMatrix);
   const shoulder = new T.Vector3().applyMatrix4(
