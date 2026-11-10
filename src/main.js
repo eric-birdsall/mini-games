@@ -1,3 +1,4 @@
+import { RELEASED_GAMES, showAllGames } from "./released.js";
 import { LocalMatch } from "./localMatch.js";
 import { resultTrophy } from "./gameResults.js";
 import { pauseBar } from "./pauseActions.js";
@@ -1273,6 +1274,14 @@ document.querySelectorAll("#home [data-game]").forEach((entry) => {
   launchers[entry.dataset.game] = () => open();
   entry.onclick = () => pickGame(entry.dataset.game);
 });
+// Kids see only the released games (src/released.js); ?all shows every one.
+const kidView = !showAllGames();
+if (kidView) {
+  document.querySelectorAll("#home [data-game]").forEach((entry) => {
+    if (!RELEASED_GAMES.includes(entry.dataset.game)) entry.remove();
+  });
+  if (!RELEASED_GAMES.includes(savedGame)) savedGame = RELEASED_GAMES[0];
+}
 if (launchers[savedGame]) pickGame(savedGame);
 
 for (const list of document.querySelectorAll("#home .choice-row")) {
@@ -1307,6 +1316,8 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       "paperplane",
       "pipecrane",
     ]);
+    // A released game shows to kids even while it's still marked WIP.
+    if (kidView) wipGames.clear();
     options.sort(
       (a, b) =>
         Number(wipGames.has(a.dataset.game)) -
@@ -1376,6 +1387,8 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       if (focus) pick?.focus({ preventScroll: true });
       $("#home").scrollTop = 0;
     };
+    // Kids get no Work in Progress view.
+    if (kidView) toggle.closest("[data-nav-row]").remove();
     toggle.onclick = () =>
       setGameView($("#home").dataset.gameView === "wip" ? "main" : "wip", true);
     setGameView("main");
