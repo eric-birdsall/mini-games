@@ -101,7 +101,7 @@ export function installPondFishing(getLevel, getAvatar) {
   entry.className = "choice";
   entry.dataset.game = "pondfishing";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A fishing bobber in a backyard pond" draggable="false"></span><strong>Pond Fishing</strong><small>Cast into the pond and reel in when the bobber dunks. Little fish, big fish, old boots and trash. Ten casts.</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="An axolotl fishing from a dock on a backyard pond" draggable="false"></span><strong>Pond Fishing</strong><small>Cast into the pond and reel in when the bobber dunks. Little fish, big fish, old boots and trash. Ten casts.</small>`;
   games.append(entry);
   entry.onclick = () => open(getLevel(), getAvatar());
 }

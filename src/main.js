@@ -1292,17 +1292,17 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
           option.dataset.game === "toybox"
             ? `<span class="map-thumb toybox-preview" aria-hidden="true"><span>🧸 🚀 🦆</span><b>✥</b><span>🚗 🦕 ⚽</span></span>`
             : option.dataset.game === "sprinklers"
-              ? `<span class="map-thumb"><img src="${sprinklerDodgePreview}" alt="Sprinkler Dodge live gameplay: a blue robot in a sunny green backyard surrounded by hedges and white fences" draggable="false"></span>`
+              ? `<span class="map-thumb"><img src="${sprinklerDodgePreview}" alt="Sprinkler Dodge live gameplay: a penguin in a sunny green backyard surrounded by hedges and white fences" draggable="false"></span>`
               : option.dataset.game === "memory"
                 ? `<span class="map-thumb"><img src="${fireflyRecallPreview}" alt="Firefly Recall live gameplay: colored fireflies around a backyard campfire beside a tent" draggable="false"></span>`
                 : option.dataset.game === "slipstream"
-                  ? `<span class="map-thumb"><img src="${slipstreamPreview}" alt="Slipstream live gameplay: robots racing down a grassy hill past blue slip n slides and mudpiles toward a distant house" draggable="false"></span>`
+                  ? `<span class="map-thumb"><img src="${slipstreamPreview}" alt="Slipstream live gameplay: a fox and three chicks lined up on a grassy hill with slip n slides and mudpiles ahead" draggable="false"></span>`
                   : option.dataset.game === "livewire"
-                    ? `<span class="map-thumb"><img src="${beachBallDodgePreview}" alt="Beach Ball Dodge live gameplay: two players on an inflatable float in a backyard pool, a lane lit up across the float and beach balls flying across the water" draggable="false"></span>`
+                    ? `<span class="map-thumb"><img src="${beachBallDodgePreview}" alt="Beach Ball Dodge live gameplay: a red panda on an inflatable float in a backyard pool, a beach ball flying across the water" draggable="false"></span>`
                     : option.dataset.game === "breakout"
-                      ? `<span class="map-thumb"><img src="${breakoutPreview}" alt="Breakout gameplay: a runner on a three-lane orchard course with log hurdles" draggable="false"></span>`
+                      ? `<span class="map-thumb"><img src="${breakoutPreview}" alt="Breakout gameplay: a baby running a three-lane orchard course with log hurdles" draggable="false"></span>`
                       : option.dataset.game === "boulders"
-                        ? `<span class="map-thumb"><img src="${boulderDashPreview}" alt="Boulder Dash live gameplay: a climber facing a boulder rolling down the channel" draggable="false"></span>`
+                        ? `<span class="map-thumb"><img src="${boulderDashPreview}" alt="Boulder Dash live gameplay: a giraffe facing a watermelon rolling down the channel" draggable="false"></span>`
                         : MAP_THUMBS[ground]
                           ? mapThumb(ground)
                           : `<span class="map-thumb game-arena">${icon("flag", 36)}<b>DEDICATED ARENA</b></span>`,

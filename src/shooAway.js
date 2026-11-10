@@ -141,7 +141,7 @@ export function installShooAway(getLevel, getAvatar) {
   entry.className = "choice";
   entry.dataset.game = "shooaway";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A squirrel scampering off across the lawn with an apple from a red gingham picnic blanket" draggable="false"></span><strong>${TITLE}</strong><small>Squirrels (and a few speedy foxes) sneak in from every side to steal your picnic. Look all around and shoo them off before they take three snacks!</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A fox and a squirrel sneaking toward a red gingham picnic blanket" draggable="false"></span><strong>${TITLE}</strong><small>Squirrels (and a few speedy foxes) sneak in from every side to steal your picnic. Look all around and shoo them off before they take three snacks!</small>`;
   games.append(entry);
   entry.onclick = () => open(getLevel(), avatarChoice(getAvatar?.()));
 }

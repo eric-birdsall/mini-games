@@ -37,7 +37,7 @@ export function installRoofCatch(getAvatar) {
   entry.className = "choice";
   entry.dataset.game = "roofcatch";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${roofCatchPreview}" alt="Roof Catch gameplay showing an apple on the tin roof and a robot holding a basket" draggable="false"></span><strong>Roof Catch</strong><small>Catch fruit rolling off a tin roof. Dodge pebbles and mud before you miss three fruit.</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${roofCatchPreview}" alt="Roof Catch gameplay showing an apple on the tin roof and a raccoon holding a basket" draggable="false"></span><strong>Roof Catch</strong><small>Catch fruit rolling off a tin roof. Dodge pebbles and mud before you miss three fruit.</small>`;
   games.append(entry);
   entry.onclick = () => {
     document.exitPointerLock?.();

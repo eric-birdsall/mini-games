@@ -111,7 +111,7 @@ export function installBackyardFling(getLevel, getAvatar) {
   entry.className = "choice";
   entry.dataset.game = "backyardfling";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A toy car rolling off a wide stunt ramp toward a picnic table" draggable="false"></span><strong>${TITLE}</strong><small>Loop the loop, steer down the wide ramp and fly your critter's car into towers of wooden blocks!</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A chick driving a toy car down an orange stunt track" draggable="false"></span><strong>${TITLE}</strong><small>Loop the loop, steer down the wide ramp and fly your critter's car into towers of wooden blocks!</small>`;
   games.append(entry);
   entry.onclick = () => open(getLevel(), avatarChoice(getAvatar()));
 }

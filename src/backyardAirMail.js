@@ -40,7 +40,7 @@ export function installBackyardAirMail(getAvatar) {
   entry.className = "choice";
   entry.dataset.game = "backyardairmail";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${loopAndGlidePreview}" alt="A toy car gliding toward a picnic basket in a fenced backyard" draggable="false"></span><strong>${title}</strong><small>Race through the loop and glide onto a picnic target.</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${loopAndGlidePreview}" alt="A dog gliding a toy car over a picnic-blanket pool in a fenced backyard" draggable="false"></span><strong>${title}</strong><small>Race through the loop and glide onto a picnic target.</small>`;
   games.append(entry);
   entry.onclick = () => openGame(getAvatar());
 }
