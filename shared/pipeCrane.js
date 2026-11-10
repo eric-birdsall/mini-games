@@ -45,32 +45,32 @@ export const PIPE_LEVELS = {
   easy: {
     cols: 6,
     rows: 4,
-    countdown: 40,
+    countdown: 60,
     flow: 3.2,
     decoys: 1,
     twoOutletsFrom: 3,
     cross: false,
-    faster: 0.05,
+    faster: 0.025,
   },
   normal: {
     cols: 7,
     rows: 5,
-    countdown: 30,
+    countdown: 45,
     flow: 2.5,
     decoys: 2,
     twoOutletsFrom: 2,
     cross: false,
-    faster: 0.06,
+    faster: 0.03,
   },
   hard: {
     cols: 8,
     rows: 5,
-    countdown: 22,
+    countdown: 32,
     flow: 1.9,
     decoys: 3,
     twoOutletsFrom: 1,
     cross: true,
-    faster: 0.07,
+    faster: 0.035,
   },
 };
 const FASTEST = 0.6;
@@ -141,7 +141,7 @@ function walk(site, rand, from, goal, dug, minLength) {
         Math.abs(gx - nx) + Math.abs(gy - ny) <
         Math.abs(gx - x) + Math.abs(gy - y);
       // Mostly head for the goal, sometimes wander.
-      options.push({ n, weight: closer ? 3 : 1 });
+      options.push({ n, weight: closer ? 6 : 1 });
     }
     if (!options.length) return null;
     let pick = rand() * options.reduce((sum, o) => sum + o.weight, 0);
@@ -210,7 +210,7 @@ export function makeSite(level, index = 0, seed = 1) {
     };
     const b = edgeSpot([]);
     if (!b) continue;
-    const minLength = Math.ceil((cols + rows) * 0.6);
+    const minLength = Math.ceil((cols + rows) * 0.4);
     const main = walk(
       site,
       rand,

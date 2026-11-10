@@ -1305,6 +1305,7 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       "foodfinder",
       "backyardfling",
       "paperplane",
+      "pipecrane",
     ]);
     options.sort(
       (a, b) =>
