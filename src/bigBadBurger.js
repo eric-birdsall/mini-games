@@ -253,7 +253,7 @@ function open(level) {
     const result = drop(stack, placed, item.x, level);
     if (result.fell?.missed) {
       stack.pop();
-      scene.tumble(item);
+      scene.tumble(item, result.fell.side);
       item = null;
       sfx.crash();
       say("Whoops! It slid right off the burger!", 0);

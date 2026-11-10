@@ -4823,15 +4823,17 @@ body.sprinklers #bearing {
 /* Game picker: the rules sit in a slim strip above the games (and stay there
    while the games scroll), so the games get the full width. */
 .game-picker-body {
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 16px;
 }
 .game-picker .game-rules {
-  grid-column: 1;
-  grid-row: 1;
   position: sticky;
-  top: -32px;
+  top: 0;
   z-index: 2;
+  max-height: 35dvh;
+  overflow-y: auto;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto;
@@ -4840,7 +4842,6 @@ body.sprinklers #bearing {
   padding: 12px 18px;
   border-radius: 12px;
   background: #301d45;
-  box-shadow: 0 -32px 0 #231335;
 }
 .game-picker .game-rules .eyebrow {
   grid-column: 1 / -1;
@@ -4859,25 +4860,18 @@ body.sprinklers #bearing {
 .game-picker .game-rules .micro {
   display: none;
 }
-.game-picker .game-options {
-  grid-column: 1;
-  grid-row: 2;
-}
 .game-picker .game-options .choice-row {
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, clamp(145px, 23vw, 210px)), 1fr)
+  );
 }
 @media (max-width: 640px) {
   .game-picker .game-rules {
-    top: -20px;
     grid-template-columns: minmax(0, 1fr);
   }
-  .game-picker .game-options .choice-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 480px) {
-  .game-picker .game-rules {
-    top: -18px;
+  .game-picker .game-rules h3 {
+    white-space: normal;
   }
 }
 
@@ -4978,9 +4972,9 @@ nav .text-button,
 #home[data-screen="mode"] [data-mode] small {
   font-size: 14px;
 }
-/* Screen 2: the game cards fill the page, rules alongside. */
+/* Screen 2: the game cards fill the page, with the rules above. */
 #home[data-screen="game"] .menu {
-  max-width: 1240px;
+  max-width: none;
 }
 #home .game-picker {
   width: auto;
@@ -4991,10 +4985,6 @@ nav .text-button,
 }
 #home .game-picker-head {
   margin-bottom: 20px;
-}
-#home .game-rules {
-  position: static;
-  box-shadow: none;
 }
 /* Screen 3: character ring beside Start. */
 #home[data-screen="character"] .menu {
@@ -5015,5 +5005,21 @@ nav .text-button,
   }
   #home[data-screen="character"] .menu {
     margin-top: 0;
+  }
+}
+
+/* Game screen: Work in Progress button swaps the grid to the unfinished games. */
+.game-options .choice[hidden] {
+  display: none;
+}
+.game-picker-head .game-wip-toggle {
+  flex: none;
+  min-height: 48px;
+  padding: 0 20px;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .game-picker-head {
+    flex-wrap: wrap;
   }
 }

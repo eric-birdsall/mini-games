@@ -614,15 +614,17 @@ export function createBigBadBurgerScene(canvas) {
       finished = true;
     },
     // The ingredient that slid off on its own (missed the burger entirely).
-    tumble({ x, y }) {
+    // `side` is which way it missed the layer below (-1 left, 1 right), so
+    // it always falls away from the burger, never back onto it.
+    tumble({ x, y }, side = Math.sign(x) || 1) {
       if (!held) return;
       held.position.set(x, y, 0);
       debris.push({
         mesh: held,
-        vx: Math.sign(x) * 0.6,
+        vx: side * 0.6,
         vy: 0,
         vz: 0.4,
-        spin: Math.sign(x) * -4,
+        spin: side * -4,
         rest: false,
       });
       held = null;
@@ -733,7 +735,12 @@ export function createBigBadBurgerScene(canvas) {
             debris.push({
               mesh: m,
               // Tangential velocity of a point on the turning stack.
-              vx: rel.y * w * tipping.side + (Math.random() - 0.5) * 0.6,
+              // Always away from the burger, though: a lone piece hanging
+              // off the edge sits below the pivot, so its true tangent
+              // points back in and it would land right back on the stack.
+              vx:
+                tipping.side *
+                (Math.max(0.5, rel.y * w) + Math.random() * 0.3),
               vy: -Math.abs(rel.x) * w * 0.3,
               vz: 0.5 + Math.random() * 0.9,
               spin: -tipping.side * (2 + Math.random() * 4),

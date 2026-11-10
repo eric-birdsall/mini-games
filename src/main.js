@@ -791,7 +791,8 @@ const selectedAvatar = installAvatarPicker(() => input.padIndex);
 
 function connect(create) {
   if (staticHosting && mode === "multi") {
-    $("#home-error").textContent = "Private matches require the Mini Games server.";
+    $("#home-error").textContent =
+      "Private matches require the Mini Games server.";
     return;
   }
   audio.unlock();
@@ -873,8 +874,7 @@ function connect(create) {
     $("#deploy").disabled = false;
   });
   socket.addEventListener("error", () => {
-    $("#home-error").textContent =
-      staticHosting
+    $("#home-error").textContent = staticHosting
       ? "Could not start this game. Reload to try again."
       : "Server unavailable. Run npm start and open localhost:3000.";
     $("#deploy").disabled = false;
@@ -1182,8 +1182,13 @@ const MODE_NAMES = {
   training: "Practice",
   freeroam: "Free Roam",
 };
+// The game screen shows the finished games, or (behind its Work in Progress
+// button) the ones still being built. Set up with the game picker below.
+let setGameView = () => {};
 function showScreen(name) {
   const home = $("#home");
+  // Coming forward from how you're playing always starts on the main games.
+  if (name === "game" && home.dataset.screen === "mode") setGameView("main");
   home.dataset.screen = name;
   closeDropdowns();
   $("#screen-crumb").textContent = [
@@ -1199,7 +1204,14 @@ function showScreen(name) {
     name === "mode"
       ? $("#home [data-mode].selected")
       : name === "game"
-        ? $("#home [data-game].selected") || $("#home [data-game]")
+        ? (() => {
+            const shown = [
+              ...document.querySelectorAll("#home [data-game]"),
+            ].filter((el) => !el.hidden);
+            return (
+              shown.find((el) => el.classList.contains("selected")) || shown[0]
+            );
+          })()
         : $('#home .headshot[aria-pressed="true"]');
   target?.focus({ preventScroll: true });
 }
@@ -1207,6 +1219,11 @@ function menuBack() {
   if ($("#home").hidden) return false;
   const i = SCREENS.indexOf($("#home").dataset.screen);
   if (i <= 0) return false;
+  // Work in Progress steps back to the main game list first.
+  if (SCREENS[i] === "game" && $("#home").dataset.gameView === "wip") {
+    setGameView("main", true);
+    return true;
+  }
   showScreen(SCREENS[i - 1]);
   return true;
 }
@@ -1269,7 +1286,7 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     picker.className = "game-picker";
     picker.setAttribute("role", "region");
     picker.setAttribute("aria-labelledby", "game-picker-title");
-    picker.innerHTML = `<div class="game-picker-head"><div><div class="step-label"><b>02</b> GAME</div><h2 id="game-picker-title">Choose your game.</h2></div></div><div class="game-picker-body"><aside class="game-rules" aria-live="polite"><div class="eyebrow">THE RULES</div><h3></h3><p></p><span class="micro">Select a game to play.</span></aside><div class="game-options"></div></div>`;
+    picker.innerHTML = `<div class="game-picker-head"><div><div class="step-label"><b>02</b> GAME</div><h2 id="game-picker-title">Choose your game.</h2></div><div data-nav-row><button class="secondary game-wip-toggle" id="game-wip-toggle"></button></div></div><div class="game-picker-body"><aside class="game-rules" aria-live="polite"><div class="eyebrow">THE RULES</div><h3></h3><p></p><span class="micro">Select a game to play.</span></aside><div class="game-options"></div></div>`;
     list.before(picker);
     picker.querySelector(".game-options").append(list);
     const gameMaps = {
@@ -1277,14 +1294,30 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       livewire: "crucible",
       sprinklers: "yard",
     };
-    const wipGames = new Set(["splash", "hotpotato", "livewire", "toybox"]);
+    const wipGames = new Set([
+      "splash",
+      "hotpotato",
+      "livewire",
+      "toybox",
+      "backyardairmail",
+      "poolnoodle",
+      "applecatch",
+      "foodfinder",
+      "backyardfling",
+      "paperplane",
+    ]);
     options.sort(
       (a, b) =>
         Number(wipGames.has(a.dataset.game)) -
         Number(wipGames.has(b.dataset.game)),
     );
     list.append(...options);
-    options.forEach((option, index) => {
+    const finished = options.filter((o) => !wipGames.has(o.dataset.game));
+    options.forEach((option) => {
+      const isWip = wipGames.has(option.dataset.game),
+        index = isWip
+          ? options.indexOf(option) - finished.length
+          : options.indexOf(option);
       const ground = gameMaps[option.dataset.game] || ENABLED_MAPS[0];
       if (!option.querySelector(".map-thumb"))
         option.insertAdjacentHTML(
@@ -1309,7 +1342,7 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
         );
       option.insertAdjacentHTML(
         "beforeend",
-        `<span class="game-card-number">${String(index + 1).padStart(2, "0")} / PLAY${wipGames.has(option.dataset.game) ? ' <span class="game-wip-badge">WIP</span>' : ""}</span>`,
+        `<span class="game-card-number">${String(index + 1).padStart(2, "0")} / PLAY${isWip ? ' <span class="game-wip-badge">WIP</span>' : ""}</span>`,
       );
     });
     list.removeAttribute("data-nav-choice");
@@ -1321,9 +1354,30 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
         option.querySelector("small").textContent;
       options.forEach((o) => o.classList.toggle("previewed", o === option));
     };
-    preview(
-      options.find((o) => o.classList.contains("selected")) || options[0],
-    );
+    // Main view: the finished games. WIP view: only the games still being
+    // built. The toggle button in the header switches between them.
+    const toggle = picker.querySelector("#game-wip-toggle");
+    setGameView = (view, focus = false) => {
+      const wip = view === "wip";
+      $("#home").dataset.gameView = wip ? "wip" : "main";
+      options.forEach((o) => (o.hidden = wipGames.has(o.dataset.game) !== wip));
+      picker.querySelector("#game-picker-title").textContent = wip
+        ? "Work in progress."
+        : "Choose your game.";
+      toggle.textContent = wip ? "← ALL GAMES" : "WORK IN PROGRESS →";
+      toggle.setAttribute(
+        "aria-label",
+        wip ? "Back to all games" : "Show games that are still being built",
+      );
+      const shown = options.filter((o) => !o.hidden),
+        pick = shown.find((o) => o.classList.contains("selected")) || shown[0];
+      if (pick) preview(pick);
+      if (focus) pick?.focus({ preventScroll: true });
+      $("#home").scrollTop = 0;
+    };
+    toggle.onclick = () =>
+      setGameView($("#home").dataset.gameView === "wip" ? "main" : "wip", true);
+    setGameView("main");
     options.forEach((o) => {
       o.addEventListener("pointerenter", () => preview(o));
       o.addEventListener("focus", () => preview(o));
@@ -1442,7 +1496,8 @@ function quickStep() {
 // Dev: ?thumbs (or ?thumbs=docks,relay) captures the map picker's
 // thumbnails, each map's flyover at its first frame, and saves them to
 // src/assets/maps/.
-if (!staticHosting && new URLSearchParams(location.search).has("thumbs")) captureThumbs();
+if (!staticHosting && new URLSearchParams(location.search).has("thumbs"))
+  captureThumbs();
 async function captureThumbs() {
   const only = new URLSearchParams(location.search).get("thumbs"),
     ids = only

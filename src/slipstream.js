@@ -6,7 +6,10 @@ import {
   racer,
   stepRacer,
   botInput,
+  rivalStyle,
   COURSE_LENGTH,
+  diveHeight,
+  isProne,
 } from "../shared/slipstream.js";
 import {
   animateAvatar,
@@ -14,7 +17,26 @@ import {
   disposeAvatar,
   releaseAvatar,
 } from "./avatars.js";
+import { AVATARS, COLORS, avatarChoice } from "../shared/avatars.js";
 import "./slipstream.css";
+
+const shuffle = (list) => {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+};
+// Three different rival critters, none the same as the player's pick.
+function rivalAvatars(player) {
+  const mine = avatarChoice(player).character;
+  const pool = AVATARS.filter((id) => id !== mine);
+  const colors = shuffle(Object.keys(COLORS));
+  return shuffle(pool.length >= 3 ? pool : AVATARS)
+    .slice(0, 3)
+    .map((character, i) => ({ character, color: colors[i % colors.length] }));
+}
 
 export function installSlipstream(
   getDifficulty = () => "normal",
@@ -37,7 +59,7 @@ export function installSlipstream(
     overlay = document.createElement("section");
     overlay.id = "slipstream";
     overlay.tabIndex = -1;
-    overlay.innerHTML = `<div class="ss-top"><span>MINI GAMES / SLIPSTREAM</span><button data-exit>BACK TO MINI GAMES ↗</button></div><div class="ss-hud" hidden></div>${pauseScreen("Slipstream", "Steer with A / D. Ride the blue slides for speed and dodge the mud. In local play, player two steers with the arrow keys.")}<div class="ss-foot" hidden>A / D STRAFE · I J K L LOOK · BLUE SLIP ’N SLIDES BOOST · BROWN MUD SLOWS · ESC PAUSE</div>`;
+    overlay.innerHTML = `<div class="ss-top"><span>MINI GAMES / SLIPSTREAM</span><button data-exit>BACK TO MINI GAMES ↗</button></div><div class="ss-hud" hidden></div>${pauseScreen("Slipstream", "Steer with A / D and press Space to dive belly first onto the blue slides for a little extra speed. A dive onto grass is a belly flop that stops you. Dodge the mud. In local play, player two steers with the arrow keys and dives with the up arrow.")}<div class="ss-foot" hidden>A / D STRAFE · SPACE DIVE · I J K L LOOK · BLUE SLIP ’N SLIDES BOOST · BROWN MUD SLOWS · ESC PAUSE</div>`;
     document.body.append(overlay);
     // Controller: steer while racing; navigate buttons otherwise (padBridge).
     overlay.padPlaying = () => running && !paused;
@@ -54,6 +76,8 @@ export function installSlipstream(
       { yaw: 0, pitch: 0.36 },
       { yaw: 0, pitch: 0.36 },
     ];
+    // Dive keys count once per press, not while held.
+    const pressed = new Set();
     const keys = new Set(),
       items = course();
     const scene = new T.Scene();
@@ -131,6 +155,38 @@ export function installSlipstream(
     for (const o of items) {
       if (o.kind === "slide") {
         box(o.x, 0.035, o.z, o.width, 0.09, o.length, "#32a9dd");
+        // Inflatable bumpers: striped air tubes down both sides, capped with
+        // round ends, so each slip 'n slide reads clearly from the hilltop.
+        const tubeR = 0.26;
+        const segment = 2;
+        const segments = Math.round(o.length / segment);
+        for (const side of [-1, 1]) {
+          const x = o.x + side * (o.width / 2 + tubeR * 0.6);
+          for (let k = 0; k < segments; k++) {
+            const tube = new T.Mesh(
+              new T.CylinderGeometry(tubeR, tubeR, segment, 14),
+              new T.MeshStandardMaterial({
+                color: k % 2 ? "#ffd23f" : "#ff5d73",
+                roughness: 0.35,
+              }),
+            );
+            tube.rotation.x = Math.PI / 2;
+            tube.position.set(
+              x,
+              tubeR,
+              -(o.z - o.length / 2 + segment * (k + 0.5)),
+            );
+            hillside.add(tube);
+          }
+          for (const end of [-1, 1]) {
+            const cap = new T.Mesh(
+              new T.SphereGeometry(tubeR, 14, 10),
+              new T.MeshStandardMaterial({ color: "#ff5d73", roughness: 0.35 }),
+            );
+            cap.position.set(x, tubeR, -(o.z + (end * o.length) / 2));
+            hillside.add(cap);
+          }
+        }
         for (let j = -o.length / 2 + 2; j < o.length / 2 - 1; j += 2)
           for (const side of [-1, 1]) {
             const a = box(
@@ -194,13 +250,17 @@ export function installSlipstream(
       models = [];
       players = [racer("YOU", -1.5)];
       if (mode === "local") players.push(racer("PLAYER 2", 1.5));
-      if (mode === "ai")
-        for (let i = 0; i < 3; i++)
-          players.push(racer(["RELAY", "QUAY", "SWITCH"][i], [-4, 1.5, 4][i]));
+      const rivals = mode === "ai" ? rivalAvatars(getAvatar()) : [];
+      rivals.forEach((avatar, i) => {
+        const rival = racer(["RELAY", "QUAY", "SWITCH"][i], [-4, 1.5, 4][i]);
+        rival.style = rivalStyle();
+        rival.avatar = avatar;
+        players.push(rival);
+      });
       players.forEach((p, i) => {
         const actor = createAvatar(
           i === 0 ? "attacker" : "defender",
-          i === 0 ? getAvatar() : undefined,
+          i === 0 ? getAvatar() : p.avatar,
           false,
         );
         hillside.add(actor);
@@ -216,8 +276,9 @@ export function installSlipstream(
       $(".ss-top").hidden = true;
       setPaused(false);
       keys.clear();
+      pressed.clear();
       $(".ss-foot").textContent =
-        `${mode === "local" ? "P1 A / D · P2 ← / → · P1 I J K L LOOK · P2 NUMPAD 8/4/5/6 LOOK" : "A / D STRAFE · I J K L LOOK"} · BLUE SLIP ’N SLIDES BOOST · BROWN MUD SLOWS · ESC PAUSE`;
+        `${mode === "local" ? "P1 A / D · SPACE DIVE · P2 ← / → · ↑ DIVE · P1 I J K L LOOK · P2 NUMPAD 8/4/5/6 LOOK" : "A / D STRAFE · SPACE DIVE · I J K L LOOK"} · BLUE SLIP ’N SLIDES BOOST · BROWN MUD SLOWS · ESC PAUSE`;
 
       $(".ss-hud").hidden = false;
       $(".ss-foot").hidden = false;
@@ -277,6 +338,7 @@ export function installSlipstream(
     function setPaused(value) {
       paused = value;
       keys.clear();
+      pressed.clear();
       setPauseScreen(overlay, paused, overlay);
     }
     $("[data-pause-resume]").onclick = () => setPaused(false);
@@ -299,7 +361,8 @@ export function installSlipstream(
           "Numpad6",
           "KeyA",
           "KeyD",
-
+          "Space",
+          "ArrowUp",
           "Escape",
         ].includes(e.code)
       ) {
@@ -307,6 +370,7 @@ export function installSlipstream(
         e.stopImmediatePropagation();
         if (e.type === "keydown") {
           keys.add(e.code);
+          if (!e.repeat) pressed.add(e.code);
           if (e.code === "Escape" && !e.repeat && running) setPaused(!paused);
         } else keys.delete(e.code);
       }
@@ -337,7 +401,9 @@ export function installSlipstream(
       overlay = null;
       document.querySelector("#deploy")?.focus();
     };
+    const takePress = (code) => pressed.delete(code);
     const input = (i) => ({
+      dive: takePress(i === 0 ? "Space" : "ArrowUp"),
       steer:
         i === 0
           ? Number(keys.has("KeyD")) - Number(keys.has("KeyA"))
@@ -348,8 +414,10 @@ export function installSlipstream(
       const dt = Math.min(0.04, (now - last) / 1000);
       last = now;
       if (running && !paused) {
-        if (countdown > 0) countdown -= dt;
-        else {
+        if (countdown > 0) {
+          countdown -= dt;
+          pressed.clear();
+        } else {
           players.forEach((r, i) =>
             stepRacer(
               r,
@@ -367,11 +435,15 @@ export function installSlipstream(
       }
       players.forEach((r, i) => {
         const m = models[i];
-        m.position.set(r.x, 0, -r.z);
+        const hop = diveHeight(r);
+        m.position.set(r.x, hop, -r.z);
         animateAvatar(
           m,
           {
             crouch: false,
+            // Belly first: the critter tips flat for the hop and the slide.
+            prone: isProne(r),
+            grounded: hop <= 0,
             moveSpeed:
               running && !paused && countdown <= 0 && r.finish === null
                 ? r.speed
@@ -390,7 +462,7 @@ export function installSlipstream(
             .slice(0, mode === "local" ? 2 : 1)
             .map(
               (r) =>
-                `<span>${r.name} / ${Math.floor(r.z)} OF 420 M<br><b>${r.speed.toFixed(1)} m/s</b> · ${r.chain ? "BOOST ×" + r.chain : "FIND THE SLIP ’N SLIDES"}${r.mud ? " · MUD / SLOWED" : ""}</span>`,
+                `<span>${r.name} / ${Math.floor(r.z)} OF 420 M<br><b>${r.speed.toFixed(1)} m/s</b> · ${r.chain ? "BOOST ×" + r.chain : "FIND THE SLIP ’N SLIDES"}${r.flop > 0 ? " · BELLY FLOP!" : r.dive > 0 ? " · DIVE!" : r.diveBoost > 0 ? " · DIVE BOOST" : ""}${r.mud ? " · MUD / SLOWED" : ""}</span>`,
             )
             .join("");
       renderer.setScissorTest(true);

@@ -8,7 +8,6 @@ import {
   createMemory,
   pressMemory,
   advanceMemory,
-  MEMORY_ROUNDS,
   MEMORY_LEVELS,
 } from "../shared/memory.js";
 import "./memory.css";
@@ -20,7 +19,7 @@ export function installMemory(getDifficulty = () => "normal") {
   entry.dataset.game = "memory";
   entry.setAttribute("aria-pressed", "false");
   entry.innerHTML =
-    "<strong>Firefly Recall</strong><small>Solo memory challenge: watch the fireflies, then repeat their growing route. Seven rounds. Chances and playback speed follow your difficulty.</small>";
+    "<strong>Firefly Recall</strong><small>Solo memory challenge: watch the fireflies, then repeat their growing route for as long as you can. One mistake ends the run. Playback speed follows your difficulty.</small>";
   list.append(entry);
   let panel;
   entry.onclick = () => {
@@ -55,12 +54,14 @@ export function installMemory(getDifficulty = () => "normal") {
     panel = document.createElement("dialog");
     panel.id = "memory-game";
     panel.setAttribute("aria-labelledby", "memory-title");
-    panel.innerHTML = `<div class="memory-top"><h1 id="memory-title">Firefly Recall</h1><div class="memory-stats"><div><small>ROUND</small><strong data-round>1 / ${MEMORY_ROUNDS}</strong></div><div><small>CHANCES</small><strong data-lives>${"♥ ".repeat(settings.lives).trim()}</strong></div><div><small>BEST</small><strong data-best>0 / ${MEMORY_ROUNDS}</strong></div></div><div class="memory-rounds" aria-label="Round progress">${Array.from({ length: MEMORY_ROUNDS }, (_, i) => `<span>${i + 1}</span>`).join("")}</div><div class="memory-actions"><button data-start hidden>START OVER</button><button data-pause hidden>PAUSE</button><button data-close aria-label="Close Firefly Recall">BACK TO GAMES ↗</button></div></div><div class="memory-layout"><section class="memory-garden"><div class="memory-status" role="status" aria-live="polite"><strong data-status>Meet your fireflies.</strong><span data-detail>Remember the colors in order.</span></div><div class="memory-grid" role="group" aria-label="Backyard campfire with four colored fireflies in a diamond"><div class="memory-moon" aria-hidden="true"></div><div class="memory-fence" aria-hidden="true"></div><div class="memory-tent" aria-hidden="true"><span></span></div><div class="memory-fire" aria-hidden="true"><i></i><i></i><i></i><span></span></div>${flies
+    panel.innerHTML = `<div class="memory-top"><h1 id="memory-title">Firefly Recall</h1><div class="memory-stats"><div><small>ROUND</small><strong data-round>1</strong></div><div><small>BEST</small><strong data-best>0</strong></div></div><div class="memory-actions"><button data-start hidden>START OVER</button><button data-pause hidden>PAUSE</button><button data-close aria-label="Close Firefly Recall">BACK TO GAMES ↗</button></div></div><div class="memory-layout"><section class="memory-garden"><div class="memory-status" role="status" aria-live="polite"><strong data-status>Meet your fireflies.</strong><span data-detail>Remember the colors in order.</span></div><div class="memory-grid" role="group" aria-label="Backyard campfire with four colored fireflies in a diamond"><div class="memory-moon" aria-hidden="true"></div><div class="memory-fence" aria-hidden="true"></div><div class="memory-tent" aria-hidden="true"><span></span></div><div class="memory-fire" aria-hidden="true"><i></i><i></i><i></i><span></span></div>${flies
       .map(
         (f, i) =>
           `<button class="memory-tile" data-tile="${i}" style="--fly-color:${f.color};--dx:${f.x};--dy:${f.y};--delay:-${i * 1.3}s" aria-label="${f.name} firefly, ${f.arrow} key or ${f.pad} button" disabled><span class="memory-fly" aria-hidden="true"><i></i></span><small aria-hidden="true"><b>${f.pad}</b>${f.arrow}</small></button>`,
       )
-      .join("")}</div></section></div><div class="memory-intro-overlay" data-instructions><section class="memory-instructions" aria-labelledby="memory-how"><span class="memory-kicker">A LITTLE LIGHT. A LONGER MEMORY.</span><h2 id="memory-how">How to play</h2><p>Watch the colored fireflies flash around the campfire, then repeat the pattern in the same order.</p><p>Click or tap each firefly, or use the <strong>arrow keys</strong> — on a controller, <strong>Y X B A</strong> match the colors. Each round adds one flash. A mistake costs one chance and replays the pattern.</p><p>Clear all <strong>${MEMORY_ROUNDS} rounds</strong>. Take your time — there’s no time limit.</p><button class="memory-start" data-begin>LET’S PLAY →</button></section></div>${pauseScreen("Firefly Recall", "Watch the fireflies flash, then select them in order. Click or tap a firefly, or use its arrow key (Y X B A on a controller).")}`;
+      .join(
+        "",
+      )}</div></section></div><div class="memory-intro-overlay" data-instructions><section class="memory-instructions" aria-labelledby="memory-how"><span class="memory-kicker">A LITTLE LIGHT. A LONGER MEMORY.</span><h2 id="memory-how">How to play</h2><p>Watch the colored fireflies flash around the campfire, then repeat the pattern in the same order.</p><p>Click or tap each firefly, or use the <strong>arrow keys</strong> — on a controller, <strong>Y X B A</strong> match the colors. Each round adds one flash.</p><p>There’s no last round: keep going until you make a mistake. Take your time, there’s no time limit.</p><button class="memory-start" data-begin>LET’S PLAY →</button></section></div>${pauseScreen("Firefly Recall", "Watch the fireflies flash, then select them in order. Click or tap a firefly, or use its arrow key (Y X B A on a controller).")}`;
     document.body.append(panel);
     // Let the game picker finish closing before opening this modal.
     queueMicrotask(() => panel?.showModal());
@@ -68,8 +69,7 @@ export function installMemory(getDifficulty = () => "normal") {
     const tiles = [...panel.querySelectorAll("[data-tile]")];
     // Controller: during a run Y X B A (and the D-pad) pick fireflies
     // directly; Menu pauses.
-    panel.padPlaying = () =>
-      !!state && !paused && !["lost", "won"].includes(state.phase);
+    panel.padPlaying = () => !!state && !paused && state.phase !== "lost";
     panel.padFaces = panel.padPlaying;
     let state,
       practice = false,
@@ -78,12 +78,9 @@ export function installMemory(getDifficulty = () => "normal") {
       generation = 0,
       best = 0;
     try {
-      best = Math.min(
-        MEMORY_ROUNDS,
-        Math.max(0, Number(localStorage.getItem(bestKey)) || 0),
-      );
+      best = Math.max(0, Number(localStorage.getItem(bestKey)) || 0);
     } catch {}
-    q("[data-best]").textContent = `${best} / ${MEMORY_ROUNDS}`;
+    q("[data-best]").textContent = String(best);
     const status = (title, detail) => {
       q("[data-status]").textContent = title;
       q("[data-detail]").textContent = detail;
@@ -102,21 +99,8 @@ export function installMemory(getDifficulty = () => "normal") {
     const render = () => {
       q("[data-round]").textContent = practice
         ? "PRACTICE"
-        : `${Math.min(state.sequence.length, MEMORY_ROUNDS)} / ${MEMORY_ROUNDS}`;
-      q("[data-lives]").textContent = practice
-        ? "∞"
-        : "♥ ".repeat(state.lives).trim() || "—";
+        : String(state.sequence.length);
       tiles.forEach((t) => (t.disabled = state.phase !== "recall" || paused));
-      panel.querySelectorAll(".memory-rounds span").forEach((dot, i) => {
-        dot.classList.toggle("filled", !practice && i < state.cleared);
-        dot.classList.toggle(
-          "current",
-          !practice && i === state.cleared && state.phase !== "won",
-        );
-        if (!practice && i === state.cleared && state.phase !== "won")
-          dot.setAttribute("aria-current", "step");
-        else dot.removeAttribute("aria-current");
-      });
     };
     const watch = () => {
       stop();
@@ -155,7 +139,10 @@ export function installMemory(getDifficulty = () => "normal") {
       practice = isPractice;
       paused = false;
       state = createMemory(Math.random, level);
-      if (practice) state.sequence = [0, 1, settings.flies - 1];
+      if (practice) {
+        state.practice = true;
+        state.sequence = [0, 1, settings.flies - 1];
+      }
       q("[data-start]").textContent = "START OVER →";
       q("[data-pause]").hidden = false;
       setPauseScreen(panel, false, q("[data-pause]"));
@@ -175,10 +162,9 @@ export function installMemory(getDifficulty = () => "normal") {
       tiles[index].classList.add(
         result === "retry" || result === "lost" ? "wrong" : "lit",
       );
-      if (practice && result === "retry") state.lives = settings.lives;
       if (!practice && state.cleared > best) {
         best = state.cleared;
-        q("[data-best]").textContent = `${best} / ${MEMORY_ROUNDS}`;
+        q("[data-best]").textContent = String(best);
         try {
           localStorage.setItem(bestKey, String(best));
         } catch {}
@@ -191,27 +177,18 @@ export function installMemory(getDifficulty = () => "normal") {
         );
         later(() => tiles[index].classList.remove("lit"), 180);
       } else if (result === "retry") {
-        status(
-          "A little mix-up.",
-          practice
-            ? "No pressure. Watch the same route again."
-            : "One chance used. Watch the same route and try again.",
-        );
+        status("A little mix-up.", "No pressure. Watch the same route again.");
         later(watch, 1500);
-      } else if (result === "lost" || result === "won" || practice) {
+      } else if (result === "lost" || practice) {
         q("[data-pause]").hidden = true;
         results.show(
-          practice
-            ? "You’ve got it!"
-            : result === "won"
-              ? "A brilliant memory!"
-              : "Nice run!",
+          practice ? "You’ve got it!" : "Nice run!",
           practice
             ? "Ready for the real pattern?"
             : "You remembered the fireflies’ route.",
           [
-            [`${state.cleared} / ${MEMORY_ROUNDS}`, "ROUNDS CLEARED"],
-            [`${best} / ${MEMORY_ROUNDS}`, "BEST"],
+            [String(state.cleared), "ROUNDS CLEARED"],
+            [String(best), "BEST"],
           ],
         );
       } else {
@@ -226,12 +203,7 @@ export function installMemory(getDifficulty = () => "normal") {
     q("[data-start]").onclick = () => start(false);
     q("[data-begin]").onclick = () => start(false);
     const pause = () => {
-      if (
-        !state ||
-        ["lost", "won"].includes(state.phase) ||
-        q("[data-pause]").hidden
-      )
-        return;
+      if (!state || state.phase === "lost" || q("[data-pause]").hidden) return;
       paused = !paused;
       setPauseScreen(panel, paused, q("[data-pause]"));
       q("[data-start]").hidden = paused;

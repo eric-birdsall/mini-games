@@ -55,6 +55,50 @@
       ],
       "port": 3021,
       "autoPort": false
+    },
+    {
+      "name": "mini-games-nowatch",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3031",
+        "node",
+        "server/index.js"
+      ],
+      "port": 3031,
+      "autoPort": false
+    },
+    {
+      "name": "mini-games-nowatch-3041",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3041",
+        "node",
+        "server/index.js"
+      ],
+      "port": 3041,
+      "autoPort": false
+    },
+    {
+      "name": "mini-games-nowatch-3051",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3051",
+        "node",
+        "server/index.js"
+      ],
+      "port": 3051,
+      "autoPort": false
+    },
+    {
+      "name": "mini-games-nowatch-3061",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "PORT=3061",
+        "node",
+        "server/index.js"
+      ],
+      "port": 3061,
+      "autoPort": false
     }
   ]
 }

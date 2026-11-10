@@ -427,32 +427,6 @@
 .memory-top .memory-stats strong {
   font-size: 16px;
 }
-.memory-rounds {
-  display: flex;
-  gap: 8px;
-  flex: 1;
-  justify-content: center;
-}
-.memory-rounds span {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid #718576;
-  border-radius: 50%;
-  color: #a1b3a7;
-  font-size: 12px;
-}
-.memory-rounds span.current {
-  border-color: #f9df7d;
-  color: #f9df7d;
-  box-shadow: 0 0 0 3px #f9df7d18;
-}
-.memory-rounds span.filled {
-  background: #f9df7d;
-  border-color: #f9df7d;
-  color: #193b2c;
-}
 .memory-actions {
   display: flex;
   gap: 8px;
@@ -537,10 +511,6 @@
   .memory-top {
     gap: 12px;
     padding: 12px 16px;
-  }
-  .memory-rounds {
-    order: 4;
-    flex-basis: 100%;
   }
   .memory-actions {
     margin-left: auto;
