@@ -1,4 +1,9 @@
-import { RELEASED_GAMES, showAllGames } from "./released.js";
+import {
+  RELEASED_GAMES,
+  showAllGames,
+  directGame,
+  squashName,
+} from "./released.js";
 import { LocalMatch } from "./localMatch.js";
 import { resultTrophy } from "./gameResults.js";
 import { pauseBar } from "./pauseActions.js";
@@ -1189,7 +1194,11 @@ let setGameView = () => {};
 function showScreen(name) {
   const home = $("#home");
   // Coming forward from how you're playing always starts on the main games.
-  if (name === "game" && home.dataset.screen === "mode") setGameView("main");
+  if (name === "game" && home.dataset.screen === "mode") {
+    const search = $("#game-search");
+    if (search) search.value = "";
+    setGameView("main");
+  }
   home.dataset.screen = name;
   closeDropdowns();
   $("#screen-crumb").textContent = [
@@ -1274,7 +1283,8 @@ document.querySelectorAll("#home [data-game]").forEach((entry) => {
   launchers[entry.dataset.game] = () => open();
   entry.onclick = () => pickGame(entry.dataset.game);
 });
-// Kids see only the released games (src/released.js); ?all shows every one.
+// ?kids shows only the released games (src/released.js); the normal page
+// shows every one.
 const kidView = !showAllGames();
 if (kidView) {
   document.querySelectorAll("#home [data-game]").forEach((entry) => {
@@ -1295,7 +1305,7 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     picker.className = "game-picker";
     picker.setAttribute("role", "region");
     picker.setAttribute("aria-labelledby", "game-picker-title");
-    picker.innerHTML = `<div class="game-picker-head"><div><div class="step-label"><b>02</b> GAME</div><h2 id="game-picker-title">Choose your game.</h2></div><div data-nav-row><button class="secondary game-wip-toggle" id="game-wip-toggle"></button></div></div><div class="game-picker-body"><aside class="game-rules" aria-live="polite"><div class="eyebrow">THE RULES</div><h3></h3><p></p><span class="micro">Select a game to play.</span></aside><div class="game-options"></div></div>`;
+    picker.innerHTML = `<div class="game-picker-head"><div><div class="step-label"><b>02</b> GAME</div><h2 id="game-picker-title">Choose your game.</h2></div><div class="game-picker-tools" data-nav-row><input type="search" id="game-search" class="game-search" placeholder="Search games" aria-label="Search games" autocomplete="off" spellcheck="false"><button class="secondary game-wip-toggle" id="game-wip-toggle"></button></div></div><p class="game-search-empty" hidden></p><div class="game-picker-body"><aside class="game-rules" aria-live="polite"><div class="eyebrow">THE RULES</div><h3></h3><p></p><span class="micro">Select a game to play.</span></aside><div class="game-options"></div></div>`;
     list.before(picker);
     picker.querySelector(".game-options").append(list);
     const gameMaps = {
@@ -1368,14 +1378,43 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     };
     // Main view: the finished games. WIP view: only the games still being
     // built. The toggle button in the header switches between them.
-    const toggle = picker.querySelector("#game-wip-toggle");
+    // Typing in the search box looks through every game (finished and WIP)
+    // by name and rules; clearing it goes back to the current view.
+    const toggle = picker.querySelector("#game-wip-toggle"),
+      search = picker.querySelector("#game-search"),
+      empty = picker.querySelector(".game-search-empty"),
+      searchText = new Map(
+        options.map((o) => [
+          o,
+          `${o.querySelector("strong").textContent} ${o.querySelector("small").textContent} ${o.dataset.game}`.toLowerCase(),
+        ]),
+      );
+    const matches = (o) => {
+      const words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+      return words.every(
+        (w) =>
+          searchText.get(o).includes(w) ||
+          squashName(searchText.get(o)).includes(squashName(w)),
+      );
+    };
     setGameView = (view, focus = false) => {
-      const wip = view === "wip";
+      const wip = view === "wip",
+        query = search.value.trim();
       $("#home").dataset.gameView = wip ? "wip" : "main";
-      options.forEach((o) => (o.hidden = wipGames.has(o.dataset.game) !== wip));
-      picker.querySelector("#game-picker-title").textContent = wip
-        ? "Work in progress."
-        : "Choose your game.";
+      options.forEach(
+        (o) =>
+          (o.hidden = query
+            ? !matches(o)
+            : wipGames.has(o.dataset.game) !== wip),
+      );
+      const none = options.every((o) => o.hidden);
+      empty.hidden = !none;
+      empty.textContent = none ? `No games match “${query}”.` : "";
+      picker.querySelector("#game-picker-title").textContent = query
+        ? "Search results."
+        : wip
+          ? "Work in progress."
+          : "Choose your game.";
       toggle.textContent = wip ? "← ALL GAMES" : "WORK IN PROGRESS →";
       toggle.setAttribute(
         "aria-label",
@@ -1387,10 +1426,32 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       if (focus) pick?.focus({ preventScroll: true });
       $("#home").scrollTop = 0;
     };
-    // Kids get no Work in Progress view.
+    // Kids get no Work in Progress view and no search.
     if (kidView) toggle.closest("[data-nav-row]").remove();
-    toggle.onclick = () =>
-      setGameView($("#home").dataset.gameView === "wip" ? "main" : "wip", true);
+    const currentView = () => $("#home").dataset.gameView || "main";
+    toggle.onclick = () => {
+      search.value = "";
+      setGameView(currentView() === "wip" ? "main" : "wip", true);
+    };
+    search.addEventListener("input", () => setGameView(currentView()));
+    search.addEventListener("keydown", (e) => {
+      const first = options.find((o) => !o.hidden);
+      if (e.key === "Escape" && search.value) {
+        // Clear the search first; a second Escape steps back a screen.
+        e.preventDefault();
+        e.stopPropagation();
+        search.value = "";
+        setGameView(currentView());
+      } else if (e.key === "ArrowDown" && first) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.key === "Enter" && first) {
+        // Enter picks the top result.
+        e.preventDefault();
+        first.focus({ preventScroll: true });
+        first.click();
+      }
+    });
     setGameView("main");
     options.forEach((o) => {
       o.addEventListener("pointerenter", () => preview(o));
@@ -4035,3 +4096,53 @@ function frame(now) {
   lastPings = pings;
 }
 requestAnimationFrame(frame);
+// Grown-ups: typing "all" on the ?kids game screen reloads without ?kids
+// (every game), keeping how you're playing and landing back on the game screen.
+if (kidView) {
+  let typed = "";
+  addEventListener(
+    "keydown",
+    (e) => {
+      if ($("#home").hidden || $("#home").dataset.screen !== "game") return;
+      if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+      typed = (typed + e.key.toLowerCase()).slice(-3);
+      if (typed !== "all") return;
+      try {
+        sessionStorage.setItem("minigames.allGames", mode);
+      } catch {}
+      const url = new URL(location.href);
+      url.searchParams.delete("kids");
+      location.href = url.toString();
+    },
+    true,
+  );
+} else {
+  let restore = null;
+  try {
+    restore = sessionStorage.getItem("minigames.allGames");
+    sessionStorage.removeItem("minigames.allGames");
+  } catch {}
+  if (restore) {
+    const card = $(`#home [data-mode="${restore}"]`);
+    if (card) card.click();
+    else showScreen("game");
+  }
+}
+// ?game=<id or name> (e.g. ?game=bigbadburger) skips the menu and opens that
+// game, as if it had been picked and Start pressed. Leaving it lands on the
+// character screen like any other game.
+{
+  const want = directGame();
+  const entry =
+    want &&
+    [...document.querySelectorAll("#home [data-game]")].find(
+      (el) =>
+        squashName(el.dataset.game) === want ||
+        squashName(el.querySelector("strong")?.textContent) === want,
+    );
+  if (entry) {
+    pickGame(entry.dataset.game);
+    showScreen("character");
+    $("#deploy").click();
+  } else if (want) console.warn(`?game: no game called "${want}"`);
+}

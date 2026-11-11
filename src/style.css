@@ -5023,3 +5023,41 @@ nav .text-button,
     flex-wrap: wrap;
   }
 }
+
+/* Game screen: search box beside the Work in Progress button. */
+.game-picker-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.game-search {
+  min-height: 48px;
+  width: 240px;
+  max-width: 100%;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+}
+.game-search:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+.game-search-empty {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+@media (max-width: 480px) {
+  .game-picker-tools {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .game-search {
+    flex: 1;
+  }
+}
