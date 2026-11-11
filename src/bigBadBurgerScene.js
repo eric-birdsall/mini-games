@@ -634,7 +634,7 @@ export function createBigBadBurgerScene(canvas) {
     },
     // Screen position of the top of the stack (for pop-up text).
     topScreen: () => project(stack[stack.length - 1]?.x ?? 0, top() + 0.15, 0),
-    draw(dt, { item, lean }) {
+    draw(dt, { item, lean, ring }) {
       time += dt;
       resize();
       const h = top();
@@ -703,14 +703,19 @@ export function createBigBadBurgerScene(canvas) {
         if (item) {
           held.position.set(item.x, item.y, 0);
           held.rotation.y += dt * 0.6;
+          // Lean into the sideways drift while falling: tilt in world
+          // space, spin about its own axis.
+          held.rotation.order = "ZYX";
+          held.rotation.z = -(item.vx || 0) * 0.18;
         }
       }
-      // Where it will land: always the top of the stack, right below it.
-      marker.visible = !!(held && item && item.y > h + 0.005);
+      // Where it will land (Easy only): the top of the stack, allowing for
+      // the sideways drift a dropped piece keeps.
+      marker.visible = !!(ring && held && item && item.y > h + 0.005);
       if (marker.visible) {
         const r = INGREDIENTS[heldKind].width / 2;
         const pulse = 1 + Math.sin(time * 6) * 0.04;
-        marker.position.set(item.x, h + 0.004, 0);
+        marker.position.set(item.landX ?? item.x, h + 0.004, 0);
         marker.scale.set(r * pulse, 1, r * pulse);
       }
 

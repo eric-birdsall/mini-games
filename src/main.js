@@ -1293,6 +1293,38 @@ if (kidView) {
   if (!RELEASED_GAMES.includes(savedGame)) savedGame = RELEASED_GAMES[0];
 }
 if (launchers[savedGame]) pickGame(savedGame);
+// On a touch device (phone or tablet), the games with no touch controls are
+// greyed out and can't be picked: the arena games (WASD + mouse look),
+// Slipstream and Loop & Glide.
+const NEEDS_KEYS = [
+  "splash",
+  "hotpotato",
+  "breakout",
+  "boulders",
+  "sprinklers",
+  "livewire",
+  "slipstream",
+  "backyardairmail",
+];
+if (window.matchMedia?.("(pointer: coarse)").matches) {
+  const entries = [...document.querySelectorAll("#home [data-game]")];
+  for (const entry of entries) {
+    if (!NEEDS_KEYS.includes(entry.dataset.game)) continue;
+    entry.disabled = true;
+    entry.classList.add("needs-keys");
+    entry.title = "Needs a keyboard or controller";
+    entry.insertAdjacentHTML(
+      "beforeend",
+      `<span class="game-needs-keys">NEEDS KEYBOARD OR CONTROLLER</span>`,
+    );
+  }
+  if (NEEDS_KEYS.includes(menuGame)) {
+    const usable = entries.filter((e) => !e.disabled);
+    const next =
+      usable.find((e) => e.dataset.game === "bigbadburger") || usable[0];
+    if (next) pickGame(next.dataset.game);
+  }
+}
 
 for (const list of document.querySelectorAll("#home .choice-row")) {
   if (list.getAttribute("aria-label") === "How you're playing") continue;
@@ -1328,12 +1360,21 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     ]);
     // A released game shows to kids even while it's still marked WIP.
     if (kidView) wipGames.clear();
+    // Finished games first, then WIP; within each, the games greyed out on a
+    // touch device go last.
+    const needsKeys = (o) => o.classList.contains("needs-keys");
     options.sort(
       (a, b) =>
         Number(wipGames.has(a.dataset.game)) -
-        Number(wipGames.has(b.dataset.game)),
+          Number(wipGames.has(b.dataset.game)) ||
+        Number(needsKeys(a)) - Number(needsKeys(b)),
     );
     list.append(...options);
+    // On a touch device the greyed-out games sit under their own title.
+    const mobileHeading = document.createElement("h3");
+    mobileHeading.className = "game-section-title";
+    mobileHeading.textContent = "Not Recommended for Mobile";
+    mobileHeading.hidden = true;
     const finished = options.filter((o) => !wipGames.has(o.dataset.game));
     options.forEach((option) => {
       const isWip = wipGames.has(option.dataset.game),
@@ -1407,6 +1448,13 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
             ? !matches(o)
             : wipGames.has(o.dataset.game) !== wip),
       );
+      // Greyed-out games go after the title, below the playable ones.
+      list.append(
+        ...options.filter((o) => !needsKeys(o)),
+        mobileHeading,
+        ...options.filter(needsKeys),
+      );
+      mobileHeading.hidden = !options.some((o) => needsKeys(o) && !o.hidden);
       const none = options.every((o) => o.hidden);
       empty.hidden = !none;
       empty.textContent = none ? `No games match “${query}”.` : "";

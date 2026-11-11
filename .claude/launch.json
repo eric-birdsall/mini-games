@@ -15,7 +15,8 @@
       "runtimeArgs": [
         "PORT=3007",
         "node",
-        "--watch",
+        "--watch-path=server",
+        "--watch-path=shared",
         "server/index.js"
       ],
       "port": 3007
@@ -26,7 +27,8 @@
       "runtimeArgs": [
         "PORT=3009",
         "node",
-        "--watch",
+        "--watch-path=server",
+        "--watch-path=shared",
         "server/index.js"
       ],
       "port": 3009,
@@ -38,7 +40,8 @@
       "runtimeArgs": [
         "PORT=3013",
         "node",
-        "--watch",
+        "--watch-path=server",
+        "--watch-path=shared",
         "server/index.js"
       ],
       "port": 3013,
@@ -50,7 +53,8 @@
       "runtimeArgs": [
         "PORT=3021",
         "node",
-        "--watch",
+        "--watch-path=server",
+        "--watch-path=shared",
         "server/index.js"
       ],
       "port": 3021,

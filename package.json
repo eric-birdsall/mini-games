@@ -5,8 +5,8 @@
   "type": "module",
   "description": "MINI GAMES — authoritative multiplayer tactical stealth prototype",
   "scripts": {
-    "dev": "node --watch server/index.js",
-    "start": "node --watch server/index.js",
+    "dev": "node --watch-path=server --watch-path=shared server/index.js",
+    "start": "node --watch-path=server --watch-path=shared server/index.js",
     "build": "vite build",
     "build:pages": "node tools/make_pops.mjs --public && node tools/make_dog.mjs --public && vite build --mode pages",
     "test": "node --test tests/*.test.js",

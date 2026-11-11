@@ -25,6 +25,7 @@ const HOW_TO =
 const HOVER = 1.05; // how high above the stack the ingredient slides
 const DROP_SPEED = 2; // starting fall speed
 const FALL = 16; // falling acceleration (a bit snappier than real gravity)
+const CARRY = 0.65; // share of the slide speed a dropped piece keeps sideways
 const NEXT_DELAY = 0.25; // pause after a landing before the next slides in
 const END_DELAY = 2.8; // let the burger finish falling before the results
 const EMOJI = {
@@ -183,7 +184,7 @@ function open(level) {
   let kind = nextKind("");
   let upNext = nextKind(kind);
   let travel = 0;
-  let item = null; // { x, y, vy }
+  let item = null; // { x, y, vx, vy, landX }
   let perfects = 0;
   let streak = 0;
   let bestStreak = 0;
@@ -235,16 +236,38 @@ function open(level) {
   function serve() {
     const r = settings.range;
     travel = height() % 2 ? r : -r;
-    item = { x: slideX(level, travel), y: stackTop(stack) + HOVER, vy: 0 };
+    item = {
+      x: slideX(level, travel),
+      y: stackTop(stack) + HOVER,
+      vx: 0,
+      vy: 0,
+      landX: 0,
+    };
     scene.setHeld(kind);
     phase = "slide";
     hud();
+  }
+
+  // Sideways speed a piece keeps when dropped right now, so it falls at an
+  // angle in the direction it was sliding.
+  function carry() {
+    const heading = Math.sign(slideX(level, travel + 0.001) - item.x) || 0;
+    return heading * slideSpeed(level, height() + 1) * CARRY;
+  }
+
+  // Where the piece will land if it falls from its height at speed vy (< 0)
+  // drifting at vx: solve |vy|·T + FALL/2·T² = distance for the fall time T.
+  function landingX(vx, vy) {
+    const d = Math.max(0, item.y - stackTop(stack));
+    const T = (vy + Math.sqrt(vy * vy + 2 * FALL * d)) / FALL;
+    return item.x + vx * T;
   }
 
   function dropIt() {
     if (state !== "playing" || phase !== "slide") return;
     phase = "falling";
     item.vy = -DROP_SPEED;
+    item.vx = carry();
     sfx.drop();
   }
 
@@ -318,9 +341,12 @@ function open(level) {
       travel += slideSpeed(level, height() + 1) * dt;
       item.x = slideX(level, travel);
       item.y = stackTop(stack) + HOVER;
+      item.landX = landingX(carry(), -DROP_SPEED);
     } else if (phase === "falling") {
       item.vy -= FALL * dt;
+      item.x += item.vx * dt;
       item.y += item.vy * dt;
+      item.landX = landingX(item.vx, item.vy);
       if (item.y <= stackTop(stack)) {
         item.y = stackTop(stack);
         land();
@@ -336,7 +362,11 @@ function open(level) {
     const dt = Math.min((now - previous) / 1000, 0.05);
     previous = now;
     if (state === "playing") step(dt);
-    scene.draw(state === "paused" ? 0 : dt, { item, lean: leanNow });
+    scene.draw(state === "paused" ? 0 : dt, {
+      item,
+      lean: leanNow,
+      ring: settings.ring,
+    });
     if (state !== "paused") frame = requestAnimationFrame(loop);
   }
 

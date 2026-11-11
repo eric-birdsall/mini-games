@@ -35,6 +35,7 @@ export const LEVELS = {
   // second at the start, growing by `ramp` per layer up to `top`.
   // perfect: a drop this close to the layer below snaps right on top.
   // grip: sauce! how far past the edge the balance point may go.
+  // ring: show a landing ring where the dropped piece will land.
   easy: {
     range: 1.0,
     speed: 0.75,
@@ -42,6 +43,7 @@ export const LEVELS = {
     top: 1.9,
     perfect: 0.09,
     grip: 0.1,
+    ring: true,
   },
   normal: {
     range: 1.35,

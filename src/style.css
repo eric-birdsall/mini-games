@@ -4120,6 +4120,29 @@ body:has(#home[hidden]) .vignette {
   padding: 6px 4px;
   margin-top: auto;
 }
+.game-options .choice.needs-keys {
+  opacity: 0.4;
+  filter: grayscale(1);
+  cursor: not-allowed;
+}
+.game-section-title {
+  grid-column: 1 / -1;
+  margin: 14px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c4b7d2;
+}
+.game-section-title[hidden] {
+  display: none;
+}
+.game-needs-keys {
+  display: block;
+  padding: 0 4px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: #c4b7d2;
+}
 .game-wip-badge {
   display: inline-block;
   margin-inline-start: 6px;
