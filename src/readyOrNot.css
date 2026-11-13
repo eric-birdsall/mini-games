@@ -1,0 +1,180 @@
+.ready-or-not {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #243d32;
+  color: #fff5dc;
+  font-family: Nunito, sans-serif;
+}
+.ready-or-not[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.ready-or-not [hidden] {
+  display: none !important;
+}
+.ready-or-not > header,
+.ready-or-not > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 16px;
+}
+.ready-or-not > header strong {
+  font:
+    600 1.4rem Fredoka,
+    sans-serif;
+}
+.ready-or-not > footer {
+  font-size: 0.85rem;
+}
+.ready-or-not .ron-field {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: #a5d7e9;
+}
+.ready-or-not canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+.ready-or-not button {
+  border: 1px solid #ffffff44;
+  border-radius: 10px;
+  background: #365747;
+  padding: 8px 12px;
+  color: #fff8e5;
+  font:
+    800 0.9rem Nunito,
+    sans-serif;
+  cursor: pointer;
+}
+.ready-or-not button.primary,
+.ready-or-not [data-action] {
+  background: #ffd568;
+  color: #253d30;
+}
+.ron-hud {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: clamp(9px, 2vw, 23px);
+  width: max-content;
+  max-width: calc(100% - 18px);
+  border-radius: 12px;
+  padding: 7px 13px;
+  background: #263d34ee;
+  font-size: clamp(0.73rem, 2vw, 1rem);
+}
+.ron-hud strong {
+  font:
+    600 1.45rem Fredoka,
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: #ffda79;
+}
+.ron-panel {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, calc(100% - 28px));
+  padding: clamp(17px, 4vw, 30px);
+  border-radius: 18px;
+  border: 1px solid #fff6cf6b;
+  background: #243d32f5;
+  text-align: center;
+  box-shadow: 0 14px 36px #22382b40;
+}
+.ron-panel h2 {
+  margin: 0;
+  font:
+    600 clamp(1.6rem, 5vw, 2.5rem) Fredoka,
+    sans-serif;
+}
+.ron-panel p {
+  margin: 9px 0 17px;
+}
+.ron-panel div {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ron-action {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 90%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.ron-action button {
+  pointer-events: auto;
+}
+.ron-action span:not(:empty) {
+  border-radius: 8px;
+  padding: 5px 9px;
+  background: #263d34ed;
+}
+.ron-touch {
+  display: none;
+  position: absolute;
+  bottom: 12px;
+  inset-inline: 12px;
+  align-items: end;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.ron-touch button {
+  pointer-events: auto;
+  touch-action: none;
+  min-width: 37px;
+  min-height: 38px;
+  padding: 4px 7px;
+}
+.ron-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.ron-dpad button:first-child {
+  grid-column: 2;
+}
+.ron-dpad button:nth-child(2) {
+  grid-column: 1;
+}
+@media (pointer: coarse) {
+  .ron-touch {
+    display: flex;
+  }
+  .ron-action {
+    bottom: 97px;
+  }
+  .ready-or-not [data-help] {
+    display: none;
+  }
+}
+@media (max-width: 500px) {
+  .ready-or-not > header,
+  .ready-or-not > footer {
+    padding: 6px 9px;
+  }
+}
