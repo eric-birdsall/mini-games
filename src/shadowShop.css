@@ -1,0 +1,564 @@
+.shadow-shop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: auto;
+  color: #fff0d8;
+  background: radial-gradient(ellipse at 50% 32%, #452938, #1e1526 72%);
+  color-scheme: dark;
+}
+
+.shadow-shop[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.shadow-shop [hidden] {
+  display: none !important;
+}
+
+.shadow-shop > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: none;
+  padding: 12px clamp(12px, 4vw, 48px);
+  border-bottom: 1px solid #794c50;
+  background: #221723;
+}
+
+.shadow-shop h1,
+.shadow-shop h2 {
+  margin: 0;
+  color: #ffe8bb;
+  font-family: Georgia, serif;
+  font-weight: 700;
+}
+
+.shadow-shop h1 {
+  font-size: clamp(1.2rem, 4vw, 1.75rem);
+}
+
+.shadow-shop h2 {
+  font-size: clamp(1.85rem, 6vw, 3.4rem);
+  line-height: 1.04;
+}
+
+.shadow-shop-main {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-height: 380px;
+  width: 100%;
+  padding: clamp(12px, 3vh, 30px) 12px 12px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.shadow-shop-heading {
+  margin-bottom: auto;
+}
+
+.shadow-shop-reference {
+  pointer-events: auto;
+}
+
+.shadow-shop-heading p {
+  margin: 0 0 6px;
+  color: #f1b886;
+  font-size: 0.88rem;
+}
+
+.shadow-shop-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1vw, 10px);
+}
+
+.shadow-shop > header button,
+.shadow-shop-main button {
+  min-height: 42px;
+  padding: 5px clamp(7px, 2vw, 14px);
+  border: 1px solid #b48475;
+  border-radius: 7px;
+  background: #503241;
+  color: #fff0d8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.shadow-shop-main button[data-turn] {
+  flex: none;
+  width: clamp(36px, 9vw, 52px);
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.shadow-shop-main button.primary {
+  background: #ffc779;
+  color: #2b1926;
+  font-weight: 800;
+}
+
+.shadow-shop button:focus-visible {
+  outline: 2px solid #ffd38e;
+  outline-offset: 2px;
+}
+
+.shadow-shop-main button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.shadow-shop-hint {
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
+.shadow-shop-hint {
+  color: #ebc7af;
+}
+
+.map-thumb img.shadow-shop-thumb {
+  object-position: center 53%;
+}
+
+.shadow-shop-layout {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+}
+
+.shadow-shop-reference {
+  position: absolute;
+  z-index: 1;
+  top: clamp(14px, 4vh, 40px);
+  left: clamp(8px, 2.5vw, 36px);
+  width: clamp(94px, 15vw, 184px);
+  padding: clamp(6px, 1vw, 12px);
+  border: 1px solid #875c61;
+  border-radius: 12px;
+  background: #2c202ef2;
+  box-shadow: 0 8px 24px #1a111d80;
+}
+
+.shadow-shop-main .shadow-shop-reference button {
+  width: 100%;
+  min-height: 34px;
+  margin-top: 10px;
+  padding: 4px;
+  font-size: clamp(0.68rem, 1.6vw, 0.9rem);
+}
+
+.shadow-shop-reference p {
+  margin: 9px 0 0;
+  color: #ebc7af;
+  font-size: 0.82rem;
+}
+
+.shadow-shop-layout figure {
+  margin: 0;
+}
+
+.shadow-shop-layout figcaption {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  padding: 4px 2px 8px;
+  color: #ffe8bb;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.shadow-shop-layout output {
+  color: #ffc779;
+  font-variant-numeric: tabular-nums;
+}
+
+.shadow-shop-layout figure canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 43%, #fff3c4, #f4c78d 65%, #d29168);
+}
+
+.shadow-shop-bench {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(107deg, #291c2e 13%, transparent 13.2%) 0 0 / 100% 80%
+      no-repeat,
+    repeating-linear-gradient(0deg, #52384215 0 1px, transparent 1px 28px) 0 0 /
+      100% 80% no-repeat,
+    linear-gradient(#47313f 79%, #694453 79.3%, #2c1d2a 80%, #211823);
+}
+
+.shadow-shop-bench .shadow-shop-wall {
+  position: absolute;
+  top: 37%;
+  left: 81%;
+  width: min(34%, 48dvh, 440px);
+  translate: 0 -50%;
+  transform: translateX(-50%);
+}
+
+.shadow-shop-bench .shadow-shop-wall canvas {
+  background: none;
+  border-radius: 0;
+  opacity: 0.89;
+  filter: blur(0.5px);
+}
+
+.shadow-shop-beam {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 32% 38% at 81% 37%,
+      #ffe2a4,
+      #edb479b5 46%,
+      #be795c36 77%,
+      transparent
+    ),
+    conic-gradient(
+      from 66deg at 25% 53%,
+      transparent,
+      #f2a86a35 12deg,
+      #ef9f6022 40deg,
+      transparent 49deg
+    );
+}
+
+.shadow-shop-models {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.shadow-shop-bookcase {
+  position: absolute;
+  inset: 11% auto auto 18%;
+  width: 12%;
+  height: 34%;
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  padding: 4px;
+  border: clamp(3px, 0.8vw, 8px) solid #795044;
+  background: #29202b;
+  box-shadow:
+    6px 7px 12px #20152280,
+    inset 0 3px 6px #19131d;
+  transform: skewY(-2deg);
+}
+
+.shadow-shop-bookcase > div {
+  display: flex;
+  align-items: end;
+  gap: 4%;
+  padding: 0 6%;
+  border-bottom: clamp(3px, 0.6vw, 6px) solid #865c4c;
+}
+
+.shadow-shop-bookcase i {
+  display: block;
+  width: 15%;
+  height: 68%;
+  border-radius: 2px 2px 0 0;
+  background:
+    linear-gradient(0deg, transparent 15%, #d7ad725c 16% 22%, transparent 23%),
+    #845457;
+  box-shadow: inset -2px 0 #20152255;
+}
+
+.shadow-shop-bookcase i:nth-child(2n) {
+  height: 83%;
+  background-color: #576d64;
+}
+
+.shadow-shop-bookcase i:nth-child(3n) {
+  height: 59%;
+  background-color: #a67a54;
+}
+
+.shadow-shop-bookcase i:last-child {
+  transform: rotate(-10deg);
+  transform-origin: bottom left;
+}
+
+.shadow-shop-desk {
+  position: absolute;
+  top: 69%;
+  left: 3%;
+  width: 24%;
+  height: 23%;
+  border-top: clamp(5px, 1vw, 11px) solid #a87856;
+  border-left: clamp(4px, 0.8vw, 9px) solid #67463d;
+  border-right: clamp(4px, 0.8vw, 9px) solid #52363a;
+  background: linear-gradient(#2518209c, transparent 75%);
+  box-shadow: 4px 7px 9px #24192386;
+}
+
+.shadow-shop-desk span {
+  display: block;
+  height: 35%;
+  border-bottom: 1px solid #35222a;
+  background: linear-gradient(110deg, #815640, #62413c);
+}
+
+.shadow-shop-desk span::after {
+  content: "";
+  display: block;
+  position: relative;
+  top: 35%;
+  width: 20%;
+  height: 20%;
+  margin: auto;
+  border-radius: 5px;
+  background: #bc9063;
+}
+
+.shadow-shop-lamp {
+  position: absolute;
+  left: 5%;
+  top: 33%;
+  width: 23%;
+  height: 36%;
+  pointer-events: none;
+}
+
+.shadow-shop-lamp::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 64%;
+  height: 12%;
+  border-radius: 50% 50% 20% 20%;
+  background: linear-gradient(#9d716b, #4c3544);
+  box-shadow: 0 4px 9px #1d1420;
+}
+
+.shadow-shop-lamp-arm {
+  position: absolute;
+  inset: 10% 27% 8% 27%;
+  border-left: clamp(4px, 1vw, 12px) solid #9d716b;
+  border-top: clamp(4px, 1vw, 12px) solid #9d716b;
+  border-radius: 75% 35% 0 0;
+}
+
+.shadow-shop-lamp-shade {
+  position: absolute;
+  top: 5%;
+  right: 2%;
+  width: 46%;
+  height: 36%;
+  border-radius: 55% 65% 42% 35%;
+  transform: rotate(52deg);
+  border-bottom: clamp(4px, 1vw, 10px) solid #ffdfa0;
+  background: linear-gradient(90deg, #8d514b, #d78a67 55%, #8e534f);
+  box-shadow: 0 9px 22px #ffbe6966;
+}
+
+.shadow-shop-controls {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.shadow-shop-control {
+  position: absolute;
+  top: 67%;
+  width: 20%;
+  height: 40%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(0.76rem, 2vw, 1rem);
+}
+
+.shadow-shop-control:first-child {
+  left: 33%;
+}
+
+.shadow-shop-control:last-child {
+  left: 53%;
+  top: 70%;
+}
+
+.shadow-shop-control > span {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  color: #ffe9ce;
+  text-shadow: 0 1px 4px #291622;
+}
+
+.shadow-shop-turntable {
+  position: relative;
+  height: 100%;
+}
+
+.shadow-shop-turntable button,
+.shadow-shop-piece {
+  pointer-events: auto;
+}
+
+.shadow-shop-main .shadow-shop-turntable button {
+  width: clamp(20px, 3.5vw, 38px);
+  min-height: clamp(30px, 4vw, 42px);
+  font-size: clamp(1.05rem, 2vw, 1.4rem);
+}
+
+.shadow-shop-piece {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.shadow-shop-piece canvas {
+  width: 100%;
+}
+
+.has-models .shadow-shop-piece canvas {
+  display: none;
+}
+
+.shadow-shop-piece.is-dragging {
+  cursor: grabbing;
+}
+
+.shadow-shop.is-solved .shadow-shop-piece {
+  cursor: default;
+}
+
+@media (max-width: 570px) {
+  .shadow-shop-heading {
+    margin-left: 90px;
+  }
+
+  .shadow-shop-bookcase {
+    left: 26%;
+  }
+}
+
+.shadow-shop-main .shadow-shop-turntable button {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+}
+
+.shadow-shop-turntable button:first-child {
+  left: 0;
+}
+
+.shadow-shop-turntable button:last-child {
+  right: 0;
+}
+
+.shadow-shop-celebration {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: hidden;
+  background: #21152373;
+  pointer-events: auto;
+}
+
+.shadow-shop-success {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(100%, 320px);
+  padding: clamp(14px, 3vh, 26px);
+  border: 1px solid #b88471;
+  border-radius: 14px;
+  background: #352333;
+  box-shadow: 0 14px 50px #1b111cbb;
+}
+
+.shadow-shop-success h2 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+.shadow-shop-success figure {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  color: #ffe4b5;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.shadow-shop-success canvas {
+  width: clamp(90px, 24dvh, 170px);
+  height: auto;
+  border-radius: 8px;
+  background: radial-gradient(circle, #fff1bc, #d7956b);
+}
+
+.shadow-shop-success button {
+  width: 100%;
+}
+
+.shadow-shop-confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.shadow-shop-confetti i {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  background: var(--paper);
+  animation: shadow-shop-confetti ease-out both;
+}
+
+@keyframes shadow-shop-confetti {
+  0% {
+    transform: scale(0.3);
+  }
+  45% {
+    opacity: 1;
+    transform: translate(var(--x), var(--y)) rotate(var(--spin));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), calc(var(--y) + 33vh))
+      rotate(calc(var(--spin) + 160deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shadow-shop-confetti {
+    display: none;
+  }
+}

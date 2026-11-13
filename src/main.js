@@ -41,6 +41,7 @@ import { installCometDash } from "./cometDash.js";
 import { installKickabout } from "./kickabout.js";
 import { installPopPatrol } from "./popPatrol.js";
 import { installPipeCrane } from "./pipeCrane.js";
+import { installShadowShop } from "./shadowShop.js";
 import { installReadyOrNot } from "./readyOrNot.js";
 import { installFoodFinder } from "./foodFinder.js";
 import { PadBridge, activeGame } from "./padBridge.js";
@@ -1278,6 +1279,7 @@ installShooAway(() => botLevel, selectedAvatar);
 installCometDash(() => botLevel, selectedAvatar);
 installKickabout(() => botLevel, selectedAvatar);
 installPopPatrol(() => botLevel, selectedAvatar);
+installShadowShop();
 // Picking a standalone game selects it; Start opens it (see `launchers`).
 document.querySelectorAll("#home [data-game]").forEach((entry) => {
   if (GAMES[entry.dataset.game] || !entry.onclick) return;
