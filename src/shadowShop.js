@@ -1,4 +1,8 @@
-import { createShadowShopModels } from "./shadowShopModels.js";
+import {
+  createShadowShopGeometry,
+  createShadowShopModels,
+  shadowShopRounds as rounds,
+} from "./shadowShopModels.js";
 import {
   bindDialogEscape,
   pauseScreen,
@@ -12,213 +16,68 @@ const PASS = 94;
 const INSTRUCTIONS =
   "Drag either object left or right to turn it. Use the nearby buttons or A / D and J / L for smaller turns. Match the reference silhouette to advance.";
 
-const rounds = [
-  {
-    name: "Hedgehog",
-    objects: [
-      {
-        name: "Garden rake",
-        x: 92,
-        y: 99,
-        depth: 9,
-        outline: [
-          [-60, 20],
-          [-58, -12],
-          [-46, -1],
-          [-44, -31],
-          [-28, -12],
-          [-19, -44],
-          [-4, -19],
-          [9, -46],
-          [20, -17],
-          [35, -34],
-          [42, -8],
-          [49, 19],
-          [37, 33],
-          [-47, 33],
-        ],
-      },
-      {
-        name: "Tea scoop",
-        x: 127,
-        y: 111,
-        depth: 13,
-        outline: [
-          [-26, 19],
-          [-19, -17],
-          [0, -17],
-          [14, -6],
-          [33, 3],
-          [34, 12],
-          [21, 20],
-          [9, 20],
-          [4, 31],
-          [-23, 31],
-        ],
-      },
-    ],
-    solution: [0, 0],
-    start: [60, 75],
-  },
-  {
-    name: "Rocket",
-    objects: [
-      {
-        name: "Ice scraper",
-        x: 96,
-        y: 86,
-        depth: 9,
-        outline: [
-          [0, -51],
-          [13, -34],
-          [22, -9],
-          [21, 37],
-          [10, 44],
-          [-10, 44],
-          [-21, 37],
-          [-22, -9],
-          [-13, -34],
-        ],
-      },
-      {
-        name: "Coat hook",
-        x: 96,
-        y: 123,
-        depth: 16,
-        outline: [
-          [-14, -23],
-          [14, -23],
-          [39, 4],
-          [41, 25],
-          [14, 14],
-          [0, 37],
-          [-14, 14],
-          [-41, 25],
-          [-39, 4],
-        ],
-      },
-    ],
-    solution: [15, 15],
-    start: [90, 75],
-  },
-  {
-    name: "Moth",
-    objects: [
-      {
-        name: "Ribbon bow",
-        x: 96,
-        y: 96,
-        depth: 10,
-        outline: [
-          [0, -8],
-          [23, -31],
-          [62, -43],
-          [68, -22],
-          [57, 1],
-          [41, 9],
-          [46, 24],
-          [29, 39],
-          [12, 31],
-          [0, 14],
-          [-12, 31],
-          [-29, 39],
-          [-46, 24],
-          [-41, 9],
-          [-57, 1],
-          [-68, -22],
-          [-62, -43],
-          [-23, -31],
-        ],
-      },
-      {
-        name: "Salad tongs",
-        x: 96,
-        y: 88,
-        depth: 8,
-        outline: [
-          [0, -18],
-          [13, -47],
-          [20, -47],
-          [10, -18],
-          [8, -5],
-          [10, 22],
-          [0, 52],
-          [-10, 22],
-          [-8, -5],
-          [-10, -18],
-          [-20, -47],
-          [-13, -47],
-        ],
-      },
-    ],
-    solution: [0, 30],
-    start: [75, 90],
-  },
-];
-
-// Project the front, back and sides of each solid onto a screen lit by
-// parallel rays. Both objects cast onto the same mask.
-function drawShadow(ctx, round, angles, color) {
+// Fill a single union of projected mesh triangles. Giving every triangle
+// the same winding keeps overlapping surfaces solid while preserving holes.
+function drawShadow(ctx, geometry, round, angles, color) {
   ctx.clearRect(0, 0, SIZE, SIZE);
   ctx.fillStyle = color;
-
-  function fill(points) {
-    ctx.beginPath();
-    points.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  round.objects.forEach(({ x, y, depth, outline }, i) => {
-    const angle = (angles[i] * Math.PI) / 180;
-    const shift = (depth * Math.sin(angle)) / 2;
-    const face = outline.map(([px, py]) => [x + px * Math.cos(angle), y + py]);
-    const front = face.map(([px, py]) => [px - shift, py]);
-    const back = face.map(([px, py]) => [px + shift, py]);
-    fill(front);
-    fill(back);
-    front.forEach((point, j) => {
-      const next = (j + 1) % front.length;
-      fill([point, front[next], back[next], back[j]]);
+  ctx.beginPath();
+  round.objects.forEach((object, i) => {
+    const scale = 69 * (object.scale ?? 1);
+    const x = SIZE / 2 + object.x * 69;
+    const y = SIZE / 2 - object.y * 69;
+    geometry.project(object, angles[i], (a, b, c) => {
+      const area = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+      if (Math.abs(area) < 1e-9) return;
+      if (area < 0) [b, c] = [c, b];
+      ctx.moveTo(x + a.x * scale, y - a.y * scale);
+      ctx.lineTo(x + b.x * scale, y - b.y * scale);
+      ctx.lineTo(x + c.x * scale, y - c.y * scale);
+      ctx.closePath();
     });
   });
+  ctx.fill();
 }
 
-function drawObject(ctx, { outline, depth }, degrees, index) {
+function drawObject(ctx, geometry, object, angle) {
   ctx.clearRect(0, 0, SIZE, SIZE);
-  const angle = (degrees * Math.PI) / 180;
-  const sin = Math.sin(angle);
-  const cos = Math.cos(angle);
-  const project = ([x, y], z) => [
-    96 + x * cos + z * sin,
-    96 + y + (z * cos - x * sin) * 0.32,
-  ];
-  const front = outline.map((point) => project(point, -depth / 2));
-  const back = outline.map((point) => project(point, depth / 2));
-  const fill = (points, color) => {
-    ctx.beginPath();
-    points.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.stroke();
-  };
-  const colors = index
-    ? ["#674033", "#a56842", "#f0ae65"]
-    : ["#274b4a", "#438678", "#a9ce9d"];
-  ctx.lineJoin = "round";
-  ctx.strokeStyle = "#221823";
-  ctx.lineWidth = 1.5;
-  const [far, near] = cos < 0 ? [front, back] : [back, front];
-  fill(far, colors[0]);
-  far.forEach((point, i) => {
-    const next = (i + 1) % far.length;
-    fill([point, far[next], near[next], near[i]], colors[1]);
+  const faces = [];
+  geometry.project(object, angle, (a, b, c, color) => {
+    const ux = b.x - a.x,
+      uy = b.y - a.y,
+      uz = b.z - a.z;
+    const vx = c.x - a.x,
+      vy = c.y - a.y,
+      vz = c.z - a.z;
+    const nz = ux * vy - uy * vx;
+    if (nz <= 1e-9) return;
+    const nx = uy * vz - uz * vy;
+    const ny = uz * vx - ux * vz;
+    const light = Math.max(
+      0,
+      (-0.4 * nx + 0.48 * ny + 0.78 * nz) / Math.hypot(nx, ny, nz),
+    );
+    faces.push({ a, b, c, color, light, depth: (a.z + b.z + c.z) / 3 });
   });
-  const finish = ctx.createLinearGradient(50, 55, 145, 150);
-  finish.addColorStop(0, colors[2]);
-  finish.addColorStop(1, colors[1]);
-  fill(near, finish);
+  faces.sort((a, b) => a.depth - b.depth);
+  // Keep this projection centered and scaled like the WebGL view.
+  const centerY = SIZE * 0.45;
+  const scale = SIZE * 0.43;
+  ctx.lineWidth = 0.7;
+  for (const { a, b, c, color, light } of faces) {
+    const shade = color
+      .clone()
+      .multiplyScalar(0.45 + 0.55 * light)
+      .getStyle();
+    ctx.fillStyle = ctx.strokeStyle = shade;
+    ctx.beginPath();
+    ctx.moveTo(SIZE / 2 + a.x * scale, centerY - a.y * scale);
+    ctx.lineTo(SIZE / 2 + b.x * scale, centerY - b.y * scale);
+    ctx.lineTo(SIZE / 2 + c.x * scale, centerY - c.y * scale);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+  }
 }
 
 function mask(ctx) {
@@ -240,7 +99,9 @@ function thumbnail() {
   canvas.width = SIZE;
   canvas.height = SIZE;
   const ctx = canvas.getContext("2d");
-  drawShadow(ctx, rounds[0], rounds[0].solution, "#29162b");
+  const geometry = createShadowShopGeometry();
+  drawShadow(ctx, geometry, rounds[0], rounds[0].solution, "#29162b");
+  geometry.dispose();
   ctx.globalCompositeOperation = "destination-over";
   const lamp = ctx.createRadialGradient(96, 78, 5, 96, 96, 124);
   lamp.addColorStop(0, "#fff1bd");
@@ -347,9 +208,10 @@ function open() {
   const shadow = get("shadow").getContext("2d", { willReadFrequently: true });
   const turnButtons = [...dialog.querySelectorAll("[data-turn]")];
   const pieces = [...dialog.querySelectorAll("[data-piece]")];
+  const geometry = createShadowShopGeometry();
   let models;
   try {
-    models = createShadowShopModels(get("models"));
+    models = createShadowShopModels(get("models"), geometry.pieces, pieces);
     dialog.classList.add("has-models");
   } catch {
     get("models").hidden = true;
@@ -372,12 +234,12 @@ function open() {
 
   function render() {
     const round = rounds[index];
-    if (models) models.update(index, angles);
+    if (models) models.update(round, angles);
     else
       round.objects.forEach((object, i) =>
-        drawObject(pieceContexts[i], object, angles[i], i),
+        drawObject(pieceContexts[i], geometry, object, angles[i]),
       );
-    drawShadow(shadow, round, angles, "#29162b");
+    drawShadow(shadow, geometry, round, angles, "#29162b");
     const score = match(referenceMask, mask(shadow));
     get("match").textContent = `${score}% match`;
     if (score < PASS || drag || solved) return;
@@ -387,12 +249,12 @@ function open() {
     const upcoming = rounds[index + 1];
     get("status").textContent = upcoming
       ? "Silhouette solved!"
-      : "All three silhouettes solved!";
+      : `All ${rounds.length} silhouettes solved!`;
     get("upcoming").hidden = !upcoming;
     if (upcoming) {
       get("upcoming-name").textContent = `Up next · ${upcoming.name}`;
       get("preview").setAttribute("aria-label", `${upcoming.name} silhouette`);
-      drawShadow(preview, upcoming, upcoming.solution, "#29162b");
+      drawShadow(preview, geometry, upcoming, upcoming.solution, "#29162b");
     }
     next.textContent = upcoming ? "Next" : "Play again";
     celebration.hidden = false;
@@ -456,7 +318,7 @@ function open() {
         `Turn ${name.toLowerCase()} ${direction}`,
       );
     });
-    drawShadow(reference, round, round.solution, "#29162b");
+    drawShadow(reference, geometry, round, round.solution, "#29162b");
     referenceMask = mask(reference);
     render();
     if (focus) turnButtons[0].focus();
@@ -532,6 +394,7 @@ function open() {
     "close",
     () => {
       models?.dispose();
+      geometry.dispose();
       dialog.remove();
     },
     { once: true },
