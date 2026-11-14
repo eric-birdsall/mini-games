@@ -278,6 +278,11 @@
 }
 
 .ap-supply button {
+  display: grid;
+  grid-template-columns: auto auto;
+  place-items: center;
+  justify-content: center;
+  column-gap: 3px;
   padding: 3px clamp(3px, 1.2vw, 12px);
   min-height: 44px;
   border: 1px solid transparent;
@@ -288,14 +293,33 @@
   white-space: nowrap;
 }
 
-.ap-supply button::before {
+.ap-ball-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(24px, 7vw, 36px);
+  aspect-ratio: 1;
+}
+
+.ap-ball-icon canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ap-ball-icon:empty::before {
   content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 4px;
+  width: 78%;
+  aspect-ratio: 1;
+  border: 1px solid #263e38;
   border-radius: 50%;
-  background: var(--ap-ball-top);
+  background:
+    radial-gradient(circle, #fff3cf 0 13%, #263e38 15% 23%, transparent 25%),
+    linear-gradient(var(--ap-ball-top) 44%, #263e38 44% 56%, #fff3cf 56%);
+}
+
+.ap-ball-name {
+  grid-column: 1 / -1;
 }
 
 .ap-supply button[aria-pressed="true"] {
@@ -304,8 +328,43 @@
 }
 
 .ap-supply button strong {
-  display: block;
+  font-size: clamp(24px, 6vw, 32px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 .ap-supply button:disabled {
   opacity: 0.48;
+}
+
+.ap-model-balls .ap-ball {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.ap-model-balls .ap-ball::after {
+  content: none;
+}
+
+.ap-ball canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 3px 3px #122e2980);
+}
+
+.ap-guide .ap-touch-hint {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .ap-guide .ap-pointer-hint {
+    display: none;
+  }
+
+  .ap-guide .ap-touch-hint {
+    display: block;
+  }
 }

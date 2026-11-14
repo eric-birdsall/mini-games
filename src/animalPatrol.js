@@ -1,3 +1,4 @@
+import { createPatrolBall } from "./animalPatrolBall.js";
 import forest from "./assets/modes/animal-patrol-forest.svg";
 import { headshot } from "./headshots.js";
 import { gameResults } from "./gameResults.js";
@@ -22,7 +23,7 @@ import "./animalPatrol.css";
 
 const TITLE = "Animal Patrol";
 const HOW_TO =
-  "Click or tap to throw a capture ball. With keyboard or Xbox, aim with WASD, the arrows, or the left stick, then throw with Space, A, or RT. Choose a ball with the buttons, keys 1–4, or cycle with R or Xbox X / LT. Special balls carry across scenes and are spent on every throw. Catch every critter to advance. If one hides behind a rock or tree, wait for it to come out.";
+  "Click or tap a critter to throw a capture ball, or swipe from the ball to the critter and release. With keyboard or Xbox, aim with WASD, the arrows, or the left stick, then throw with Space, A, or RT. Choose a ball with the buttons, keys 1–4, or cycle with R or Xbox X / LT. Special balls carry across scenes and are spent on every throw. Catch every critter to advance. If one hides behind a rock or tree, wait for it to come out.";
 const messages = {
   ready: "Catch every critter!",
   flying: "Ball in the air…",
@@ -85,9 +86,9 @@ function open() {
       <div class="ap-count"><strong data-caught></strong> CAUGHT · <strong data-throws>0</strong> THROWS</div>
       <button type="button" data-pause aria-label="Pause">Ⅱ</button>
     </header>
-    <footer class="ap-guide"><strong data-status role="status"></strong><small>Click / tap to throw · Space / A to throw · R / X to switch balls</small></footer>
+    <footer class="ap-guide"><strong data-status role="status"></strong><small class="ap-pointer-hint">Click / tap to throw · Space / A to throw · R / X to switch balls</small><small class="ap-touch-hint">Swipe from the ball to a critter, or tap the critter</small></footer>
     <div class="ap-supply" role="group" aria-label="Capture balls">
-      ${BALLS.map(({ id, name }, index) => `<button type="button" data-ball="${id}" aria-pressed="false" title="${index + 1}. ${name}"><span>${name}</span><strong></strong></button>`).join("")}
+      ${BALLS.map(({ id, name }, index) => `<button type="button" data-ball="${id}" aria-pressed="false" title="${index + 1}. ${name}"><span class="ap-ball-icon" aria-hidden="true"></span><strong></strong><span class="ap-ball-name">${name}</span></button>`).join("")}
     </div>
     ${pauseScreen(TITLE, HOW_TO)}`;
 
@@ -97,13 +98,26 @@ function open() {
   const caught = q("[data-caught]");
   const ball = q(".ap-projectile");
   const launcher = q(".ap-launcher");
+  let ballModel;
+  try {
+    ballModel = createPatrolBall();
+    dialog.classList.add("ap-model-balls");
+  } catch {
+    // Keep the CSS ball on browsers without WebGL.
+  }
   const reticle = q(".ap-reticle");
   const ring = q(".ap-ring");
   const status = q("[data-status]");
   const throws = q("[data-throws]");
   const held = new Set();
-  const ballButtons = [...dialog.querySelectorAll(".ap-supply button")];
+  const picker = q(".ap-supply");
+  const ballButtons = [...picker.querySelectorAll("button")];
   ballButtons.forEach((button) => {
+    if (ballModel) {
+      button
+        .querySelector(".ap-ball-icon")
+        .append(ballModel.preview(button.dataset.ball));
+    }
     button.onclick = () => {
       selectBall(button.dataset.ball);
       field.focus({ preventScroll: true });
@@ -117,10 +131,12 @@ function open() {
   let patrol;
   let aim;
   let phase;
+  let touch;
   let frame;
   let previousTime;
 
   function close() {
+    ballModel?.dispose();
     cancelAnimationFrame(frame);
     dialog.close();
     dialog.remove();
@@ -177,17 +193,36 @@ function open() {
     }
     reticle.hidden = !aim.visible || !!capture;
     position(reticle, aim.x, aim.y);
+    // Keep the swipe start above the picker on short landscape screens.
+    const launchY = Math.min(
+      LAUNCH.y,
+      (picker.offsetTop - 24) / field.clientHeight,
+    );
+    position(launcher, LAUNCH.x, launchY);
     launcher.hidden = !!shot || !!capture;
     ball.hidden = (!shot && !capture) || breakout;
     if (shot || capture) ball.dataset.ball = (shot || capture).type.id;
     ring.hidden = !capture || (!breakout && t > 0.5);
 
-    if (shot) {
+    if (!shot && !capture) {
+      ballModel?.draw(
+        launcher,
+        patrol.selected,
+        0.24,
+        -0.28 + Math.sin(time * 2) * 0.35,
+      );
+    } else if (shot) {
       const p = Math.min(1, (time - shot.start) / FLIGHT);
       position(
         ball,
         LAUNCH.x + (shot.x - LAUNCH.x) * p,
-        LAUNCH.y + (shot.y - LAUNCH.y) * p - 0.18 * Math.sin(Math.PI * p),
+        launchY + (shot.y - launchY) * p - 0.18 * Math.sin(Math.PI * p),
+      );
+      ballModel?.draw(
+        ball,
+        shot.type.id,
+        0.24 + p * Math.PI * 4,
+        -0.28 + p * Math.PI * 2,
       );
       ball.style.transform = `translate(-50%, -50%) rotate(${p * 560}deg) scale(${1.2 - p * 0.55})`;
     } else if (capture) {
@@ -195,7 +230,10 @@ function open() {
       position(ring, capture.x, capture.y);
       ring.style.transform = `translate(-50%, -50%) scale(${0.25 + (breakout ? pop : t) * 3.5})`;
       ring.style.opacity = 1 - (breakout ? pop : t * 2);
-      ball.style.transform = `translate(-50%, -50%) rotate(${t > 0.3 && t < 0.96 ? Math.sin((t - 0.3) * 30) * 29 : 0}deg)`;
+      const rock = t > 0.3 && t < 0.96 ? Math.sin((t - 0.3) * 30) : 0;
+      if (!breakout)
+        ballModel?.draw(ball, capture.type.id, 0.24 + rock * 0.26, rock * 0.5);
+      ball.style.transform = `translate(-50%, -50%) rotate(${rock * 29}deg)`;
     }
     if (status.textContent !== messages[patrol.status])
       status.textContent = messages[patrol.status];
@@ -266,6 +304,7 @@ function open() {
   }
 
   async function resetScene(supply) {
+    touch = null;
     cancelAnimationFrame(frame);
     held.clear();
     results.hide();
@@ -312,6 +351,7 @@ function open() {
   function pause() {
     if (phase !== "playing") return;
     phase = "paused";
+    touch = null;
     held.clear();
     cancelAnimationFrame(frame);
     setPauseScreen(dialog, true);
@@ -329,7 +369,6 @@ function open() {
     render();
   }
 
-  position(launcher, LAUNCH.x, LAUNCH.y);
   dialog.padPlaying = () => phase === "playing";
   bindDialogEscape(dialog, () => {
     if (phase === "paused") resume();
@@ -349,14 +388,64 @@ function open() {
       visible: true,
     };
   }
+  const swipeDistance = 12;
+  const touchDistance = (event, start) =>
+    Math.hypot(event.clientX - start.x, event.clientY - start.y);
+
   field.addEventListener("pointermove", (event) => {
-    if (phase === "playing" && event.pointerType !== "touch") pointerAim(event);
+    if (phase !== "playing") return;
+    if (event.pointerType !== "touch") {
+      pointerAim(event);
+    } else if (touch?.id === event.pointerId && touch.fromBall) {
+      pointerAim(event);
+    }
   });
   field.addEventListener("pointerdown", (event) => {
     if (phase !== "playing" || !event.isPrimary || event.button !== 0) return;
+    if (event.pointerType !== "touch") {
+      pointerAim(event);
+      shoot();
+      return;
+    }
+    if (launcher.hidden) return;
+    const ball = launcher.getBoundingClientRect();
+    const radius = Math.max(32, ball.width / 2);
+    const fromBall =
+      touchDistance(event, {
+        x: ball.left + ball.width / 2,
+        y: ball.top + ball.height / 2,
+      }) <= radius;
+    touch = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      fromBall,
+    };
+    field.setPointerCapture(event.pointerId);
+  });
+  field.addEventListener("pointerup", (event) => {
+    if (touch?.id !== event.pointerId) return;
+    const start = touch;
+    touch = null;
+    const moved = touchDistance(event, start) >= swipeDistance;
+    if (start.fromBall && !moved) return;
+    if (!start.fromBall && moved) return;
+    const rect = field.getBoundingClientRect();
+    if (
+      event.clientX < rect.left ||
+      event.clientX >= rect.right ||
+      event.clientY < rect.top ||
+      event.clientY >= rect.bottom
+    )
+      return;
     pointerAim(event);
     shoot();
   });
+  function cancelTouch(event) {
+    if (touch?.id === event.pointerId) touch = null;
+  }
+  field.addEventListener("pointercancel", cancelTouch);
+  field.addEventListener("lostpointercapture", cancelTouch);
 
   dialog.addEventListener("keydown", (event) => {
     if (phase !== "playing") return;
