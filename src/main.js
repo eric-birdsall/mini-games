@@ -42,6 +42,7 @@ import { installKickabout } from "./kickabout.js";
 import { installPopPatrol } from "./popPatrol.js";
 import { installPipeCrane } from "./pipeCrane.js";
 import { installShadowShop } from "./shadowShop.js";
+import { installBocce } from "./bocce.js";
 import { installSkeeBall } from "./skeeBall.js";
 import { installReadyOrNot } from "./readyOrNot.js";
 import { installFoodFinder } from "./foodFinder.js";
@@ -1282,6 +1283,7 @@ installKickabout(() => botLevel, selectedAvatar);
 installPopPatrol(() => botLevel, selectedAvatar);
 installShadowShop();
 installSkeeBall(() => botLevel, selectedAvatar);
+installBocce(() => botLevel);
 // Picking a standalone game selects it; Start opens it (see `launchers`).
 document.querySelectorAll("#home [data-game]").forEach((entry) => {
   if (GAMES[entry.dataset.game] || !entry.onclick) return;

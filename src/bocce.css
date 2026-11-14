@@ -1,0 +1,215 @@
+.bocce {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  color: #f7efda;
+  background: #132924;
+  font-family: inherit;
+}
+
+.bocce-layout {
+  position: absolute;
+  inset: 0;
+}
+
+.bocce-heading {
+  position: relative;
+  padding-right: 32px;
+  margin-bottom: 10px;
+}
+.bocce-heading h2 {
+  margin: 0.15em 0 0;
+  font:
+    700 1.25rem/1 Georgia,
+    serif;
+}
+.bocce-heading p {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: #c8cda7;
+}
+.bocce-heading button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.bocce-panel {
+  box-sizing: border-box;
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  width: min(225px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid #e5edc447;
+  border-radius: 10px;
+  background: #132924c4;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 18px #0003;
+}
+.bocce-panel .bocce-heading button {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 3px;
+}
+.bocce-elevation {
+  display: block;
+  margin-bottom: 6px;
+  color: #e9dbab;
+  font-size: 0.72rem;
+}
+.bocce-elevation:empty {
+  display: none;
+}
+.bocce-scores,
+.bocce-controls {
+  display: grid;
+  gap: 8px;
+}
+.bocce-scores {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bocce-team {
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  font-size: 0.74rem;
+  border: 1px solid #ffffff28;
+  border-radius: 9px;
+  background: #203b3373;
+  color: #ffd685;
+}
+.bocce-team[data-team="1"] {
+  color: #9be6d9;
+}
+.bocce-team.is-turn {
+  border-color: currentColor;
+}
+.bocce-team strong {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.bocce-team small,
+.bocce-hint {
+  color: #c8cda7;
+}
+.bocce-status {
+  margin: 8px 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.bocce-power {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+  color: #d7d8ba;
+  font-size: 0.8rem;
+}
+.bocce-power meter {
+  width: 100%;
+  accent-color: #f0aa37;
+}
+.bocce-controls {
+  grid-template-columns: 34px 1fr 34px;
+}
+.bocce-layout button {
+  padding: 8px;
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid #ffffff35;
+  border-radius: 7px;
+  color: #fff5de;
+  background: #28493f;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.bocce-layout button[data-roll],
+.bocce-layout button[data-next] {
+  font-weight: 800;
+  background: #f0bf73;
+  color: #282013;
+}
+.bocce-layout button[data-next] {
+  margin-top: 8px;
+  width: 100%;
+}
+.bocce-layout button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.bocce-hint {
+  font-size: 0.8rem;
+  margin: 10px 0 0;
+}
+
+.bocce-thumb {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: repeating-linear-gradient(120deg, #e0b992 0 2px, #dcb48c 3px 7px);
+  box-shadow: inset 0 0 0 5px #8b5d3a;
+}
+.bocce-thumb i {
+  position: absolute;
+  width: 19%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #ffe3a9, #d78826 62%, #9a4e1e);
+  left: 26%;
+  top: 47%;
+  box-shadow: 2px 5px 7px #44271070;
+}
+.bocce-thumb i:nth-child(2) {
+  left: 55%;
+  top: 34%;
+  background: radial-gradient(circle at 30% 25%, #bdf1e5, #299789 62%, #154e45);
+}
+.bocce-thumb i:nth-child(3) {
+  width: 10%;
+  left: 46%;
+  top: 24%;
+  background: radial-gradient(circle at 30% 25%, #fff, #e1cbaa 80%);
+}
+
+.bocce-court {
+  position: absolute;
+  inset: 0;
+}
+
+.bocce-court canvas[data-view] {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: 0;
+  cursor: grab;
+  touch-action: none;
+}
+.bocce-court canvas[data-view]:active {
+  cursor: grabbing;
+}
+.bocce-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fffae4;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #243a31;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+@media (max-width: 560px) {
+  .bocce-panel {
+    top: auto;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    right: max(10px, env(safe-area-inset-right));
+    width: min(192px, calc(100% - 20px));
+  }
+}

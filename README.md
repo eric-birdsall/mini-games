@@ -295,13 +295,13 @@ Input handling was checked with synthetic standard Xbox button/axis samples and 
 
 ### Controller in the standalone games
 
-Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Comet Dash, Pop Patrol, Kickabout and Skee Ball run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
+Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Comet Dash, Pop Patrol, Kickabout, Skee Ball and Bocce Ball run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
 
 | Xbox               | During play                                                                                                                     | On a start, pause or results screen               |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Left stick / D-pad | Steer, aim, dive/flare, hop, look around, move the yard cursor, aim the roll (W A S D)                                          | Move to the nearest button that way               |
+| Left stick / D-pad | Steer, aim, dive/flare, hop, look around, move the yard cursor, aim the roll (A / D in Bocce Ball)                                          | Move to the nearest button that way               |
 | Right stick        | Look (Slipstream, Shoo Away; I J K L)                                                                                           | —                                                 |
-| A / RT             | Drop, cast, reel, release, fire, shoo, jump, build, shoot / lunge, belly dive, hold to roll (Space)                             | Press the highlighted button (A only)             |
+| A / RT             | Drop, cast, reel, release, fire, shoo, jump, build, shoot / lunge, belly dive, hold to roll (Space) in Skee Ball and Bocce Ball                             | Press the highlighted button (A only)             |
 | X / LT             | Pump the water blaster (R, Target Blaster); dash (Comet Dash); start wave / fast (Pop Patrol); pass / switch player (Kickabout) | —                                                 |
 | B                  | Pause (Escape)                                                                                                                  | Back / resume (Escape)                            |
 | Menu (Start)       | Pause                                                                                                                           | Press the main button (Start, Resume, Play again) |
