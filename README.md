@@ -295,13 +295,13 @@ Input handling was checked with synthetic standard Xbox button/axis samples and 
 
 ### Controller in the standalone games
 
-Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Comet Dash, Pop Patrol, Kickabout, Skee Ball and Bocce Ball run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
+Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball and Kubb run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
 
 | Xbox               | During play                                                                                                                     | On a start, pause or results screen               |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | Left stick / D-pad | Steer, aim, dive/flare, hop, look around, move the yard cursor, aim the roll (A / D in Bocce Ball)                                          | Move to the nearest button that way               |
-| Right stick        | Look (Slipstream, Shoo Away; I J K L)                                                                                           | —                                                 |
-| A / RT             | Drop, cast, reel, release, fire, shoo, jump, build, shoot / lunge, belly dive, hold to roll (Space) in Skee Ball and Bocce Ball                             | Press the highlighted button (A only)             |
+| Right stick        | Look (Slipstream, Shoo Away, Kubb; I J K L)                                                                                           | —                                                 |
+| A / RT             | Drop, cast, reel, release, fire, shoo, jump, build, shoot / lunge, belly dive, hold and release to roll or throw in Skee Ball, Bocce Ball and Kubb                             | Press the highlighted button (A only)             |
 | X / LT             | Pump the water blaster (R, Target Blaster); dash (Comet Dash); start wave / fast (Pop Patrol); pass / switch player (Kickabout) | —                                                 |
 | B                  | Pause (Escape)                                                                                                                  | Back / resume (Escape)                            |
 | Menu (Start)       | Pause                                                                                                                           | Press the main button (Start, Resume, Play again) |
@@ -902,6 +902,10 @@ Open **Game → Backyard Fling** to drive your chosen critter's toy car down the
 - **Difficulty:** Easy gives 5 cars a yard, Normal 4 and Hard 3. Hard has no landing ring.
 
 The physics is [cannon-es](https://github.com/pmndrs/cannon-es). The track and ramp are scripted; from the lip on, the car is a rolling ball (so it lands and coasts rather than digging a corner in), the picnic table top and benches are fixed slabs, and the blocks are boxes. The track, ramp, yards and physics are in `shared/backyardFling.js`, tested in `tests/backyardFling.test.js`. The tests check the steering time and rails, that faster flies further, and that the landing ring matches where the car lands. They also check that every block sits on the table, that a straight shot lands on it, that the structures stand still on their own, and they drive a spread of runs at every yard to check most knock blocks down, every structure can be toppled, and runs settle soon. The game is in `src/backyardFling.js`, and the 3D track, ramp and yard are in `src/backyardFlingScene.js`.
+
+### Kubb · Viking Chess
+
+Open **Game → Kubb · Viking Chess → Start** for a first-person match against the AI. Aim with WASD, arrow keys, either Xbox stick, or by dragging the field. Hold Space, Xbox A / RT, or **Hold to Throw**, and release when the dotted arc lines up. Clear the rival’s field kubbs first, then their baseline kubbs, then the king. Hitting the king early loses the match. The game automatically sets knocked kubbs upright in the field between turns.
 
 ### Skee Ball
 

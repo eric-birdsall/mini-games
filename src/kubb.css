@@ -1,0 +1,240 @@
+.kubb-thumb {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  gap: 7%;
+  background: linear-gradient(#8fbab0 47%, #5f7d47 47%);
+  padding-bottom: 10%;
+}
+.kubb-thumb i {
+  width: 12%;
+  height: 32%;
+  background: linear-gradient(#e9a357 31%, #8d5c38 31%);
+  border-radius: 2px;
+  box-shadow: 3px 2px #172d244e;
+}
+.kubb-thumb i:nth-child(2) {
+  height: 57%;
+  width: 17%;
+  background: linear-gradient(#ffcd73 28%, #a3303c 28%);
+}
+.kubb {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #19322d;
+  color: #fff2d5;
+}
+.kubb-play,
+.kubb-play canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.kubb-play {
+  font-family: system-ui, sans-serif;
+}
+.kubb-play canvas {
+  touch-action: none;
+  cursor: grab;
+}
+.kubb-play canvas:active {
+  cursor: grabbing;
+}
+.kubb-top,
+.kubb-score,
+.kubb-bottom {
+  position: absolute;
+  z-index: 1;
+}
+.kubb-top {
+  top: max(14px, env(safe-area-inset-top));
+  left: 22px;
+  right: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  pointer-events: none;
+}
+.kubb-top > div,
+.kubb-score,
+.kubb-bottom {
+  background: #142b25ee;
+  border: 1px solid #e5c88862;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px #17282237;
+}
+.kubb-top > div {
+  padding: 10px 15px;
+}
+.kubb-top p {
+  margin: 0;
+  color: #dfbe7a;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  font-weight: 750;
+}
+.kubb-top h2 {
+  margin: 0;
+  font:
+    900 clamp(1.45rem, 4vw, 2.4rem)/1.05 Georgia,
+    serif;
+}
+.kubb-top h2 span {
+  font: 750 0.63rem/1 system-ui;
+  letter-spacing: 0.12em;
+}
+.kubb button[data-pause],
+.kubb button[data-throw] {
+  border-radius: 8px;
+  border: 1px solid #edcf90;
+  font: 800 0.75rem system-ui;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  min-height: 44px;
+}
+.kubb button[data-pause] {
+  pointer-events: auto;
+  width: 44px;
+  font-size: 1rem;
+  background: #142b25;
+  color: #fff2d5;
+}
+.kubb button[data-throw] {
+  touch-action: none;
+  background: #f1cc83;
+  color: #222e24;
+}
+.kubb button[data-throw]:disabled {
+  opacity: 0.63;
+  cursor: default;
+}
+.kubb-score {
+  top: max(14px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  text-align: center;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+.kubb-score b,
+.kubb-score strong {
+  display: block;
+}
+.kubb-score b,
+.kubb-score small {
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+}
+.kubb-score strong {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #87d5db;
+}
+.kubb-score div:last-child strong {
+  color: #ffc18a;
+}
+.kubb-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff3ce;
+  text-shadow: 0 1px 3px #111;
+  font-size: 22px;
+  pointer-events: none;
+}
+.kubb-bottom {
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(460px, calc(100% - 24px));
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr minmax(128px, 39%);
+  gap: 3px 14px;
+}
+.kubb-instructions {
+  align-self: center;
+}
+.kubb-instructions strong,
+.kubb-instructions small {
+  display: block;
+}
+.kubb-instructions strong {
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: #ffd791;
+}
+.kubb-instructions small {
+  margin-top: 4px;
+  line-height: 1.22;
+  font-size: 0.76rem;
+}
+.kubb-throw {
+  display: grid;
+  gap: 4px;
+}
+.kubb-throw label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+}
+.kubb-throw meter {
+  width: 70%;
+  height: 10px;
+  accent-color: #efc475;
+}
+.kubb-throw [data-batons] {
+  display: flex;
+  gap: 5px;
+  justify-content: flex-end;
+}
+.kubb-throw [data-batons] i {
+  width: 14px;
+  height: 4px;
+  border-radius: 3px;
+  background: #6c7265;
+}
+.kubb-throw [data-batons] .is-ready {
+  background: #f1cc83;
+}
+.kubb-hint {
+  align-self: end;
+  grid-column: 1/-1;
+  opacity: 0.83;
+  font-size: 0.66rem;
+}
+.kubb-error {
+  display: grid;
+  place-content: center;
+  height: 100%;
+  text-align: center;
+}
+@media (max-width: 680px) {
+  .kubb-top {
+    left: 12px;
+    right: 12px;
+  }
+  .kubb-top h2 span {
+    display: none;
+  }
+  .kubb-score {
+    top: max(78px, calc(env(safe-area-inset-top) + 62px));
+  }
+}

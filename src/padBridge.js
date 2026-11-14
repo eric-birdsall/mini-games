@@ -3,7 +3,7 @@
 // Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch,
 // Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop,
 // Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad
-// Burger, Shoo Away, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball).
+// Burger, Shoo Away, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb).
 //
 // Those games run in their own overlay and already understand the keyboard,
 // so while one is open the controller is translated into the keys they use:
