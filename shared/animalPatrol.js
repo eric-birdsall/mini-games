@@ -16,15 +16,15 @@ export const SCENES = [
   {
     name: "Forest Clearing",
     theme: "forest",
-    critters: [["fox", 0.45, 0.56]],
+    critters: [["Pikachu", 0.45, 0.56]],
     cover: [],
   },
   {
     name: "Creek Bend",
     theme: "creek",
     critters: [
-      ["bunny", 0.25, 0.54],
-      ["squirrel", 0.74, 0.65],
+      ["Squirtle", 0.25, 0.54],
+      ["Psyduck", 0.74, 0.65],
     ],
     cover: [{ kind: "rock", x: 0.49, y: 0.57, width: 0.19, height: 0.16 }],
   },
@@ -32,13 +32,56 @@ export const SCENES = [
     name: "Twilight Grove",
     theme: "grove",
     critters: [
-      ["fox", 0.17, 0.65],
-      ["raccoon", 0.51, 0.64],
-      ["squirrel", 0.82, 0.57],
+      ["Eevee", 0.17, 0.65],
+      ["Jigglypuff", 0.51, 0.64],
+      ["Gengar", 0.82, 0.57],
     ],
     cover: [
       { kind: "tree", x: 0.32, y: 0.48, width: 0.15, height: 0.32 },
       { kind: "rock", x: 0.64, y: 0.62, width: 0.17, height: 0.16 },
+    ],
+  },
+  {
+    name: "Sunstone Ridge",
+    theme: "ridge",
+    critters: [
+      ["Charmander", 0.16, 0.56],
+      ["Onix", 0.39, 0.68],
+      ["Machamp", 0.62, 0.51],
+      ["Charizard", 0.84, 0.66],
+    ],
+    cover: [
+      { kind: "rock", x: 0.27, y: 0.52, width: 0.15, height: 0.15 },
+      { kind: "rock", x: 0.72, y: 0.62, width: 0.15, height: 0.17 },
+    ],
+  },
+  {
+    name: "Tidal Lagoon",
+    theme: "lagoon",
+    critters: [
+      ["Meowth", 0.17, 0.64],
+      ["Blastoise", 0.4, 0.54],
+      ["Gyarados", 0.63, 0.68],
+      ["Dragonite", 0.84, 0.54],
+    ],
+    cover: [
+      { kind: "rock", x: 0.29, y: 0.59, width: 0.15, height: 0.16 },
+      { kind: "rock", x: 0.73, y: 0.58, width: 0.14, height: 0.15 },
+    ],
+  },
+  {
+    name: "Moonlit Sanctuary",
+    theme: "sanctuary",
+    critters: [
+      ["Bulbasaur", 0.17, 0.56],
+      ["Venusaur", 0.4, 0.67],
+      ["Snorlax", 0.63, 0.54],
+      ["Mew", 0.84, 0.66],
+    ],
+    cover: [
+      { kind: "tree", x: 0.29, y: 0.53, width: 0.14, height: 0.27 },
+      { kind: "rock", x: 0.51, y: 0.58, width: 0.15, height: 0.15 },
+      { kind: "tree", x: 0.74, y: 0.52, width: 0.13, height: 0.26 },
     ],
   },
 ];

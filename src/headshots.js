@@ -39,8 +39,9 @@ function draw(asset, fullBody) {
       (box.min.z + box.max.z) / 2,
     ),
     span = Math.max(top - bottom, box.max.x - box.min.x) * 1.12,
-    camera = new T.PerspectiveCamera(26, 1, 0.1, 30),
-    distance = span / 2 / Math.tan(T.MathUtils.degToRad(13));
+    fitSpan = fullBody ? Math.max(span, (box.max.z - box.min.z) * 1.12) : span,
+    distance = fitSpan / 2 / Math.tan(T.MathUtils.degToRad(13)),
+    camera = new T.PerspectiveCamera(26, 1, distance / 100, distance * 10);
   camera.position
     .copy(center)
     .add(
@@ -59,11 +60,11 @@ function draw(asset, fullBody) {
 }
 
 // Resolves to an image URL, or null if the model could not load.
-export function headshot(id, fullBody = false) {
+export function headshot(id, fullBody = false, load = () => loadCritter(id)) {
   const key = fullBody ? `body:${id}` : id;
   if (!cache.has(key)) {
     const result = queue.then(async () => {
-      const asset = await loadCritter(id);
+      const asset = await load();
       return asset ? draw(asset, fullBody) : null;
     });
     queue = result.catch(() => null);

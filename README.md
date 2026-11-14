@@ -972,7 +972,7 @@ The stacking rules and levels are in `shared/bigBadBurger.js` (tested in `tests/
 
 ### Animal Patrol
 
-Open **Game → Animal Patrol** to catch familiar critters across Forest Clearing, Creek Bend, and Twilight Grove. Each scene adds another critter, and rocks and trees shelter them from throws until they come back out. Catch every critter to unlock the next scene. Click or tap to aim and throw a capture ball. With keyboard or Xbox, aim with WASD, the arrow keys, or the left stick, then throw with Space, A, or RT. Critters alternate between pauses and quick runs and sometimes dodge an incoming throw. A ball that lands close enough pulls an exposed critter inside. You can retry a miss as often as you like; the results show your total throws.
+Open **Game → Animal Patrol** to catch 18 classic Pokémon across six scenes, from Forest Clearing to Moonlit Sanctuary. See the [model credits](src/assets/animal-patrol/ATTRIBUTION.md). Each scene adds another critter, and rocks and trees shelter them from throws until they come back out. Catch every critter to unlock the next scene. Click or tap to aim and throw a capture ball. With keyboard or Xbox, aim with WASD, the arrow keys, or the left stick, then throw with Space, A, or RT. Critters alternate between pauses and quick runs and sometimes dodge an incoming throw. A ball that lands close enough pulls an exposed critter inside. You can retry a miss as often as you like; the results show your total throws.
 
 ### Shoo Away
 

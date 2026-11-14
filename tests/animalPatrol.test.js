@@ -18,7 +18,7 @@ const advance = (patrol, seconds, random = calm) => {
     stepPatrol(patrol, 0.01, random);
 };
 
-test("a miss allows a retry; a hit absorbs the fox and ends the round", () => {
+test("a miss allows a retry; a hit absorbs Pikachu and ends the round", () => {
   const patrol = createPatrol();
   assert.ok(throwBall(patrol, 0.1, 0.2, reach, calm));
   assert.equal(
@@ -42,7 +42,7 @@ test("a miss allows a retry; a hit absorbs the fox and ends the round", () => {
   assert.equal(patrol.throws, 2);
 });
 
-test("the fox can dodge a throw aimed at its starting position", () => {
+test("Pikachu can dodge a throw aimed at its starting position", () => {
   const patrol = createPatrol();
   assert.ok(
     throwBall(
@@ -58,7 +58,7 @@ test("the fox can dodge a throw aimed at its starting position", () => {
   assert.ok(patrol.critters[0].x > 0.55);
 });
 
-test("the fox pauses between runs and stays within the clearing", () => {
+test("Pikachu pauses between runs and stays within the clearing", () => {
   const patrol = createPatrol();
   const original = { ...patrol.critters[0] };
   advance(patrol, 2.4);
@@ -99,8 +99,8 @@ test("cover blocks a throw and every critter must be caught to clear a scene", (
 
 test("a hit can break free after shaking, then a Master Ball catches it", () => {
   const patrol = createPatrol();
-  const [fox] = patrol.critters;
-  assert.ok(throwBall(patrol, fox.x, fox.y, reach, calm));
+  const [pikachu] = patrol.critters;
+  assert.ok(throwBall(patrol, pikachu.x, pikachu.y, reach, calm));
   advance(patrol, FLIGHT + 0.01, () => 0.99);
   assert.equal(patrol.status, "capturing");
   advance(patrol, CAPTURE + 0.01);
@@ -108,7 +108,7 @@ test("a hit can break free after shaking, then a Master Ball catches it", () => 
   assert.equal(patrol.caught, 0);
   advance(patrol, BREAKOUT);
   patrol.selected = "master";
-  assert.ok(throwBall(patrol, fox.x, fox.y, reach, calm));
+  assert.ok(throwBall(patrol, pikachu.x, pikachu.y, reach, calm));
   assert.equal(patrol.supply.master, 0);
   assert.equal(patrol.selected, "poke");
   advance(patrol, FLIGHT + CAPTURE + 0.02, () => 0.999);

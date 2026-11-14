@@ -1,6 +1,6 @@
 import { createPatrolBall } from "./animalPatrolBall.js";
 import forest from "./assets/modes/animal-patrol-forest.svg";
-import { headshot } from "./headshots.js";
+import { patrolPortrait } from "./animalPatrolModels.js";
 import { gameResults } from "./gameResults.js";
 import {
   bindDialogEscape,
@@ -51,9 +51,9 @@ export function installAnimalPatrol() {
   entry.className = "choice";
   entry.dataset.game = "animalpatrol";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb ap-thumb"><img src="${forest}" alt="" draggable="false"></span><strong>${TITLE}</strong><small>Catch familiar critters in three woodland scenes. Wait for them to come out from behind cover.</small>`;
+  entry.innerHTML = `<span class="map-thumb ap-thumb"><img src="${forest}" alt="" draggable="false"></span><strong>${TITLE}</strong><small>Catch Pokémon in six scenes. Wait for them to come out from behind cover.</small>`;
   games.append(entry);
-  headshot("fox", true).then((url) => {
+  patrolPortrait(SCENES[0].critters[0][0]).then((url) => {
     if (url) entry.querySelector(".map-thumb").append(critterImage(url, ""));
   });
   entry.onclick = open;
@@ -280,7 +280,7 @@ function open() {
       results.show(
         final ? "Patrol complete!" : "Scene cleared!",
         final
-          ? "You caught every critter across all three scenes."
+          ? `You caught every Pokémon across all ${SCENES.length} scenes.`
           : `Up next: ${SCENES[sceneIndex + 1].name}.`,
         [
           [patrol.caught, "Caught"],
@@ -335,7 +335,7 @@ function open() {
     render();
     status.textContent = "Getting the scene ready…";
     const sprites = await Promise.all(
-      patrol.critters.map(({ kind }) => headshot(kind, true)),
+      patrol.critters.map(({ kind }) => patrolPortrait(kind)),
     );
     if (!dialog.open) return;
     sprites.forEach((url, index) => {

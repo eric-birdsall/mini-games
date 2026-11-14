@@ -368,3 +368,14 @@
     display: block;
   }
 }
+
+.ap-field[data-scene="ridge"] {
+  background-image: linear-gradient(#8b442b80, #ad6d3770), var(--ap-forest);
+}
+.ap-field[data-scene="lagoon"] {
+  background-image: linear-gradient(#1a798452, #14617388), var(--ap-forest);
+}
+.ap-field[data-scene="sanctuary"] {
+  background-image:
+    radial-gradient(ellipse at 48% 42%, #bc9ad942, #151335ad), var(--ap-forest);
+}
