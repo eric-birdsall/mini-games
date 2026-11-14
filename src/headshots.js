@@ -8,7 +8,7 @@ const SIZE = 112,
 let renderer = null,
   queue = Promise.resolve();
 
-function draw(asset) {
+function draw(asset, fullBody) {
   renderer ||= new T.WebGLRenderer({
     antialias: true,
     alpha: true,
@@ -32,7 +32,7 @@ function draw(asset) {
   const box = new T.Box3().setFromObject(rig.pivot, true),
     height = box.max.y - box.min.y,
     top = box.max.y,
-    bottom = box.min.y + height * 0.42,
+    bottom = box.min.y + height * (fullBody ? 0 : 0.42),
     center = new T.Vector3(
       (box.min.x + box.max.x) / 2,
       (top + bottom) / 2,
@@ -43,26 +43,31 @@ function draw(asset) {
     distance = span / 2 / Math.tan(T.MathUtils.degToRad(13));
   camera.position
     .copy(center)
-    .add(new T.Vector3(0.12, 0.06, -1).normalize().multiplyScalar(distance));
+    .add(
+      new T.Vector3(fullBody ? 0.42 : 0.12, fullBody ? 0.18 : 0.06, -1)
+        .normalize()
+        .multiplyScalar(distance),
+    );
   camera.lookAt(center);
   renderer.render(scene, camera);
   const url = renderer.domElement.toDataURL("image/png");
+  for (const skeleton of rig.skeletons) skeleton.dispose();
   rig.pivot.traverse((node) => {
-    node.geometry?.dispose();
     node.material?.dispose();
   });
   return url;
 }
 
 // Resolves to an image URL, or null if the model could not load.
-export function headshot(id) {
-  if (!cache.has(id)) {
+export function headshot(id, fullBody = false) {
+  const key = fullBody ? `body:${id}` : id;
+  if (!cache.has(key)) {
     const result = queue.then(async () => {
       const asset = await loadCritter(id);
-      return asset ? draw(asset) : null;
+      return asset ? draw(asset, fullBody) : null;
     });
     queue = result.catch(() => null);
-    cache.set(id, queue);
+    cache.set(key, queue);
   }
-  return cache.get(id);
+  return cache.get(key);
 }
