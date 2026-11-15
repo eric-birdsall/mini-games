@@ -161,6 +161,40 @@ export function layoutSpots(count, width, depth, random) {
   }
 }
 
+// Tuck smaller props into the gaps around foods. Each prop has its own
+// footprint, and nearby pairs can touch without hiding the food underneath.
+export function scatterProps(count, width, depth, foods, size, random) {
+  const occupied = foods.map((spot) => ({ ...spot, size }));
+  const props = [];
+  for (let i = 0; i < count; i++) {
+    const scale = 0.48 + random() * 0.36;
+    const propSize = size * scale;
+    for (let tries = 0; tries < 160; tries++) {
+      const anchor = foods[Math.floor(random() * foods.length)];
+      const angle = random() * 2 * Math.PI;
+      const distance = size * (0.67 + random() * 0.65);
+      const spot = {
+        x: anchor.x + Math.cos(angle) * distance,
+        z: anchor.z + Math.sin(angle) * distance * DEPTH_ROOM,
+        size: propSize,
+        scale,
+      };
+      if (
+        Math.abs(spot.x) + propSize / 2 > width / 2 ||
+        Math.abs(spot.z) + propSize / 2 > depth / 2 ||
+        occupied.some(
+          (other) => spotGap(spot, other) < (propSize + other.size) * 0.43,
+        )
+      )
+        continue;
+      occupied.push(spot);
+      props.push(spot);
+      break;
+    }
+  }
+  return props;
+}
+
 // The foods that start on the blanket: `count` different ones.
 export function startingFoods(count, random) {
   return shuffle(FOODS, random)

@@ -17,6 +17,7 @@ import {
   pickTarget,
   replacementFood,
   rng,
+  scatterProps,
   startingFoods,
   theFood,
 } from "../shared/foodFinder.js";
@@ -71,6 +72,24 @@ test("layout is not a grid", () => {
   const rows = new Set(spots.map((spot) => spot.z.toFixed(3)));
   const cols = new Set(spots.map((spot) => spot.x.toFixed(3)));
   assert.ok(rows.size > 40 && cols.size > 40);
+});
+
+test("decoys fill gaps without crowding out food on wide or tall screens", () => {
+  for (const width of [0.45, 2.2]) {
+    const random = rng(5);
+    const { spots, size } = layoutSpots(50, width, 1, random);
+    const props = scatterProps(23, width, 1, spots, size * 0.94, random);
+    assert.ok(props.length >= 18);
+    assert.ok(new Set(props.map((prop) => prop.scale)).size > 1);
+    const occupied = spots.map((spot) => ({ ...spot, size: size * 0.94 }));
+    for (const prop of props) {
+      assert.ok(Math.abs(prop.x) + prop.size / 2 <= width / 2);
+      assert.ok(Math.abs(prop.z) + prop.size / 2 <= 0.5);
+      for (const other of occupied)
+        assert.ok(spotGap(prop, other) >= (prop.size + other.size) * 0.43);
+      occupied.push(prop);
+    }
+  }
 });
 
 test("targets come from the blanket and skip recent ones", () => {

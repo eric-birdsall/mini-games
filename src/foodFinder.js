@@ -26,7 +26,7 @@ import {
 import "./foodFinder.css";
 
 const HOW_TO =
-  "Lots of yummy foods are spread out on a picnic blanket. The card at the top shows the one to find; tap it to hear it again. Tap the matching food on the blanket. If you tap a different food, it'll tell you what it is, so keep looking! Arrow keys or WASD move a blue ring between foods, and Space picks.";
+  "Look for food among the toys and household objects on the blanket. The card at the top shows which food to find. Tap the card to hear the clue again, then tap the matching food. You can also use the arrow keys or WASD to move between foods and Space to pick one.";
 // Seconds from a find to the replacement food dropping in, and to the next
 // food to find.
 const DROP_AFTER = 0.8;
@@ -142,7 +142,7 @@ export function installFoodFinder(getLevel) {
   entry.className = "choice";
   entry.dataset.game = "foodfinder";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Foods spread out on a picnic blanket" draggable="false"></span><strong>Food Finder</strong><small>Lots of yummy foods on a picnic blanket. Can you find the one on the card?</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Food Finder blanket" draggable="false"></span><strong>Food Finder</strong><small>Find the food on your card among toys and household objects.</small>`;
   games.append(entry);
   entry.onclick = () => open(getLevel());
 }
@@ -168,7 +168,7 @@ function open(level) {
   dialog.innerHTML = `
     <header><strong>Food Finder</strong><div><button data-exit>Back to games</button></div></header>
     <div class="finder-field">
-      <canvas aria-label="Foods spread out on a picnic blanket"></canvas>
+      <canvas aria-label="Food and household objects scattered on a blanket"></canvas>
       <button class="finder-card" data-card hidden aria-label="Hear it again">
         <span class="finder-find">Find</span>
         <img data-card-img alt="" draggable="false">
@@ -506,7 +506,7 @@ function open(level) {
   frame = requestAnimationFrame(loop);
   get("heading").textContent = "Picnic time!";
   get("details").textContent =
-    `${settings.count} yummy foods are spread out on the blanket. Look at the card, then tap the food that matches! Find ${settings.finds} to finish.${best ? ` Your fastest: ${formatTime(best)}.` : ""}`;
+    `There are ${settings.count} foods mixed in with the objects on the blanket. Tap the food that matches the card. Find ${settings.finds} to finish.${best ? ` Your fastest: ${formatTime(best)}.` : ""}`;
   get("keys").textContent = "Tap a food · or arrows / WASD and Space";
   scene.ready.then(() => {
     if (!dialog.open) return;

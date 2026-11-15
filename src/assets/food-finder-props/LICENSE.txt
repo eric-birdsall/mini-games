@@ -1,0 +1,6 @@
+Models from Kenney's Furniture Kit, released under CC0 1.0 Universal.
+https://kenney.nl/assets/furniture-kit
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Self-contained GLB versions sourced from:
+https://github.com/Hidencod/tge-assets/tree/main/packs/furniture-kit

@@ -1,7 +1,12 @@
 import * as T from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import colormap from "./assets/food/colormap.png";
-import { layoutSpots, rng } from "../shared/foodFinder.js";
+import {
+  layoutSpots,
+  rng,
+  scatterProps,
+  shuffle,
+} from "../shared/foodFinder.js";
 
 // Every Kenney food model points at Textures/colormap.png; serve them all
 // the one bundled copy.
@@ -14,9 +19,16 @@ const MODEL_URLS = Object.fromEntries(
     }),
   ).map(([path, url]) => [path.match(/([^/]+)\.glb$/)[1], url]),
 );
+const PROP_URLS = Object.values(
+  import.meta.glob("./assets/food-finder-props/*.glb", {
+    eager: true,
+    query: "?url",
+    import: "default",
+  }),
+);
 
 // The camera looks down at the blanket from this far above the horizon.
-const TILT = T.MathUtils.degToRad(52);
+const TILT = T.MathUtils.degToRad(64);
 // World units from the top to the bottom of the screen.
 const VIEW = 10;
 // A food's size, as a share of `cell` (the ring, hops and confetti go by
@@ -25,22 +37,20 @@ const FOOD_SIZE = 0.62;
 
 const ease = (t) => 1 - (1 - t) ** 3;
 
-function gingham() {
+function cloth() {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 128;
   const g = canvas.getContext("2d");
-  // Soft, so the foods stand out against it.
-  g.fillStyle = "#fffaf2";
+  g.fillStyle = "#96b9cb";
   g.fillRect(0, 0, 128, 128);
-  g.fillStyle = "#f4b9bd88";
-  g.fillRect(0, 0, 64, 128);
-  g.fillRect(0, 0, 128, 64);
-  g.fillStyle = "#eea3a9";
-  g.fillRect(0, 0, 64, 64);
+  const random = rng(125);
+  for (let i = 0; i < 4500; i++) {
+    g.fillStyle = i % 2 ? "#ffffff24" : "#23425524";
+    g.fillRect(random() * 128, random() * 128, 2, 1);
+  }
   const texture = new T.CanvasTexture(canvas);
   texture.wrapS = texture.wrapT = T.RepeatWrapping;
   texture.colorSpace = T.SRGBColorSpace;
-  texture.magFilter = T.NearestFilter;
   texture.anisotropy = 4;
   return texture;
 }
@@ -64,7 +74,7 @@ export function createFoodFinderScene(canvas) {
   camera.position.set(0, 30 * Math.sin(TILT), 30 * Math.cos(TILT));
   camera.lookAt(0, 0, 0);
 
-  const blanketTexture = gingham();
+  const blanketTexture = cloth();
   const blanket = new T.Mesh(
     new T.PlaneGeometry(1, 1),
     new T.MeshLambertMaterial({ map: blanketTexture }),
@@ -117,14 +127,21 @@ export function createFoodFinderScene(canvas) {
   );
   const loader = new GLTFLoader(manager);
   const templates = new Map();
-  const ready = Promise.all(
-    Object.entries(MODEL_URLS).map(([id, url]) =>
+  const propTemplates = new Map();
+  const loadModels = (entries, destination) =>
+    entries.map(([id, url]) =>
       loader
         .loadAsync(url)
-        .then((gltf) => templates.set(id, normalize(gltf.scene)))
+        .then((gltf) => destination.set(id, normalize(gltf.scene)))
         .catch((error) => console.warn(`Food Finder: no ${id}`, error)),
+    );
+  const ready = Promise.all([
+    ...loadModels(Object.entries(MODEL_URLS), templates),
+    ...loadModels(
+      PROP_URLS.map((url, index) => [index, url]),
+      propTemplates,
     ),
-  );
+  ]);
 
   // Centre a model on its footprint, sit it on y = 0 and scale it so its
   // biggest side is 1.
@@ -146,6 +163,10 @@ export function createFoodFinderScene(canvas) {
   const slots = [];
   // Found foods on their way out.
   const leaving = [];
+  const props = new T.Group();
+  scene.add(props);
+  let propSpots = [];
+  let roundProps = [];
   let spots = [];
   let cell = 1;
   let area = { width: 1, depth: 1, top: 0 };
@@ -177,14 +198,13 @@ export function createFoodFinderScene(canvas) {
     const margin = Math.min(groundW, groundD) * 0.05;
     area = {
       width: groundW - margin * 2,
-      depth: groundD - top - bottom - margin * 2.2,
+      depth: Math.max(1, groundD - top - bottom - margin * 2.2),
       top: -groundD / 2 + top + margin * 1.6,
     };
     placeAll();
   }
 
-  function spotWorld(index) {
-    const spot = spots[index];
+  function spotWorld(spot) {
     return {
       x: spot.u * area.width - area.width / 2,
       z: area.top + spot.v * area.depth,
@@ -196,40 +216,75 @@ export function createFoodFinderScene(canvas) {
     // The screen changed shape (a phone turned): scatter again to fit it.
     // Each food keeps its slot, only the spots move.
     const aspect = area.width / area.depth;
-    if (Math.abs(Math.log(aspect / spots.aspect)) > 0.2)
+    if (Math.abs(Math.log(aspect / spots.aspect)) > 0.2) {
       makeSpots(spots.length, spots.seed);
+      populateProps();
+    }
     // Foods shrink with the area; spots keep their relative place.
     const scale = Math.min(area.depth, area.width / spots.aspect);
     cell = (spots.size * scale) / FOOD_SIZE;
     slots.forEach((slot, index) => slot && position(slot, index));
+    props.children.forEach((root, index) => {
+      const spot = propSpots[index];
+      const { x, z } = spotWorld(spot);
+      root.position.set(x, 0, z);
+      root.scale.setScalar(cell * FOOD_SIZE * spot.scale);
+    });
   }
 
   function position(slot, index) {
-    const { x, z } = spotWorld(index);
-    const s = cell * FOOD_SIZE;
+    const spot = spots[index];
+    const { x, z } = spotWorld(spot);
+    const s = cell * FOOD_SIZE * spot.scale;
     slot.root.position.set(x, 0, z);
     slot.root.scale.setScalar(s);
-    slot.radius = s * 0.62;
+    slot.size = s;
   }
 
   // Spots are kept as 0–1 fractions of the area.
   function makeSpots(count, seed) {
     const aspect = area.width / area.depth;
-    const result = layoutSpots(count, aspect, 1, rng(seed));
+    const random = rng(seed);
+    const result = layoutSpots(count, aspect, 1, random);
+    const size = result.size * 0.94;
     spots = result.spots.map((spot) => ({
       u: spot.x / aspect + 0.5,
       v: spot.z + 0.5,
+      scale: 0.78 + random() * 0.29,
     }));
-    Object.assign(spots, {
-      size: result.size,
+    Object.assign(spots, { size, aspect, seed });
+    propSpots = scatterProps(
+      Math.ceil(count * 0.46),
       aspect,
-      seed,
+      1,
+      result.spots,
+      size,
+      random,
+    ).map((spot) => ({
+      u: spot.x / aspect + 0.5,
+      v: spot.z + 0.5,
+      scale: spot.scale,
+      angle: (random() - 0.5) * Math.PI,
+    }));
+  }
+
+  function populateProps() {
+    props.clear();
+    if (!roundProps.length) return;
+    propSpots.forEach(({ angle }, index) => {
+      const template = roundProps[index % roundProps.length];
+      props.add(makePiece(template, angle).root);
     });
   }
 
   function layout(count, random) {
     clear();
+    roundProps = shuffle(
+      [...propTemplates.keys()].sort((a, b) => a - b),
+      random,
+    ).map((id) => propTemplates.get(id));
     makeSpots(count, (random() * 2 ** 32) >>> 0);
+    populateProps();
     placeAll();
   }
 
@@ -238,24 +293,32 @@ export function createFoodFinderScene(canvas) {
       if (slot) scene.remove(slot.root);
     slots.length = 0;
     leaving.length = 0;
+    props.clear();
     hintSlot = cursorSlot = -1;
   }
 
-  function place(index, id, { drop = false } = {}) {
-    const template = templates.get(id);
-    if (!template) return;
+  function makePiece(template, angle) {
     const root = new T.Group();
     const spin = new T.Group();
     const model = template.clone();
     model.scale.setScalar(template.userData.scale);
-    // Turn each a little so they don't all face the same way.
-    model.rotation.y = (Math.random() - 0.5) * 1.4;
+    model.rotation.y = angle;
     spin.add(model);
     const shadow = new T.Mesh(shadowGeometry, shadowMaterial);
     shadow.rotation.x = -Math.PI / 2;
     shadow.position.y = 0.01;
     shadow.scale.setScalar(0.85);
     root.add(shadow, spin);
+    return { root, spin, model };
+  }
+
+  function place(index, id, { drop = false } = {}) {
+    const template = templates.get(id);
+    if (!template) return;
+    const { root, spin, model } = makePiece(
+      template,
+      (Math.random() - 0.5) * 2.6,
+    );
     scene.add(root);
     const slot = {
       id,
@@ -278,7 +341,7 @@ export function createFoodFinderScene(canvas) {
     slot.anim = { kind: "found", t: 0 };
     slots[index] = null;
     leaving.push(slot);
-    const { x, z } = spotWorld(index);
+    const { x, z } = spotWorld(spots[index]);
     for (let i = 0; i < 40; i++) {
       const piece = new T.Mesh(
         confettiGeometry,
@@ -351,16 +414,11 @@ export function createFoodFinderScene(canvas) {
     const x = clientX - rect.left;
     const y = clientY - rect.top;
     const pxPerUnit = rect.height / VIEW;
-    bestDistance = cell * FOOD_SIZE * 0.75 * pxPerUnit;
     for (const { slot, index } of live) {
       const base = toScreen(slot.root.position, 0, rect);
-      const top = toScreen(
-        slot.root.position,
-        slot.height * cell * FOOD_SIZE,
-        rect,
-      );
+      const top = toScreen(slot.root.position, slot.height * slot.size, rect);
       const distance = segmentDistance(x, y, base, top);
-      if (distance < bestDistance) {
+      if (distance < Math.min(bestDistance, slot.size * 0.75 * pxPerUnit)) {
         bestDistance = distance;
         best = index;
       }
@@ -394,7 +452,7 @@ export function createFoodFinderScene(canvas) {
     if (!slot) return null;
     return toScreen(
       slot.root.position,
-      slot.height * cell * FOOD_SIZE * 0.5,
+      slot.height * slot.size * 0.5,
       canvas.getBoundingClientRect(),
     );
   }
@@ -457,7 +515,7 @@ export function createFoodFinderScene(canvas) {
       ring.position.x = slot.root.position.x;
       ring.position.z = slot.root.position.z;
       ring.scale.setScalar(
-        cell * FOOD_SIZE * 1.3 * (1 + Math.sin(time * pulse) * 0.06),
+        slot.size * 1.3 * (1 + Math.sin(time * pulse) * 0.06),
       );
       ring.material.opacity = 0.75 + Math.sin(time * pulse) * 0.2;
     }
