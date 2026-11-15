@@ -6,11 +6,12 @@ export function createDrawingCanvas(canvas) {
   const ctx = canvas.getContext("2d");
   const strokes = [];
   let stroke, previous, drift, startTime;
+  let strokeWidth = C.strokeWidth;
 
   const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
   function dot(p) {
     ctx.beginPath();
-    ctx.arc(p.x, p.y, C.strokeWidth / 2, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, strokeWidth / 2, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -72,7 +73,7 @@ export function createDrawingCanvas(canvas) {
       0,
       0,
     );
-    ctx.lineWidth = C.strokeWidth;
+    ctx.lineWidth = strokeWidth;
     ctx.lineCap = ctx.lineJoin = "round";
     ctx.strokeStyle = ctx.fillStyle = C.ink;
   }
@@ -119,11 +120,13 @@ export function createDrawingCanvas(canvas) {
     get hasInk() {
       return strokes.length > 0;
     },
-    reset(newDrift, now) {
+    reset(newDrift, now, width = C.strokeWidth) {
       end();
       strokes.length = 0;
       drift = newDrift;
       startTime = now;
+      strokeWidth = width;
+      ctx.lineWidth = width;
       redraw();
     },
     begin(x, y, at) {

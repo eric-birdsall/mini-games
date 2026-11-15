@@ -19,6 +19,58 @@ const RULES =
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const center = () => ({ x: C.width / 2, y: C.height / 2 });
 
+// Temporary controls. All slider values use the same units as the game.
+const DEV_SLIDERS = [
+  {
+    key: "amplitude",
+    label: "Drift distance",
+    min: 0,
+    max: 150,
+    step: 1,
+    unit: " px",
+  },
+  {
+    key: "frequency",
+    label: "Drift speed",
+    min: 0,
+    max: 8,
+    step: 0.1,
+    unit: "",
+  },
+  {
+    key: "cursorSpeed",
+    label: "Stick speed",
+    min: 100,
+    max: 1500,
+    step: 10,
+    unit: " px/s",
+  },
+  {
+    key: "deadZone",
+    label: "Stick dead zone",
+    min: 0,
+    max: 0.5,
+    step: 0.01,
+    unit: "",
+  },
+  {
+    key: "strokeWidth",
+    label: "Ink width",
+    min: 1,
+    max: 30,
+    step: 1,
+    unit: " px",
+  },
+  {
+    key: "duration",
+    label: "Round length",
+    min: 10000,
+    max: 180000,
+    step: 5000,
+    unit: " s",
+  },
+];
+
 /** Register a local round in the collection menu. The host supplies the
  * current drawer/team and may consume each completed round's result. */
 export function installBadDraw({
@@ -52,6 +104,10 @@ function openBadDraw({
 }) {
   document.exitPointerLock?.();
   const returnFocus = document.activeElement;
+  const tuning = { ...C };
+  const showDev =
+    import.meta.env.DEV ||
+    new URLSearchParams(location.search).get("badDrawDev") === "1";
   const dialog = document.createElement("dialog");
   dialog.className = "bad-draw";
   dialog.setAttribute("aria-label", TITLE);
@@ -82,7 +138,29 @@ function openBadDraw({
         </div>
       </div>
       <footer>
-        <p>Hold to draw <kbd>Stick + RT</kbd></p>
+        <div class="bad-draw-footer-tools">
+          <p>Hold to draw <kbd>Stick + RT</kbd></p>
+          ${
+            showDev
+              ? `<details class="bad-draw-dev">
+            <summary>Dev Panel</summary>
+            <div class="bad-draw-dev-controls">
+              ${DEV_SLIDERS.map(
+                ({ key, label, min, max, step }, i) => `
+                ${key === "strokeWidth" ? '<p class="bad-draw-dev-note">Applies next round</p>' : ""}
+                <div class="bad-draw-dev-row">
+                  <label for="bad-draw-dev-${key}">${label}</label>
+                  <input type="range" id="bad-draw-dev-${key}" min="${min}" max="${max}" step="${step}" value="${C[key]}">
+                  <output for="bad-draw-dev-${key}"></output>
+                </div>
+              `,
+              ).join("")}
+              <button type="button" data-dev-reset>Reset defaults</button>
+            </div>
+          </details>`
+              : ""
+          }
+        </div>
         <div class="bad-draw-actions">
           <button type="button" data-undo>Undo · <span></span> <kbd>X</kbd></button>
           <button type="button" data-clear>Clear · <span></span> <kbd>Y</kbd></button>
@@ -101,7 +179,15 @@ function openBadDraw({
   const listen = (target, name, handler) =>
     target.addEventListener(name, handler, { signal: listeners.signal });
   const resize = new ResizeObserver(() => ink.resize());
-  let phase, drawer, word, deadline, frame, undoLeft, clearLeft, lastSecond;
+  let phase,
+    drawer,
+    word,
+    deadline,
+    roundDuration,
+    frame,
+    undoLeft,
+    clearLeft,
+    lastSecond;
   let owner,
     pointerId,
     revealId,
@@ -120,7 +206,33 @@ function openBadDraw({
   // Reveal and drawing need raw trigger state and analog stick movement.
   // The normal menu bridge takes over again on the shared results screen.
   dialog.padSeats = () => phase === PHASE.REVEAL || phase === PHASE.PLAYING;
-  bindDialogEscape(dialog, exit);
+  const dev = dialog.querySelector(".bad-draw-dev");
+  bindDialogEscape(dialog, () => {
+    if (!dev?.open) return exit();
+    dev.open = false;
+    dev.querySelector("summary").focus();
+  });
+
+  if (dev) {
+    const controls = DEV_SLIDERS.map(({ key, unit }) => {
+      const input = dev.querySelector(`#bad-draw-dev-${key}`);
+      const output = input.nextElementSibling;
+      const update = () => {
+        tuning[key] = input.valueAsNumber;
+        output.value =
+          (key === "duration" ? tuning[key] / 1000 : tuning[key]) + unit;
+      };
+      listen(input, "input", update);
+      update();
+      return () => {
+        input.value = C[key];
+        update();
+      };
+    });
+    listen(get("dev-reset"), "click", () =>
+      controls.forEach((reset) => reset()),
+    );
+  }
 
   function sound(frequency, duration = 0.12, delay = 0) {
     audio?.tone(frequency, duration, delay, 0.027);
@@ -207,7 +319,8 @@ function openBadDraw({
       hideWord();
       const now = performance.now();
       previousFrame = now;
-      deadline = now + C.duration;
+      roundDuration = tuning.duration;
+      deadline = now + roundDuration;
       lastSecond = undefined;
       undoLeft = C.undo;
       clearLeft = C.clear;
@@ -215,7 +328,11 @@ function openBadDraw({
       intro.hidden = true;
       play.hidden = false;
       ink.resize();
-      ink.reset(createDrift(Math.floor(random() * 0x100000000)), now);
+      ink.reset(
+        createDrift(Math.floor(random() * 0x100000000), tuning),
+        now,
+        tuning.strokeWidth,
+      );
       cursor.hidden = true;
       updateTools();
       updateClock(now);
@@ -227,8 +344,9 @@ function openBadDraw({
 
   function finish(correct, now = performance.now()) {
     if (phase !== PHASE.PLAYING) return;
-    const result = roundResult(correct, deadline, now);
+    const result = roundResult(correct, deadline, now, roundDuration);
     phase = PHASE.RESULTS;
+    if (dev) dev.open = false;
     stopDrawing();
     play.hidden = true;
     snapshot.src = canvas.toDataURL();
@@ -295,13 +413,13 @@ function openBadDraw({
     return {
       x: clamp(
         ((event.clientX - rect.left) * C.width) / rect.width,
-        -C.amplitude,
-        C.width + C.amplitude,
+        -tuning.amplitude,
+        C.width + tuning.amplitude,
       ),
       y: clamp(
         ((event.clientY - rect.top) * C.height) / rect.height,
-        -C.amplitude,
-        C.height + C.amplitude,
+        -tuning.amplitude,
+        C.height + tuning.amplitude,
       ),
     };
   }
@@ -457,11 +575,15 @@ function openBadDraw({
     if (pressed("x")) return tool("undo");
     if (owner === "pointer") return;
     if (!buttons.rt && owner === "pad") stopDrawing();
-    const stick = drawStick(pad.axes[0] || 0, pad.axes[1] || 0);
+    const stick = drawStick(
+      pad.axes[0] || 0,
+      pad.axes[1] || 0,
+      tuning.deadZone,
+    );
     if (stick.x || stick.y || pressed("rt")) {
       moveCursor(
-        clamp(intended.x + stick.x * dt * C.cursorSpeed, 0, C.width),
-        clamp(intended.y + stick.y * dt * C.cursorSpeed, 0, C.height),
+        clamp(intended.x + stick.x * dt * tuning.cursorSpeed, 0, C.width),
+        clamp(intended.y + stick.y * dt * tuning.cursorSpeed, 0, C.height),
       );
     }
     if (pressed("rt")) {

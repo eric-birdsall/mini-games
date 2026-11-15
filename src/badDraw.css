@@ -245,3 +245,86 @@
     flex-direction: column;
   }
 }
+
+.bad-draw-footer-tools {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.bad-draw-dev {
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.bad-draw-dev summary {
+  padding: 0.42rem 0.55rem;
+  border: 1px solid #8bb39c;
+  border-radius: 0.45rem;
+  background: #173e34;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.bad-draw-dev summary:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+
+.bad-draw-dev-controls {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  display: grid;
+  gap: 0.55rem;
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: min(60dvh, 26rem);
+  overflow: auto;
+  padding: 0.85rem;
+  border: 1px solid #8bb39c;
+  border-radius: 0.65rem;
+  background: #14382f;
+  box-shadow: 0 6px 18px #102f2780;
+}
+
+.bad-draw-dev-row {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr) 4rem;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.bad-draw-dev-controls input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--bad-gold);
+}
+
+.bad-draw-dev-controls output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bad-draw-dev-controls .bad-draw-dev-note {
+  margin-top: 0.25rem;
+  color: var(--bad-gold);
+  font-size: 0.72rem;
+}
+
+.bad-draw-dev-controls button {
+  justify-self: end;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+@media (max-width: 530px) {
+  .bad-draw-dev-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 6rem;
+    width: min(22rem, calc(100vw - 2rem));
+    transform: translateX(-50%);
+  }
+}
