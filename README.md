@@ -1028,3 +1028,9 @@ Open **Game → Kickabout** for 3 v 3 soccer on a backyard lawn, seen from high 
 - **Difficulty** changes only the other team: Easy opponents are slow, take a long time to win the ball, shoot wildly from far out, and have a small keeper; Hard ones are a touch quicker than you, tackle at once, shoot accurately from close in, and have a long-armed keeper. Winning the ball off them also takes longer on harder levels. Your wins are counted per difficulty.
 
 The rules (ball physics, possession, tackles, saves, who you control and the bots) are in `shared/kickabout.js` (tested in `tests/kickabout.test.js`: whole matches always finish with the ball inside the fence and keepers in their box, control always follows the ball, friendly bots beat Easy and lose to Hard, and a simple scripted player beats Easy), the game in `src/kickabout.js`, and the 3D yard in `src/kickaboutScene.js`.
+
+### Bad Draw
+
+Open **Game → Bad Draw** for a same-room drawing and guessing round. The selected character is the drawer; everyone else looks away while the drawer holds **Reveal** (Space or RT). Release it, then start the 60-second clock. Hold the mouse button or drag on the paper to draw. On a controller, move with the left stick and hold RT to draw. The cursor shows where you're aiming while the ink wanders independently.
+
+Teammates guess out loud. The drawer can't speak or write letters. Use **Undo** (X) up to twice and **Clear** (Y) once. Press **Correct!** (A) when the team guesses; the result shows the word, final drawing and up to 100 points based on time left. Timeout scores zero. Play Again starts a fresh round, with no repeated words until the bank is exhausted. To rotate drawers, pass the controls or change the selected character from the menu.

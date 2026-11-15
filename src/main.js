@@ -19,6 +19,7 @@ import { CHARACTERS } from "../shared/avatars.js";
 import { installSlipstream } from "./slipstream.js";
 import { installMemory } from "./memory.js";
 import { installBackyardAirMail } from "./backyardAirMail.js";
+import { installBadDraw } from "./badDraw.js";
 import { installRoofCatch } from "./roofCatch.js";
 
 import { installToyBox } from "./toyBox.js";
@@ -1262,6 +1263,15 @@ installSlipstream(() => botLevel, selectedAvatar);
 installMemory(() => botLevel);
 installToyBox(() => botLevel);
 installRoofCatch(selectedAvatar);
+installBadDraw({
+  getDrawer: () => ({
+    id: "local",
+    name: CHARACTERS[selectedAvatar().character]?.name || "Player 1",
+    team: "Your team",
+  }),
+  getPadIndex: () => input.padIndex,
+  audio,
+});
 installBackyardAirMail(selectedAvatar);
 installPondFishing(() => botLevel, selectedAvatar);
 installTargetBlaster(() => botLevel);
