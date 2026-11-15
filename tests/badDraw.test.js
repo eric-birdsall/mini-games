@@ -54,8 +54,10 @@ test("the controller dead zone ignores stick noise without making diagonals fast
 });
 
 test("the session word bank is deterministic with host randomness and exhausts before repeating", () => {
-  const bank = new Set(Object.values(BAD_DRAW_WORDS).flat());
-  assert.ok(bank.size >= 100);
+  const prompts = Object.values(BAD_DRAW_WORDS).flat();
+  const bank = new Set(prompts);
+  assert.ok(bank.size >= 1000);
+  assert.equal(bank.size, prompts.length);
   const make = () => createWordPicker({ random: () => 0.42 });
   const first = make(),
     second = make();
