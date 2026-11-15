@@ -331,6 +331,7 @@ function openPuckClash() {
       event.clientY - bounds.top,
     );
     if (
+      position &&
       Math.abs(position.x) <= BOARD.halfWidth &&
       Math.abs(position.z) <= BOARD.halfLength
     ) {

@@ -6,7 +6,6 @@ export const BOARD = {
 };
 export const SHOTS = 5;
 export const BUMPER_RADIUS = 0.24;
-export const HOLE_RADIUS = 0.085;
 export const DIAMOND_TIP = 0.36;
 export const SIDE_RAIL = {
   radius: 0.065,
@@ -21,12 +20,6 @@ export const SIDE_RAIL = {
   },
 };
 const DIAMOND_HALF_SIDE = DIAMOND_TIP * Math.SQRT1_2;
-export const CLASH_HOLES = [-1, 1].flatMap((side) =>
-  [-4, -2.4, -0.8, 0.8, 2.4, 4].map((z) => ({
-    x: side * (BOARD.halfWidth - 0.13),
-    z,
-  })),
-);
 export const STEP = 1 / 120;
 // Leave a small forward component even at the two ends of the aim range.
 export const MAX_ANGLE = (89.9 * Math.PI) / 180;

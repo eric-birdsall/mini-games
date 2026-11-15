@@ -1,7 +1,5 @@
 import {
   BOARD,
-  CLASH_HOLES,
-  HOLE_RADIUS,
   SIDE_RAIL,
   sideRailContact,
   BUMPER_RADIUS,
@@ -15,16 +13,28 @@ const colors = [
   ["#823616", "#ff9257", "#ffe1b9"],
 ];
 
-function setupScale(width, height) {
-  return [Math.min(width * 0.23, 105), Math.min(height * 0.056, 50)];
-}
+const cameraDistance = 6.65;
+const cameraHeight = 1.65;
+const cameraPitchOffset = 0.15;
 
 export function setupBoardPosition(width, height, team, left, top) {
   const direction = team === 0 ? 1 : -1;
-  const [scaleX, scaleZ] = setupScale(width, height);
+  const { focal, center } = firstPersonView(width, height);
+  // Invert the first-person projection at the surface of the board.
+  const inverseDepth =
+    ((top - center) / focal + cameraPitchOffset) / cameraHeight;
+  if (!(inverseDepth > 0)) return null;
+  const depth = 1 / inverseDepth;
   return {
-    x: (direction * (left - width / 2)) / scaleX,
-    z: (direction * (top - height / 2)) / scaleZ,
+    x: (direction * (left - width / 2) * depth) / focal,
+    z: direction * (cameraDistance - depth),
+  };
+}
+
+function firstPersonView(width, height) {
+  return {
+    focal: Math.min(width * 0.58, height * 0.63),
+    center: height * (width / height < 0.85 ? 0.46 : 0.36),
   };
 }
 
@@ -43,24 +53,17 @@ export function drawPuckClash(
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
   const { halfWidth: w, halfLength: l, radius } = BOARD;
   const facing = team === 0 ? 1 : -1;
-  const focal = Math.min(width * 0.58, height * 0.63);
-  const center = height * (width / height < 0.85 ? 0.46 : 0.36);
-  const [setupX, setupZ] = setupScale(width, height);
+  const { focal, center } = firstPersonView(width, height);
   // Keep the whole table in view with room for the HUD above it.
   const overheadScale = Math.min(
     Math.max(1, height - 144) / 10.5,
     width * 0.23,
   );
   const project = ([x, y, z]) => {
-    if (placement) {
-      return [
-        width / 2 + x * facing * setupX,
-        height / 2 + z * facing * setupZ - y * 10,
-      ];
-    }
-    const depth = Math.max(0.25, 6.65 - z * facing);
+    const depth = Math.max(0.25, cameraDistance - z * facing);
     const firstX = width / 2 + (x * facing * focal) / depth;
-    const firstY = center + ((1.65 - y) / depth - 0.15) * focal;
+    const firstY =
+      center + ((cameraHeight - y) / depth - cameraPitchOffset) * focal;
     const topX = width / 2 + x * facing * overheadScale;
     const topY = (height + 68) / 2 + z * facing * overheadScale - y * 10;
     return [
@@ -176,10 +179,16 @@ export function drawPuckClash(
   ctx.fillStyle = backdrop;
   ctx.fillRect(0, 0, width, height);
 
-  if (!placement && overhead < 1) {
+  if (overhead < 1) {
     ctx.globalAlpha = 1 - overhead;
     const [x, y] = project([0, 0, -(l + 0.35) * facing]);
-    drawRaccoon(ctx, x, y, focal / (6.65 + l + 0.35), colors[1 - team][1]);
+    drawRaccoon(
+      ctx,
+      x,
+      y,
+      focal / (cameraDistance + l + 0.35),
+      colors[1 - team][1],
+    );
     ctx.globalAlpha = 1;
   }
 
@@ -231,10 +240,6 @@ export function drawPuckClash(
   disk(0, 0.007, 0, 0.53, "#e9b57d");
   disk(0, 0.009, 0, 0.075, "#8e624b");
 
-  for (const { x, z } of CLASH_HOLES) {
-    disk(x, 0.01, z, HOLE_RADIUS * 1.25, "#935e42");
-    disk(x, 0.012, z, HOLE_RADIUS, "#35271f");
-  }
   wall(-l * facing, -0.16 * facing);
   drawSideRails(-facing);
   const launch = guide?.origin ?? { x: 0, z: BOARD.launch * facing };
@@ -290,6 +295,9 @@ export function drawPuckClash(
   [
     ...pucks,
     ...bumpers.map((bumper) => ({ z: bumper.z, bumper })),
+    ...(placement?.valid
+      ? [{ z: placement.z, bumper: { ...placement, team } }]
+      : []),
     { z: 0, diamond: true },
     ...(guide ? [{ team, ...launch, fall: null }] : []),
   ]
@@ -302,9 +310,8 @@ export function drawPuckClash(
     });
   drawSideRails(facing);
   wall(l * facing, 0.16 * facing);
-  if (placement) {
-    if (placement.valid) drawBumper({ ...placement, team });
-    else disk(placement.x, 0.26, placement.z, BUMPER_RADIUS, "#d85049");
+  if (placement && !placement.valid) {
+    disk(placement.x, 0.26, placement.z, BUMPER_RADIUS, "#d85049");
   }
 }
 
