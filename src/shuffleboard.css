@@ -1,0 +1,331 @@
+.shuffle-thumb {
+  position: relative;
+  overflow: hidden;
+  background: repeating-linear-gradient(177deg, #e6b77a 0 4px, #d8a46a 5px 6px);
+  box-shadow: inset 0 0 0 5px #654030;
+}
+
+.shuffle-thumb i {
+  position: absolute;
+  top: 42%;
+  left: 34%;
+  width: 12%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #db5944;
+  box-shadow: 0 2px 0 #49392e;
+}
+
+.shuffle-thumb i + i {
+  top: 58%;
+  left: 68%;
+  background: #40b8b3;
+}
+
+body:has(> #shuffleboard) > #app {
+  display: none;
+}
+
+.shuffleboard {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #1d1410;
+  color: #fff1db;
+}
+
+.shuffle-layout {
+  --edge: clamp(0.65rem, 2vw, 1.5rem);
+  position: absolute;
+  inset: 0;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+
+.shuffle-layout > canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  touch-action: none;
+}
+
+.shuffle-layout .shuffle-study {
+  object-fit: fill;
+}
+
+.shuffle-layout button,
+.shuffle-layout select {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #c2966c;
+  border-radius: 0.45rem;
+  background: #30201df2;
+  color: #fff1db;
+  font: inherit;
+}
+
+.shuffle-hud {
+  position: absolute;
+  inset: var(--edge) 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  pointer-events: none;
+}
+
+.shuffle-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.35rem, 2vw, 0.75rem);
+  white-space: nowrap;
+}
+
+.shuffle-score > div {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0 0.55rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid #a67964;
+  border-radius: 0.5rem;
+  background: #281d1cf2;
+  font-size: 0.875rem;
+}
+
+.shuffle-score [data-team="0"] {
+  --team: #ff907a;
+}
+
+.shuffle-score [data-team="1"] {
+  --team: #75e0db;
+}
+
+.shuffle-score .active {
+  border-color: var(--team);
+  box-shadow: 0 0 0 1px var(--team);
+}
+
+.shuffle-score strong {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--team);
+  font-size: 1.4rem;
+}
+
+.shuffle-score small {
+  color: #e4cbb1;
+}
+
+.shuffle-layout :is([data-status], [data-score-pause], [data-shortcuts]) {
+  margin: 0;
+  padding: 0.3rem 0.65rem;
+  border-radius: 1rem;
+  background: #201514e8;
+  color: #fff1db;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.shuffle-layout [data-score-pause] {
+  min-height: 0;
+  border: 0;
+  pointer-events: auto;
+}
+
+.shuffle-power,
+.shuffle-minimap {
+  position: absolute;
+  z-index: 1;
+  top: 53%;
+  transform: translateY(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 0.6rem 0.45rem;
+  border: 1px solid #aa795b;
+  border-radius: 0.65rem;
+  background: #261817eb;
+  font-size: 0.76rem;
+  pointer-events: none;
+}
+
+.shuffle-power {
+  right: var(--edge);
+}
+
+.shuffle-minimap {
+  top: auto;
+  bottom: max(var(--edge), env(safe-area-inset-bottom));
+  left: var(--edge);
+  transform: none;
+  gap: 0.3rem;
+}
+
+.shuffle-minimap canvas {
+  display: block;
+  width: clamp(3.7rem, 12vw, 7rem);
+  height: auto;
+  border: 1px solid #aa795b;
+  border-radius: 0.25rem;
+}
+
+.shuffle-meter {
+  position: relative;
+  width: clamp(0.75rem, 3vw, 1.3rem);
+  height: clamp(5rem, 26dvh, 16rem);
+  overflow: hidden;
+  border: 1px solid #b78a68;
+  border-radius: 0.35rem;
+  background: #140f0e;
+}
+
+.shuffle-meter meter {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+}
+
+.shuffle-meter :is(b, i) {
+  position: absolute;
+  inset-inline: 0;
+}
+
+.shuffle-meter b {
+  bottom: 0;
+  background: linear-gradient(#ffe3ab, #cd7544);
+}
+
+.shuffle-meter i {
+  background: #7cdec053;
+  border-block: 1px solid #9bf9d9;
+}
+
+.shuffle-shot {
+  position: absolute;
+  inset: auto auto max(var(--edge), env(safe-area-inset-bottom)) 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.shuffle-shot [data-action] {
+  min-width: 8.5rem;
+  min-height: 2.8rem;
+  background: #f4c28d;
+  color: #291b1b;
+  font-weight: 700;
+}
+
+@media (max-height: 515px) {
+  .shuffle-meter {
+    height: 21dvh;
+  }
+
+  .shuffle-hud {
+    gap: 0.2rem;
+  }
+}
+
+.shuffle-layout .shuffle-record-trigger {
+  position: absolute;
+  z-index: 1;
+  min-height: 2rem;
+  padding: 0.25rem 0.55rem;
+  transform: translate(-50%, 36%);
+  white-space: nowrap;
+  background: #271a16ed;
+  font-size: 0.78rem;
+}
+
+.shuffle-record-panel {
+  position: absolute;
+  z-index: 3;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: min(23rem, calc(100% - 2 * var(--edge)));
+  max-height: calc(100% - 2 * var(--edge));
+  overflow: auto;
+  padding: 1.15rem;
+  border: 1px solid #c2966c;
+  border-radius: 0.75rem;
+  background: #2b1c18f7;
+  box-shadow: 0 0.75rem 2.5rem #150e0bb3;
+}
+
+.shuffle-record-panel h3 {
+  margin: 0 3rem 0.45rem 0;
+  font:
+    500 1.55rem/1.15 Georgia,
+    serif;
+}
+
+.shuffle-record-panel [data-record-close] {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  min-width: 2.5rem;
+  font-size: 1.2rem;
+}
+
+.shuffle-record-panel [data-record-status] {
+  margin: 0 2.5rem 0.8rem 0;
+  color: #f0d2b4;
+  font-size: 0.875rem;
+}
+
+.shuffle-record-panel [data-record-songs] {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.shuffle-record-panel [data-record-songs] button {
+  text-align: left;
+}
+
+.shuffle-record-panel [aria-pressed="true"] {
+  border-color: #f4c28d;
+  background: #5e392a;
+}
+
+.shuffle-setup {
+  position: absolute;
+  z-index: 2;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  gap: 0.85rem;
+  width: min(22rem, calc(100% - 2 * var(--edge)));
+  max-height: calc(100% - 2 * var(--edge));
+  overflow: auto;
+  padding: 1.25rem;
+  border: 1px solid #c2966c;
+  border-radius: 0.75rem;
+  background: #2b1c18f5;
+  box-shadow: 0 0.75rem 2rem #150e0ba6;
+}
+
+.shuffle-setup h3 {
+  margin: 0;
+  font:
+    500 1.6rem/1.15 Georgia,
+    serif;
+}
+
+.shuffle-setup label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.shuffle-setup [data-begin] {
+  min-height: 2.8rem;
+  background: #f4c28d;
+  color: #291b1b;
+  font-weight: 700;
+}

@@ -87,7 +87,7 @@ export const anyHeld = (s) => Object.values(s).some(Boolean);
 export function activeGame(doc = document) {
   return (
     doc.querySelector("dialog[open][data-game-keyboard]") ||
-    doc.querySelector("#slipstream")
+    doc.querySelector("#slipstream, #shuffleboard")
   );
 }
 

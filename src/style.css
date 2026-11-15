@@ -1957,7 +1957,7 @@ body.pad-nav [data-nav-choice] button:focus-visible {
 }
 /* Standalone games: show which button the controller is on. */
 body.pad-nav
-  :is(dialog[data-game-keyboard], #slipstream)
+  :is(dialog[data-game-keyboard], #slipstream, #shuffleboard)
   :is(button, summary):focus {
   outline: 3px solid #dec2ff;
   outline-offset: 3px;

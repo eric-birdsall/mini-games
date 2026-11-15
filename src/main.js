@@ -44,6 +44,7 @@ import { installPopPatrol } from "./popPatrol.js";
 import { installPipeCrane } from "./pipeCrane.js";
 import { installShadowShop } from "./shadowShop.js";
 import { installBocce } from "./bocce.js";
+import { installShuffleboard } from "./shuffleboard.js";
 import { installKubb } from "./kubb.js";
 import { installSkeeBall } from "./skeeBall.js";
 import { installReadyOrNot } from "./readyOrNot.js";
@@ -1287,6 +1288,7 @@ installPopPatrol(() => botLevel, selectedAvatar);
 installShadowShop();
 installSkeeBall(() => botLevel, selectedAvatar);
 installBocce(() => botLevel);
+installShuffleboard(() => botLevel);
 installKubb(() => botLevel);
 // Picking a standalone game selects it; Start opens it (see `launchers`).
 document.querySelectorAll("#home [data-game]").forEach((entry) => {
@@ -3799,8 +3801,8 @@ document.addEventListener("mouseup", (e) =>
   input.key("Mouse" + e.button, false),
 );
 document.addEventListener("keydown", (e) => {
-  // A modal game owns the keyboard even if clicking its canvas blurs focus.
-  if (document.querySelector("dialog[open][data-game-keyboard]")) return;
+  // A standalone game owns the keyboard even if clicking its canvas blurs focus.
+  if (activeGame()?.matches("[data-game-keyboard]")) return;
   const code = keyboardCode(e);
   if (input.capture) {
     if (e.code.startsWith("Meta")) return;
@@ -4022,9 +4024,12 @@ function frame(now) {
     document.body.classList.toggle("in-arena", arena);
     world.resize();
   }
-  audio.music.update(audio.context, musicLevel());
-  followFeed();
   const standalone = activeGame();
+  audio.music.update(
+    audio.context,
+    standalone?.id === "shuffleboard" ? 0 : musicLevel(),
+  );
+  followFeed();
   if (standalone) {
     // A standalone game owns the controller; the menus behind it don't move.
     if (document.hasFocus() && !document.hidden) {

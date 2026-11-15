@@ -11,11 +11,15 @@ export const pauseBar = (game) => `<div class="game-pause-bar">
 </div>`;
 
 // Standalone modes use the same card layout as the arena pause screen.
-export const pauseScreen = (game, instructions) => `
+export const pauseScreen = (
+  game,
+  instructions,
+  { showEyebrow = true } = {},
+) => `
   <section class="game-pause" data-game-pause aria-label="${game} paused" hidden>
     ${pauseBar(game)}
     <div class="game-pause-card lock-card">
-      <div class="eyebrow">GAME ON</div>
+      ${showEyebrow ? '<div class="eyebrow">GAME ON</div>' : ""}
       <h2>Take your position.</h2>
       <p>Your game is paused.</p>
       <button type="button" class="primary" data-pause-resume>GO PLAY <span aria-hidden="true">→</span></button>
