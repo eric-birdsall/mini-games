@@ -1,0 +1,167 @@
+dialog.puck-clash {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+  background: #0c121b;
+  color: #f7eee3;
+}
+.puck-clash [hidden] {
+  display: none !important;
+}
+.puck-clash canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}
+.clash-hud,
+.clash-controls {
+  position: absolute;
+  left: 50%;
+  width: min(94%, 40rem);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  padding: 0.55rem;
+  background: #111d29ef;
+  border: 1px solid #355062;
+  border-radius: 0.7rem;
+}
+.clash-hud {
+  top: max(0.65rem, env(safe-area-inset-top));
+}
+.clash-controls {
+  bottom: max(0.65rem, env(safe-area-inset-bottom));
+  flex-wrap: wrap;
+}
+.clash-score {
+  display: flex;
+  flex: 1;
+  justify-content: space-around;
+  align-items: center;
+  gap: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.clash-score [data-score-blue] {
+  color: #73dcff;
+}
+.clash-score [data-score-orange] {
+  color: #ffab7c;
+}
+.clash-status {
+  position: absolute;
+  top: calc(max(0.65rem, env(safe-area-inset-top)) + 4.75rem);
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #b4cbd6;
+  pointer-events: none;
+}
+.clash-aim,
+.clash-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.clash-controls label {
+  display: flex;
+  flex: 1;
+  gap: 0.45rem;
+  align-items: center;
+}
+.clash-controls input {
+  min-width: 3rem;
+  width: 100%;
+  accent-color: #5edbfa;
+}
+.clash-controls output {
+  min-width: 3ch;
+}
+.puck-clash :is(.clash-hud, .clash-controls, .clash-actions) button {
+  min-height: 2.6rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #527287;
+  border-radius: 0.45rem;
+  background: #213747;
+  color: #f7eee3;
+  font: inherit;
+  cursor: pointer;
+}
+.puck-clash :is(button[data-primary], button[data-lock]) {
+  background: #6cddf7;
+  border-color: #6cddf7;
+  color: #0c2734;
+  font-weight: 700;
+}
+.puck-clash :is(button, input):focus-visible {
+  outline: 2px solid #ffd3a1;
+  outline-offset: 2px;
+}
+.clash-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow: auto;
+  background: #090e17ac;
+}
+.clash-card {
+  width: min(100%, 32rem);
+  padding: clamp(1rem, 4vw, 2rem);
+  border: 1px solid #547184;
+  border-radius: 0.8rem;
+  background: #13212c;
+}
+.clash-card h2 {
+  margin: 0;
+  font-size: clamp(1.65rem, 5vw, 3rem);
+  line-height: 1;
+}
+.clash-card p {
+  margin: 1rem 0;
+  color: #cbdde5;
+  line-height: 1.45;
+}
+
+.clash-bumper-setup {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.clash-bumper-setup button {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  min-height: 2.2rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #759aac;
+  border-radius: 0.45rem;
+  background: #16303e;
+  color: #f7eee3;
+  font: inherit;
+}
+.clash-bumper-setup [data-confirm-bumper] {
+  bottom: max(0.65rem, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 2.6rem;
+  padding: 0.4rem 0.85rem;
+  background: #6cddf7;
+  color: #0c2734;
+  font-weight: 700;
+}
+.clash-bumper-setup button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

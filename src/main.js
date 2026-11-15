@@ -45,6 +45,7 @@ import { installPopPatrol } from "./popPatrol.js";
 import { installPipeCrane } from "./pipeCrane.js";
 import { installShadowShop } from "./shadowShop.js";
 import { installBocce } from "./bocce.js";
+import { installPuckClash } from "./puckClash.js";
 import { installShuffleboard } from "./shuffleboard.js";
 import { installKubb } from "./kubb.js";
 import { installSkeeBall } from "./skeeBall.js";
@@ -1299,6 +1300,7 @@ installShadowShop();
 installSkeeBall(() => botLevel, selectedAvatar);
 installBocce(() => botLevel);
 installShuffleboard(() => botLevel);
+installPuckClash();
 installKubb(() => botLevel);
 // Picking a standalone game selects it; Start opens it (see `launchers`).
 document.querySelectorAll("#home [data-game]").forEach((entry) => {
