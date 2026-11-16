@@ -2,12 +2,11 @@ import * as T from "three";
 import { SUMO, SUMO_STATE as S } from "../shared/sumo.js";
 import { COLORS } from "../shared/avatars.js";
 import { animateAvatar, createAvatar, releaseAvatar } from "./avatars.js";
+import { createSumoGarden } from "./sumoGarden.js";
 
 const TOP = SUMO.ring.height;
 const RADIUS = SUMO.ring.radius;
-const turn = Math.PI * 2;
 const palette = {
-  grass: "#7fa74d",
   deck: "#bf7c51",
   sand: "#efd095",
   line: "#fff4d4",
@@ -19,17 +18,19 @@ export function createSumoScene(canvas, seats) {
   const renderer = new T.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   const scene = new T.Scene();
-  scene.background = new T.Color(palette.grass);
-  const camera = new T.OrthographicCamera(-10, 10, 10, -10, 0.1, 90);
-  const horizontal = 16 / Math.sqrt(2);
+  const drawGarden = createSumoGarden(scene);
+  const camera = new T.OrthographicCamera(-10, 10, 10, -10, 0.1, 110);
+  const distance = 20;
+  const targetHeight = TOP + 1.25;
+  const horizontal = distance / Math.sqrt(2);
   camera.position.set(
     horizontal,
-    16 * Math.tan((55 * Math.PI) / 180),
+    targetHeight + distance * Math.tan((Math.PI * 32) / 180),
     horizontal,
   );
-  camera.lookAt(0, TOP - 0.2, 0);
-  scene.add(new T.HemisphereLight("#fff6df", "#526440", 2.25));
-  const sun = new T.DirectionalLight("#fff0cf", 2.05);
+  camera.lookAt(0, targetHeight, 0);
+  scene.add(new T.HemisphereLight("#f3ffef", "#698273", 1.95));
+  const sun = new T.DirectionalLight("#fff0cf", 1.85);
   sun.position.set(-6, 12, 4);
   scene.add(sun);
 
@@ -55,15 +56,7 @@ export function createSumoScene(canvas, seats) {
   const cylinder = (r1, r2, height, color, y) =>
     mesh(new T.CylinderGeometry(r1, r2, height, 96), material(color), 0, y, 0);
 
-  const lawn = mesh(
-    new T.PlaneGeometry(120, 120),
-    material(palette.grass),
-    0,
-    -0.04,
-    0,
-  );
-  lawn.rotation.x = -Math.PI / 2;
-  const shade = flatRing(0, RADIUS + 0.58, "#67863f", -0.02, 0.35, 0.38);
+  const shade = flatRing(0, RADIUS + 0.58, "#427569", -0.02, 0.35, 0.38);
   shade.scale.y = 1.02;
   cylinder(RADIUS - 0.37, RADIUS + 0.13, TOP, palette.base, TOP / 2 - 0.06);
   cylinder(
@@ -83,20 +76,6 @@ export function createSumoScene(canvas, seats) {
   for (const sign of [-1, 1])
     mesh(startLine, chalk, 0, TOP + 0.009, sign * 0.55);
 
-  // Painted grass clumps outside the ring, placed consistently on each visit.
-  const blade = new T.ConeGeometry(0.11, 0.38, 3);
-  const blades = [material("#6a963e"), material("#94b75c")];
-  for (let i = 0; i < 67; i++) {
-    const angle = i * 2.399963,
-      distance = RADIUS + 0.9 + (i % 13) * 0.54;
-    const x = Math.cos(angle) * distance,
-      z = Math.sin(angle) * distance;
-    for (let j = -1; j <= 1; j++) {
-      const stem = mesh(blade, blades[i % 2], x + j * 0.13, 0.13, z);
-      stem.rotation.set(0, angle, j * 0.38);
-    }
-  }
-
   const actors = seats.map(({ avatar }) => {
     const root = createAvatar("attacker", avatar);
     scene.add(root);
@@ -110,7 +89,7 @@ export function createSumoScene(canvas, seats) {
     const width = canvas.clientWidth || 1,
       height = canvas.clientHeight || 1;
     const aspect = width / height;
-    const halfY = Math.max(7.7, (RADIUS + 1.3) / aspect);
+    const halfY = Math.max(7.45, (RADIUS + 1.2) / aspect);
     Object.assign(camera, {
       left: -halfY * aspect,
       right: halfY * aspect,
@@ -202,6 +181,7 @@ export function createSumoScene(canvas, seats) {
           tag.classList.toggle("caught", p.state === S.CAUGHT);
         }
       });
+      drawGarden(time);
       renderer.render(scene, camera);
     },
     dispose() {
@@ -209,6 +189,7 @@ export function createSumoScene(canvas, seats) {
       const geometries = new Set(),
         materials = new Set();
       scene.traverse((obj) => {
+        if (obj.isInstancedMesh) obj.dispose();
         if (obj.geometry) geometries.add(obj.geometry);
         if (obj.material) materials.add(obj.material);
       });
