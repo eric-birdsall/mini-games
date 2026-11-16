@@ -1,0 +1,186 @@
+.lantern-trail {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #222341;
+  color: #fff2d8;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+
+.lantern-trail [hidden] {
+  display: none;
+}
+
+.lantern-trail canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.trail-hud,
+.trail-touch {
+  position: absolute;
+  inset-inline: max(14px, env(safe-area-inset-left))
+    max(14px, env(safe-area-inset-right));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.trail-hud {
+  top: max(12px, env(safe-area-inset-top));
+  pointer-events: none;
+}
+
+.trail-hud > div,
+.trail-notice {
+  padding: 8px 12px;
+  background: #211d36ed;
+  border: 1px solid #f6d2a455;
+  border-radius: 12px;
+}
+
+.trail-hud > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: clamp(0.78rem, 2vw, 0.97rem);
+}
+
+.trail-hud span[data-sparks],
+.trail-level-label {
+  color: #ffcd84;
+  font-variant-numeric: tabular-nums;
+}
+
+.trail-hud button {
+  pointer-events: auto;
+}
+
+.trail-notice {
+  position: absolute;
+  top: 65px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(540px, 90%);
+  width: max-content;
+  font-size: 0.85rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.trail-notice:empty {
+  display: none;
+}
+
+.trail-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #18162d69;
+}
+
+.trail-card {
+  width: min(100%, 450px);
+  padding: clamp(20px, 4vw, 38px);
+  border: 1px solid #e9bb827d;
+  border-radius: 22px;
+  background: #201c35f5;
+  box-shadow: 0 24px 74px #16112d8c;
+}
+
+.trail-card p {
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.trail-card h2 {
+  margin: 0 0 9px;
+  color: #fff3d5;
+  font-family: "DM Serif Text", Georgia, serif;
+  font-size: clamp(2.1rem, 6vw, 3.65rem);
+  font-weight: 400;
+  line-height: 0.99;
+}
+
+.trail-level-label {
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.trail-instructions {
+  color: #e4ced7;
+  font-size: 0.86rem;
+}
+
+.trail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.trail-actions button,
+.trail-hud button,
+.trail-touch button {
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid #f6d2a477;
+  border-radius: 10px;
+  background: #26203de8;
+  color: #fff2d8;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.trail-actions button[data-play] {
+  border-color: #ffce82;
+  background: #ffce82;
+  color: #2b2238;
+}
+
+.trail-actions button:focus-visible,
+.trail-hud button:focus-visible,
+.trail-touch button:focus-visible {
+  outline: 3px solid #8cf1d5;
+  outline-offset: 3px;
+}
+
+.trail-touch {
+  bottom: max(8px, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.trail-touch > div {
+  display: flex;
+  gap: 6px;
+}
+
+.trail-touch button {
+  pointer-events: auto;
+  min-width: 48px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.trail-touch button:active {
+  background: #ffce82;
+  color: #2b2238;
+}

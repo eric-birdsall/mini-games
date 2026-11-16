@@ -1,5 +1,9 @@
 # Mini Games
 
+## Keep gameplay full screen
+
+Always fill the available viewport with the playable game view. Avoid placing gameplay inside smaller windows, cards, or framed panels. When the game needs a scoreboard, controls, or other HUD elements, overlay them in a compact panel so the play area stays full screen.
+
 ## Always support Xbox controller controls
 
 Every game, menu and screen must be fully playable with an Xbox controller, as well as keyboard/mouse and touch. When adding or changing a game or screen, wire up the controller in the same change and test it.

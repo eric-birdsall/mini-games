@@ -295,14 +295,14 @@ Input handling was checked with synthetic standard Xbox button/axis samples and 
 
 ### Controller in the standalone games
 
-Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb and Puck Clash run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
+Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail and Puck Clash run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
 
 | Xbox               | During play                                                                                                                     | On a start, pause or results screen               |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | Left stick / D-pad | Steer, aim (Animal Patrol: WASD), dive/flare, hop, look around, move the yard cursor, aim the roll (A / D in Bocce Ball), aim and set power (Puck Clash)                                          | Move to the nearest button that way               |
-| Right stick        | Look (Slipstream, Shoo Away, Kubb; I J K L)                                                                                           | —                                                 |
+| Right stick        | Look (Slipstream, Shoo Away, Kubb; I J K L), move the launch spot (Puck Clash; J / L)                                                                                           | —                                                 |
 | A / RT             | Drop, cast, reel, release, fire, shoo, throw a capture ball (Animal Patrol), jump, build, shoot / lunge, belly dive, hold and release to roll or throw in Skee Ball, Bocce Ball and Kubb, lock a shot in Puck Clash                             | Press the highlighted button (A only)             |
-| X / LT             | Pump the water blaster (R, Target Blaster); dash (Comet Dash); start wave / fast (Pop Patrol); pass / switch player (Kickabout) | —                                                 |
+| X / LT             | Pump the water blaster (R, Target Blaster); dash (Comet Dash); start wave / fast (Pop Patrol); pass / switch player (Kickabout); cycle curl (Puck Clash) | —                                                 |
 | B                  | Pause (Escape)                                                                                                                  | Back / resume (Escape)                            |
 | Menu (Start)       | Pause                                                                                                                           | Press the main button (Start, Resume, Play again) |
 
@@ -761,6 +761,12 @@ Choose **Sprinkler Dodge** for a third-person survival round in a 40 m backyard,
 
 Open **Game → Toy Box Rescue** for a solo carnival claw game. Move the claw on two axes using **arrow keys / WASD**, the on-screen directional buttons, or tap and drag inside the box. Align the ground ring over the requested toy and press **Space** or **Drop Claw**. The claw lowers, grabs, and lifts; the next mission appears after a successful rescue. Wrong toys return to the box, and misses let you try again without a time limit. Rescue all six toys to finish, with total drops shown as your score. Difficulty adjusts grab precision. **Start over** reshuffles the box; **Escape** returns to the game picker.
 
+### Lantern Trail
+
+Open **Game → Lantern Trail** for a solo side-scrolling platformer with three short levels. Reach the lantern at the end of each level. Collect optional sparks, stomp beetles from above, and light the trail marker to checkpoint your progress. Falls and side hits send you back to the latest marker, and you keep the sparks you picked up.
+
+Move with **A / D** or **← / →**. Jump with **Space**, **W**, or **↑**. Hold to jump higher. On an Xbox controller, move with the stick or D-pad and jump with **A / RT**. The on-screen arrows and Jump button support touch and mouse. Pause with **Esc**, **B / Menu**, or the on-screen Pause button.
+
 ### Roof Catch
 
 Open **Game → Roof Catch** to catch fruit rolling off a tin roof. Your chosen character stands under the eaves with a basket, and things roll down the roof in five lanes and drop off the edge.
@@ -1041,11 +1047,3 @@ Open **Game → Kickabout** for 3 v 3 soccer on a backyard lawn, seen from high 
 - **Difficulty** changes only the other team: Easy opponents are slow, take a long time to win the ball, shoot wildly from far out, and have a small keeper; Hard ones are a touch quicker than you, tackle at once, shoot accurately from close in, and have a long-armed keeper. Winning the ball off them also takes longer on harder levels. Your wins are counted per difficulty.
 
 The rules (ball physics, possession, tackles, saves, who you control and the bots) are in `shared/kickabout.js` (tested in `tests/kickabout.test.js`: whole matches always finish with the ball inside the fence and keepers in their box, control always follows the ball, friendly bots beat Easy and lose to Hard, and a simple scripted player beats Easy), the game in `src/kickabout.js`, and the 3D yard in `src/kickaboutScene.js`.
-
-### Bad Draw
-
-Open **Game → Bad Draw** for a same-room drawing and guessing round. The selected character is the drawer; everyone else looks away while the drawer holds **Reveal** (Space or RT). Release it, then start the 60-second clock. Hold the mouse button or drag on the paper to draw. On a controller, move with the left stick and hold RT to draw. The cursor shows where you're aiming while the ink wanders independently.
-
-Teammates guess out loud. The drawer can't speak or write letters. Use **Undo** (X) up to twice and **Clear** (Y) once. Press **Correct!** (A) when the team guesses; the result shows the word, final drawing and up to 100 points based on time left. Timeout scores zero. Play Again starts a fresh round, with no repeated words until the bank is exhausted. To rotate drawers, pass the controls or change the selected character from the menu.
-
-Bad Draw includes 1,000 local prompts and works offline. Additional prompts were sourced from the [Datamuse API](https://www.datamuse.com/api/) and screened using [Brysbaert et al.’s concreteness ratings](https://pubmed.ncbi.nlm.nih.gov/24142837/).

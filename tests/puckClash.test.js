@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   BOARD,
+  SHOTS,
+  clashMatchWinner,
+  traceClashShot,
   BUMPER_RADIUS,
   placeClashBumper,
   enforceClashLanding,
@@ -12,6 +15,8 @@ import {
   countClashPucks,
   launchClashPuck,
   clashLaunchPosition,
+  clashLaunchSpot,
+  LAUNCH_LIMIT,
   stepClash,
 } from "../shared/puckClash.js";
 
@@ -58,6 +63,7 @@ test("a glancing shot can knock a rival puck over an open side", () => {
     if (rival.fall !== null) break;
   }
   assert.notEqual(rival.fall, null);
+  assert.equal(pucks[rival.lastRivalHit], attacker);
   assert.equal(attacker.fall, null);
   assert.deepEqual(countClashPucks(pucks), [1, 0]);
 });
@@ -207,6 +213,59 @@ test("the next puck launches beside parked pieces instead of overlapping them", 
     assert.deepEqual(
       clashLaunchPosition(team, [{ ...resting, fall: 0.7 }], []),
       { x: 0, z },
+    );
+  }
+});
+
+test("curl bends to the shooter's left or right and the preview follows it", () => {
+  for (const team of [0, 1]) {
+    const facing = team === 0 ? 1 : -1;
+    const origin = { x: 0, z: BOARD.launch * facing };
+    const base = { aim: 0, power: 0.45 };
+    const straight = traceClashShot(team, base, origin, [], []);
+    const left = traceClashShot(team, { ...base, curl: -1 }, origin, [], []);
+    const right = traceClashShot(team, { ...base, curl: 1 }, origin, [], []);
+    assert.equal(straight.at(-1).x, 0);
+    assert.ok(left.at(-1).x * facing < -0.3);
+    assert.ok(right.at(-1).x * facing > 0.3);
+    const live = launchClashPuck(team, { ...base, curl: 1 }, origin);
+    for (let tick = 0; tick < 480 && stepClash([live], STEP); tick++);
+    assert.ok(
+      Math.hypot(live.x - right.at(-1).x, live.z - right.at(-1).z) < 0.25,
+    );
+    assert.equal(live.curl, 0);
+  }
+});
+
+test("tied regulation and overtime rounds continue until a player leads", () => {
+  assert.equal(clashMatchWinner(SHOTS - 1, [4, 0]), null);
+  assert.equal(clashMatchWinner(SHOTS, [2, 2]), null);
+  assert.equal(clashMatchWinner(SHOTS + 1, [3, 3]), null);
+  assert.equal(clashMatchWinner(SHOTS + 2, [4, 3]), 0);
+  assert.equal(clashMatchWinner(SHOTS, [1, 2]), 1);
+});
+
+test("each player can choose arbitrary open spots along their launch line", () => {
+  for (const team of [0, 1]) {
+    const z = (team === 0 ? 1 : -1) * BOARD.launch;
+    const parked = { x: 0.25, z: z - 0.1, fall: null };
+    const bumper = { x: -0.8, z };
+    const spot = { x: -0.273, z };
+    assert.deepEqual(clashLaunchSpot(team, spot.x, [parked], [bumper]), spot);
+    assert.deepEqual(
+      clashLaunchPosition(team, [parked], [bumper], spot.x),
+      spot,
+    );
+    assert.equal(clashLaunchSpot(team, parked.x, [parked], [bumper]), null);
+    assert.equal(clashLaunchSpot(team, bumper.x, [parked], [bumper]), null);
+    assert.equal(clashLaunchSpot(team, LAUNCH_LIMIT + 0.01, [], []), null);
+    assert.deepEqual(clashLaunchSpot(team, LAUNCH_LIMIT, [], []), {
+      x: LAUNCH_LIMIT,
+      z,
+    });
+    assert.equal(
+      launchClashPuck(team, { aim: 0.5, curl: 0.5, power: 0.7 }, spot).x,
+      spot.x,
     );
   }
 });

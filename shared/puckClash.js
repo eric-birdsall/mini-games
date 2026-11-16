@@ -60,14 +60,65 @@ export function scoreClash(pucks) {
 
 const DRAG = 2.3;
 const WALL_BOUNCE = 0.58;
+const CURL_RATE = 0.27;
 
-export function clashLaunchPosition(team, pucks, bumpers) {
+export function clashMatchWinner(round, [blue, orange]) {
+  if (round < SHOTS || blue === orange) return null;
+  return blue > orange ? 0 : 1;
+}
+
+const LAUNCH_CLEARANCE = 2 * BOARD.radius + 0.01;
+export const LAUNCH_LIMIT =
+  SIDE_RAIL.x -
+  Math.sqrt((SIDE_RAIL.radius + BOARD.radius) ** 2 - SIDE_RAIL.radius ** 2) -
+  0.005;
+
+export function clashLaunchSpot(team, x, pucks, bumpers) {
+  const z = BOARD.launch * (team === 0 ? 1 : -1);
+  if (
+    !Number.isFinite(x) ||
+    Math.abs(x) > LAUNCH_LIMIT ||
+    bumperBlocks(x, z, bumpers) ||
+    pucks.some(
+      (puck) =>
+        puck.fall === null &&
+        Math.hypot(puck.x - x, puck.z - z) < LAUNCH_CLEARANCE,
+    )
+  ) {
+    return null;
+  }
+  return { x, z };
+}
+
+export function clashLaunchPosition(team, pucks, bumpers, preferredX = 0) {
   const facing = team === 0 ? 1 : -1;
-  const clearance = 2 * BOARD.radius + 0.01;
-  // Prefer the center of the launch line. Search beside it and behind it
-  // before using the front of the launch area.
+  const lineZ = BOARD.launch * facing;
+  const candidates = [preferredX, -LAUNCH_LIMIT, LAUNCH_LIMIT];
+  // The closest free spot is either the requested point or an obstacle's edge.
+  for (const [pieces, clearance] of [
+    [pucks.filter((puck) => puck.fall === null), LAUNCH_CLEARANCE],
+    [bumpers, BOARD.radius + BUMPER_RADIUS],
+  ]) {
+    for (const piece of pieces) {
+      const depth = piece.z - lineZ;
+      if (Math.abs(depth) >= clearance) continue;
+      const offset = Math.sqrt(clearance ** 2 - depth ** 2) + 1e-6;
+      candidates.push(piece.x - offset, piece.x + offset);
+    }
+  }
+  candidates.sort(
+    (a, b) =>
+      Math.abs(a - preferredX) - Math.abs(b - preferredX) || (b - a) * facing,
+  );
+  for (const x of candidates) {
+    const spot = clashLaunchSpot(team, x, pucks, bumpers);
+    if (spot) return spot;
+  }
+
+  // A completely blocked line still needs a legal place for the next puck.
+
   for (const depth of [
-    0, 0.2, 0.4, -0.2, -0.4, -0.6, -0.8, -1, -1.2, -1.4, -1.6,
+    0.2, 0.4, -0.2, -0.4, -0.6, -0.8, -1, -1.2, -1.4, -1.6,
   ]) {
     const z = (BOARD.launch + depth) * facing;
     for (let lane = 0; lane <= 13; lane++) {
@@ -80,7 +131,7 @@ export function clashLaunchPosition(team, pucks, bumpers) {
           pucks.some(
             (puck) =>
               puck.fall === null &&
-              Math.hypot(puck.x - x, puck.z - z) < clearance,
+              Math.hypot(puck.x - x, puck.z - z) < LAUNCH_CLEARANCE,
           )
         )
           continue;
@@ -93,7 +144,7 @@ export function clashLaunchPosition(team, pucks, bumpers) {
 
 export function launchClashPuck(
   team,
-  { aim, power },
+  { aim, power, curl = 0 },
   position = { x: 0, z: BOARD.launch * (team === 0 ? 1 : -1) },
 ) {
   const forward = team === 0 ? -1 : 1;
@@ -104,6 +155,7 @@ export function launchClashPuck(
     ...position,
     vx: -forward * Math.sin(angle) * speed,
     vz: forward * Math.cos(angle) * speed,
+    curl: Math.max(-1, Math.min(1, curl)),
     fall: null,
   };
 }
@@ -227,11 +279,20 @@ export function stepClash(pucks, dt, bumpers = []) {
       continue;
     }
     const speed = Math.hypot(puck.vx, puck.vz);
+    if (speed && puck.curl) {
+      const turn = CURL_RATE * puck.curl * Math.min(dt, speed / DRAG);
+      const sine = Math.sin(turn);
+      const cosine = Math.cos(turn);
+      const vx = puck.vx;
+      puck.vx = vx * cosine - puck.vz * sine;
+      puck.vz = vx * sine + puck.vz * cosine;
+    }
     const scale = speed ? Math.max(0, 1 - (DRAG * dt) / speed) : 0;
     puck.x += puck.vx * ((1 + scale) / 2) * dt;
     puck.z += puck.vz * ((1 + scale) / 2) * dt;
     puck.vx *= scale;
     puck.vz *= scale;
+    if (!scale) puck.curl = 0;
     bounceOffDiamond(puck);
     bounceOffBumpers(puck, bumpers);
     checkEdges(puck);
@@ -262,8 +323,14 @@ export function stepClash(pucks, dt, bumpers = []) {
         const bClosing = -(b.vx * nx + b.vz * nz);
         const impulse = Math.max(0, aClosing + bClosing) * 0.9;
         if (impulse > 0 && a.team !== b.team) {
-          if (aClosing > 0) a.hitRival = true;
-          if (bClosing > 0) b.hitRival = true;
+          if (aClosing > 0) {
+            a.hitRival = true;
+            b.lastRivalHit = i;
+          }
+          if (bClosing > 0) {
+            b.hitRival = true;
+            a.lastRivalHit = j;
+          }
         }
         a.vx -= impulse * nx;
         a.vz -= impulse * nz;
@@ -285,6 +352,32 @@ export function stepClash(pucks, dt, bumpers = []) {
   );
 }
 
+export function traceClashShot(team, shot, origin, pucks, bumpers) {
+  const puck = launchClashPuck(team, shot, origin);
+  const sliding = [puck];
+  const dots = [];
+  let last = origin;
+  for (let tick = 0; tick < 480 && stepClash(sliding, STEP, bumpers); tick++) {
+    if (
+      puck.fall !== null ||
+      pucks.some(
+        (other) =>
+          other.fall === null &&
+          Math.hypot(puck.x - other.x, puck.z - other.z) <= 2 * BOARD.radius,
+      )
+    )
+      break;
+    if (
+      Math.hypot(puck.x - last.x, puck.z - last.z) >=
+      (dots.length ? 0.25 : 0.36)
+    ) {
+      last = { x: puck.x, z: puck.z };
+      dots.push(last);
+    }
+  }
+  return dots;
+}
+
 export function countClashPucks(pucks) {
   const counts = [0, 0];
   for (const puck of pucks) if (puck.fall === null) counts[puck.team]++;
@@ -292,12 +385,17 @@ export function countClashPucks(pucks) {
 }
 
 export function chooseClashShot(pucks, bumpers, random = Math.random) {
-  const origin = clashLaunchPosition(1, pucks, bumpers);
+  const origins = [0, -0.85, 0.85].map((x) =>
+    clashLaunchPosition(1, pucks, bumpers, x),
+  );
   let best;
   let bestScore = -Infinity;
   for (let lane = -7; lane <= 7; lane++) {
     for (const power of [0.34, 0.53, 0.73, 0.91, 1]) {
-      const shot = { aim: lane * 0.065, power };
+      const curl = [0, -0.5, 0.5][(lane + 7 + Math.round(power * 10)) % 3];
+      const origin =
+        origins[(lane + 7 + Math.round(power * 20)) % origins.length];
+      const shot = { aim: lane * 0.065, power, curl, origin };
       const practice = pucks
         .filter(({ fall }) => fall === null)
         .map((puck) => ({ ...puck }));

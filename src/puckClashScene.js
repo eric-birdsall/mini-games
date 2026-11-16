@@ -1,11 +1,10 @@
 import {
   BOARD,
+  LAUNCH_LIMIT,
   SIDE_RAIL,
-  sideRailContact,
   BUMPER_RADIUS,
-  bumperBlocks,
   DIAMOND_TIP,
-  diamondContact,
+  traceClashShot,
 } from "../shared/puckClash.js";
 
 const colors = [
@@ -38,6 +37,21 @@ function firstPersonView(width, height) {
   };
 }
 
+export function launchLinePointer(width, height, left, top, requireNearLine) {
+  const { focal, center } = firstPersonView(width, height);
+  const depth = cameraDistance - BOARD.launch;
+  const scale = focal / depth;
+  const lineY = center + (cameraHeight / depth - cameraPitchOffset) * focal;
+  const x = (left - width / 2) / scale;
+  if (
+    requireNearLine &&
+    (Math.abs(top - lineY) > Math.max(18, 0.17 * scale) ||
+      Math.abs(x) > BOARD.halfWidth)
+  )
+    return null;
+  return x;
+}
+
 export function drawPuckClash(
   canvas,
   width,
@@ -48,6 +62,7 @@ export function drawPuckClash(
   bumpers = [],
   placement = null,
   overhead = 0,
+  knockouts = [],
 ) {
   const ctx = canvas.getContext("2d");
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
@@ -243,19 +258,26 @@ export function drawPuckClash(
   wall(-l * facing, -0.16 * facing);
   drawSideRails(-facing);
   const launch = guide?.origin ?? { x: 0, z: BOARD.launch * facing };
-  if (guide) {
-    const travel = (1.5 + 6.2 * guide.power) ** 2 / 4.6;
-    for (let t = 0.36; t < travel; t += 0.25) {
-      const x = launch.x + Math.sin(guide.aim) * t * facing;
-      const z = launch.z - Math.cos(guide.aim) * t * facing;
-      if (
-        diamondContact(x, z) ||
-        Math.abs(x) >= w ||
-        Math.abs(z) >= l - radius ||
-        sideRailContact(x, z) ||
-        bumperBlocks(x, z, bumpers)
-      )
-        break;
+  if (guide && Math.abs(launch.z) === BOARD.launch) {
+    slab(
+      -LAUNCH_LIMIT,
+      LAUNCH_LIMIT,
+      launch.z - 0.016,
+      launch.z + 0.016,
+      0.012,
+      "#fff0ca",
+    );
+  }
+  if (guide?.blocked) {
+    disk(launch.x, 0.11, launch.z, radius * 0.74, "#da4e37b5");
+  } else if (guide) {
+    for (const { x, z } of traceClashShot(
+      team,
+      guide,
+      launch,
+      pucks,
+      bumpers,
+    )) {
       disk(x, 0.012, z, 0.025, "#233641b5");
     }
   }
@@ -299,7 +321,7 @@ export function drawPuckClash(
       ? [{ z: placement.z, bumper: { ...placement, team } }]
       : []),
     { z: 0, diamond: true },
-    ...(guide ? [{ team, ...launch, fall: null }] : []),
+    ...(guide && !guide.blocked ? [{ team, ...launch, fall: null }] : []),
   ]
     .filter(({ fall }) => fall == null || fall < 0.7)
     .sort((a, b) => (a.z - b.z) * facing)
@@ -308,6 +330,30 @@ export function drawPuckClash(
       else if (piece.bumper) drawBumper(piece.bumper);
       else puck(piece);
     });
+  for (const { x, z, source, team, age } of knockouts) {
+    const [, color, shine] = colors[team];
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, 1 - age * 0.72);
+    const ring = (left, depth, height, size, stroke) => {
+      const outline = Array.from({ length: 32 }, (_, i) => {
+        const angle = (i * Math.PI) / 16;
+        return [
+          left + Math.cos(angle) * size,
+          height,
+          depth + Math.sin(angle) * size,
+        ];
+      });
+      outline.push(outline[0]);
+      shape(outline, null, stroke);
+    };
+    ring(x, 0.035, z, 0.27 + age * 0.24, color);
+    ring(x, 0.035, z, 0.18 + age * 0.16, shine);
+    if (source?.fall === null) {
+      ring(source.x, 0.12, source.z, radius + 0.085, shine);
+      ring(source.x, 0.12, source.z, radius + 0.13, color);
+    }
+    ctx.restore();
+  }
   drawSideRails(facing);
   wall(l * facing, 0.16 * facing);
   if (placement && !placement.valid) {

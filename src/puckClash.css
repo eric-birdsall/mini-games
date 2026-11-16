@@ -165,3 +165,27 @@ dialog.puck-clash {
   opacity: 0.55;
   cursor: default;
 }
+
+.clash-controls [data-curl-label] {
+  min-width: 3.6rem;
+  text-align: center;
+}
+
+@media (max-width: 540px) {
+  .clash-controls label {
+    min-width: 45%;
+  }
+}
+
+.clash-controls .clash-launch-control {
+  flex: 1 0 100%;
+  white-space: nowrap;
+}
+.clash-launch-control output {
+  min-width: 5.4rem;
+  text-align: right;
+}
+.clash-controls [data-lock]:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

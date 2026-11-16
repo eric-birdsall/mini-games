@@ -7,9 +7,12 @@ import {
   MAX_ANGLE,
   launchClashPuck,
   clashLaunchPosition,
+  clashLaunchSpot,
+  LAUNCH_LIMIT,
   stepClash,
   enforceClashLanding,
   scoreClash,
+  clashMatchWinner,
   chooseClashShot,
 } from "../shared/puckClash.js";
 import {
@@ -17,15 +20,20 @@ import {
   pauseScreen,
   setPauseScreen,
 } from "./pauseActions.js";
-import { drawPuckClash, setupBoardPosition } from "./puckClashScene.js";
+import {
+  drawPuckClash,
+  setupBoardPosition,
+  launchLinePointer,
+} from "./puckClashScene.js";
 import "./puckClash.css";
 
 const title = "Puck Clash";
-const instructions = `Place a bumper on your half before round one. Both players shoot together. Each new puck must settle on the opponent’s half or hit a rival puck. Side rails protect the area behind each launch line. A short puck or one that falls off is worth one point to the other player. Most points after ${SHOTS} rounds wins.`;
+const instructions = `Place a bumper on your half before round one. Both players shoot together. Each new puck must settle on the opponent’s half or hit a rival puck. Side rails protect the area behind each launch line. A short puck or one that falls off is worth one point to the other player. Most points after ${SHOTS} rounds wins. If tied, keep the board and play sudden death until someone leads.`;
 const inputHelp =
-  "Aim anywhere forward with ← → or drag. Set power with ↑ ↓ or the power slider. Lock your shot with Space. On Xbox, use the stick or D-pad and A or RT.";
+  "Tap or drag the launch line, use the Launch spot slider, or move with J / L. Aim with ← →, set power with ↑ ↓ and use Q / E for curl. Space locks your shot. On Xbox, use the right stick for launch position, left stick or D-pad for aim and power, X for curl, and A or RT to lock.";
 const teamNames = ["Blue", "Orange"];
-const freshShot = () => ({ aim: 0, power: 0.7 });
+const freshShot = () => ({ aim: 0, power: 0.7, curl: 0 });
+const knockoutDuration = 0.95;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const directions = {
   KeyA: "left",
@@ -35,10 +43,12 @@ const directions = {
   KeyW: "up",
   ArrowUp: "up",
   KeyS: "down",
+  KeyJ: "launchLeft",
+  KeyL: "launchRight",
   ArrowDown: "down",
 };
 
-export function installPuckClash() {
+export function installPuckClash(audio) {
   const games = document.querySelector('.choice-row[aria-label="Game"]');
   if (!games) return;
   const entry = document.createElement("button");
@@ -62,11 +72,11 @@ export function installPuckClash() {
     { aim: 0.04, power: 0.56 },
   );
   entry.querySelector("img").src = preview.toDataURL();
-  entry.onclick = openPuckClash;
+  entry.onclick = () => openPuckClash(audio);
   games.append(entry);
 }
 
-function openPuckClash() {
+function openPuckClash(audio) {
   document.exitPointerLock?.();
   const dialog = document.createElement("dialog");
   dialog.className = "puck-clash";
@@ -84,11 +94,13 @@ function openPuckClash() {
       <button type="button" data-confirm-bumper>Lock bumper</button>
     </section>
     <section class="clash-controls" hidden>
+      <label class="clash-launch-control">Launch spot <input type="range" min="-100" max="100" value="0" data-launch><output data-launch-label>Center</output></label>
       <div class="clash-aim">
         <button type="button" data-aim="-1" aria-label="Aim left">←</button>
         <button type="button" data-aim="1" aria-label="Aim right">→</button>
       </div>
       <label>Power <input type="range" min="0" max="100" value="70" data-power><output data-percent></output></label>
+      <label>Curl <input type="range" min="-2" max="2" value="0" data-curl><output data-curl-label>Straight</output></label>
       <button type="button" data-lock>Lock shot</button>
     </section>
     <section class="clash-overlay">
@@ -109,6 +121,9 @@ function openPuckClash() {
   const status = dialog.querySelector(".clash-status");
   const setup = dialog.querySelector(".clash-bumper-setup");
   const confirmBumper = get("confirm-bumper");
+  const curlControl = get("curl");
+  const launchControl = get("launch");
+  const lock = get("lock");
   const controls = dialog.querySelector(".clash-controls");
   const overlay = dialog.querySelector(".clash-overlay");
   const held = new Map();
@@ -127,8 +142,9 @@ function openPuckClash() {
   let lastTime = 0;
   let frame;
   let drag = null;
-  let launchPositions = [];
+  let launchBlocked = false;
   let overhead = 0;
+  let knockouts = [];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   function panel(heading, copy, action, onClick) {
@@ -148,10 +164,38 @@ function openPuckClash() {
     get("score-blue").textContent = `Blue ${blue} pts`;
     get("score-orange").textContent = `Orange ${orange} pts`;
     get("round").textContent =
-      state === "setup" ? "Bumper placement" : `Round ${round} / ${SHOTS}`;
+      state === "setup"
+        ? "Bumper placement"
+        : round > SHOTS
+          ? `Sudden death ${round - SHOTS}`
+          : `Round ${round} / ${SHOTS}`;
     setup.hidden = state !== "setup";
     get("power").value = Math.round(shot.power * 100);
     get("percent").textContent = `${get("power").value}%`;
+    const curlLabel = ["Left 2", "Left 1", "Straight", "Right 1", "Right 2"][
+      shot.curl * 2 + 2
+    ];
+    curlControl.value = shot.curl * 2;
+    curlControl.setAttribute("aria-valuetext", curlLabel);
+    get("curl-label").textContent = curlLabel;
+    if (state === "aim") {
+      const worldX = (team === 0 ? 1 : -1) * shot.origin.x;
+      const value = Math.round((worldX / LAUNCH_LIMIT) * 100);
+      const label =
+        value === 0
+          ? "Center"
+          : `${Math.abs(value)}% ${value < 0 ? "left" : "right"}`;
+      launchControl.disabled = Math.abs(shot.origin.z) !== BOARD.launch;
+      launchControl.value = value;
+      launchControl.setAttribute(
+        "aria-valuetext",
+        launchBlocked ? `${label}, occupied` : label,
+      );
+      get("launch-label").textContent = launchControl.disabled
+        ? "Line full"
+        : label;
+      lock.disabled = launchBlocked;
+    }
     controls.hidden = state !== "aim";
     hud.hidden = state === "menu" || state === "handoff";
     status.hidden = !["setup", "aim", "slide"].includes(state);
@@ -159,8 +203,10 @@ function openPuckClash() {
       state === "setup"
         ? `${teamNames[team]} · ${confirmBumper.disabled ? "Bumper must fit on your half, clear of walls, the puck and diamond" : "Tap, drag or use the arrows / stick to position your bumper"}`
         : state === "aim"
-          ? `${teamNames[team]} · Aim your shot${roundNotice ? ` · ${roundNotice}` : ""}`
-          : "Both pucks launched";
+          ? `${teamNames[team]} · ${launchBlocked ? "Choose an open launch spot" : "Aim your shot"}${roundNotice ? ` · ${roundNotice}` : ""}`
+          : knockouts.length
+            ? `${teamNames[knockouts.at(-1).team]} +1 · ${knockouts.at(-1).source ? "Knockout" : "Puck off the board"}`
+            : "Both pucks launched";
     if (status.textContent !== message) status.textContent = message;
   }
 
@@ -168,18 +214,24 @@ function openPuckClash() {
     state = "aim";
     if (team !== player) overhead = 0;
     team = player;
-    shot = freshShot();
+    shot = {
+      ...freshShot(),
+      origin: clashLaunchPosition(team, pucks, bumpers),
+    };
+    launchBlocked = false;
     overlay.hidden = true;
     updateHud();
     canvas.focus({ preventScroll: true });
   }
 
   function start(selectedMode) {
+    audio?.unlock();
     mode = selectedMode;
     pucks = [];
     round = 1;
     bumpers = [];
     overhead = 0;
+    knockouts = [];
     committed = [];
     roundNotice = "";
     if (mode === "cpu") {
@@ -227,15 +279,12 @@ function openPuckClash() {
 
   function beginRound() {
     committed = [];
-    launchPositions = [0, 1].map((player) =>
-      clashLaunchPosition(player, pucks, bumpers),
-    );
     if (mode === "cpu") committed[1] = chooseClashShot(pucks, bumpers);
     aimFor(0);
   }
 
   function lockShot() {
-    if (state !== "aim" || paused) return;
+    if (state !== "aim" || paused || launchBlocked) return;
     committed[team] = shot;
     held.clear();
     drag = null;
@@ -250,9 +299,10 @@ function openPuckClash() {
       );
       return;
     }
+    for (const puck of pucks) delete puck.lastRivalHit;
     pucks.push(
-      launchClashPuck(0, committed[0], launchPositions[0]),
-      launchClashPuck(1, committed[1], launchPositions[1]),
+      launchClashPuck(0, committed[0], committed[0].origin),
+      launchClashPuck(1, committed[1], committed[1].origin),
     );
     state = "slide";
     accumulator = 0;
@@ -268,16 +318,26 @@ function openPuckClash() {
         : short.length === 1
           ? `${teamNames[short[0].team]} fell short`
           : "";
-    if (round < SHOTS) {
+    const points = scoreClash(pucks);
+    const winner = clashMatchWinner(round, points);
+    if (winner === null) {
       round++;
+      if (round === SHOTS + 1) {
+        roundNotice = [
+          roundNotice,
+          "Tied after regulation. Take the lead to win",
+        ]
+          .filter(Boolean)
+          .join(" · ");
+      }
       beginRound();
       return;
     }
-    const [blue, orange] = scoreClash(pucks);
+    const [blue, orange] = points;
     state = "result";
     updateHud();
     panel(
-      blue === orange ? "Draw" : `${blue > orange ? "Blue" : "Orange"} wins`,
+      `${teamNames[winner]} wins`,
       `Blue ${blue} · Orange ${orange} points${roundNotice ? ` · ${roundNotice}` : ""}`,
       "Play again",
       () => start(mode),
@@ -306,12 +366,27 @@ function openPuckClash() {
     start(mode);
   };
   get("friend").onclick = () => start("friend");
-  get("lock").onclick = lockShot;
+  lock.onclick = lockShot;
+  function moveLaunch(screenX) {
+    if (state !== "aim" || paused || launchControl.disabled) return;
+    const facing = team === 0 ? 1 : -1;
+    const x = clamp(screenX, -LAUNCH_LIMIT, LAUNCH_LIMIT) * facing;
+    launchBlocked = !clashLaunchSpot(team, x, pucks, bumpers);
+    shot.origin = { x, z: BOARD.launch * facing };
+    updateHud();
+  }
+  launchControl.oninput = () =>
+    moveLaunch((Number(launchControl.value) * LAUNCH_LIMIT) / 100);
   confirmBumper.onclick = lockBumper;
   get("power").oninput = (event) => {
     shot.power = Number(event.target.value) / 100;
     updateHud();
   };
+  function setCurl(value) {
+    shot.curl = clamp(value, -1, 1);
+    updateHud();
+  }
+  curlControl.oninput = () => setCurl(Number(curlControl.value) / 2);
   dialog.querySelectorAll("[data-aim]").forEach((button) => {
     button.onclick = () => {
       shot.aim = clamp(
@@ -339,10 +414,31 @@ function openPuckClash() {
     }
   }
 
+  function pointerLaunchX(event, requireNearLine) {
+    const bounds = canvas.getBoundingClientRect();
+    return launchLinePointer(
+      canvas.clientWidth,
+      canvas.clientHeight,
+      event.clientX - bounds.left,
+      event.clientY - bounds.top,
+      requireNearLine,
+    );
+  }
+
   canvas.onpointerdown = (event) => {
     if (paused || !["setup", "aim"].includes(state) || event.button !== 0)
       return;
-    drag = { id: event.pointerId, x: event.clientX, aim: shot.aim };
+    const launchX =
+      state === "aim" && overhead <= 0.01 && !launchControl.disabled
+        ? pointerLaunchX(event, true)
+        : null;
+    drag = {
+      id: event.pointerId,
+      x: event.clientX,
+      aim: shot.aim,
+      launch: launchX !== null,
+    };
+    if (drag.launch) moveLaunch(launchX);
     canvas.setPointerCapture(event.pointerId);
     if (state === "setup") moveBumperToPointer(event);
   };
@@ -350,6 +446,10 @@ function openPuckClash() {
     if (drag?.id !== event.pointerId) return;
     if (state === "setup") {
       moveBumperToPointer(event);
+      return;
+    }
+    if (drag.launch) {
+      moveLaunch(pointerLaunchX(event, false));
       return;
     }
     shot.aim = clamp(
@@ -366,12 +466,18 @@ function openPuckClash() {
   dialog.addEventListener("keydown", (event) => {
     if (paused || !["setup", "aim"].includes(state)) return;
     if (
-      event.target === get("power") &&
+      [get("power"), curlControl, launchControl].includes(event.target) &&
       event.isTrusted &&
       event.code.startsWith("Arrow")
     )
       return;
-    if (directions[event.code]) {
+    if (state === "aim" && ["KeyQ", "KeyE", "KeyR"].includes(event.code)) {
+      if (!event.repeat) {
+        if (event.code === "KeyR")
+          setCurl(shot.curl === 1 ? -1 : shot.curl + 0.5);
+        else setCurl(shot.curl + (event.code === "KeyE" ? 0.5 : -0.5));
+      }
+    } else if (directions[event.code]) {
       held.set(event.code, directions[event.code]);
     } else if (
       event.code === "Space" &&
@@ -389,6 +495,22 @@ function openPuckClash() {
   function clearHeld() {
     held.clear();
     drag = null;
+  }
+
+  function highlightKnockouts() {
+    for (const puck of pucks) {
+      if (puck.fall !== 0) continue;
+      const scorer = 1 - puck.team;
+      knockouts.push({
+        x: Math.sign(puck.x) * BOARD.halfWidth,
+        z: puck.z,
+        source: pucks[puck.lastRivalHit],
+        team: scorer,
+        age: 0,
+      });
+      audio?.tone(740, 0.065, 0, 0.08);
+      audio?.tone(210, 0.13, 0.015, 0.09);
+    }
   }
 
   function animate(now) {
@@ -421,14 +543,22 @@ function openPuckClash() {
           MAX_ANGLE,
         );
         shot.power = clamp(shot.power + axis("up", "down") * dt * 0.7, 0, 1);
-        updateHud();
+        const slide = axis("launchRight", "launchLeft");
+        if (slide && !launchControl.disabled) {
+          const facing = team === 0 ? 1 : -1;
+          moveLaunch(shot.origin.x * facing + slide * dt * 2);
+        } else updateHud();
       }
     }
     if (!paused && state === "slide") {
+      for (const event of knockouts) event.age += dt;
+      knockouts = knockouts.filter((event) => event.age < knockoutDuration);
       accumulator += dt;
       while (accumulator >= STEP && state === "slide") {
         accumulator -= STEP;
-        if (!stepClash(pucks, STEP, bumpers)) resolveRound();
+        const moving = stepClash(pucks, STEP, bumpers);
+        highlightKnockouts();
+        if (!moving && !knockouts.length) resolveRound();
       }
       updateHud();
     }
@@ -456,11 +586,12 @@ function openPuckClash() {
         team,
         pucks,
         state === "aim" && !paused && overhead <= 0.01
-          ? { ...shot, origin: launchPositions[team] }
+          ? { ...shot, blocked: launchBlocked }
           : null,
         state === "setup" ? [] : bumpers,
         state === "setup" ? placement : null,
         overhead * overhead * (3 - 2 * overhead),
+        knockouts,
       );
     }
     frame = requestAnimationFrame(animate);

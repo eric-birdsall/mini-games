@@ -19,7 +19,7 @@ import { CHARACTERS } from "../shared/avatars.js";
 import { installSlipstream } from "./slipstream.js";
 import { installMemory } from "./memory.js";
 import { installBackyardAirMail } from "./backyardAirMail.js";
-import { installBadDraw } from "./badDraw.js";
+import { installLanternTrail } from "./lanternTrail.js";
 import { installRoofCatch } from "./roofCatch.js";
 
 import { installToyBox } from "./toyBox.js";
@@ -1265,15 +1265,7 @@ installSlipstream(() => botLevel, selectedAvatar);
 installMemory(() => botLevel);
 installToyBox(() => botLevel);
 installRoofCatch(selectedAvatar);
-installBadDraw({
-  getDrawer: () => ({
-    id: "local",
-    name: CHARACTERS[selectedAvatar().character]?.name || "Player 1",
-    team: "Your team",
-  }),
-  getPadIndex: () => input.padIndex,
-  audio,
-});
+installLanternTrail();
 installBackyardAirMail(selectedAvatar);
 installPondFishing(() => botLevel, selectedAvatar);
 installTargetBlaster(() => botLevel);
@@ -1301,7 +1293,7 @@ installShadowShop();
 installSkeeBall(() => botLevel, selectedAvatar);
 installBocce(() => botLevel);
 installShuffleboard(() => botLevel);
-installPuckClash();
+installPuckClash(audio);
 installSumo(selectedAvatar, () => input.padIndex, audio);
 installKubb(() => botLevel);
 // Picking a standalone game selects it; Start opens it (see `launchers`).
