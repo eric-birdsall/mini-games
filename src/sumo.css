@@ -138,6 +138,24 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+.sumo-lobby-actions [data-exit] {
+  padding: 17px 21px;
+  border: 1px solid #fff1cb70;
+  border-radius: 14px;
+  background: #3a4c3f;
+  color: #fff4d6;
+  font:
+    700 13px Fredoka,
+    "Arial Rounded MT Bold",
+    sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.sumo-lobby-actions [data-exit]:hover,
+.sumo-lobby-actions [data-exit]:focus-visible {
+  background: #4b6150;
+}
 .sumo-touch {
   display: none;
 }
@@ -196,5 +214,173 @@
   }
   .sumo-seat strong {
     font-size: 0.82rem;
+  }
+}
+
+/* P1 controls panel: one row per move; a used move darkens and refills over its cooldown. */
+.sumo-controls {
+  position: absolute;
+  left: max(14px, env(safe-area-inset-left));
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 1;
+  display: grid;
+  gap: 5px;
+  width: 168px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #1f2c24e0;
+  border: 1px solid #fff1cb38;
+  box-shadow: 0 6px 18px #0b120d66;
+  pointer-events: none;
+  font-size: 0.82rem;
+}
+.sumo-controls.out {
+  opacity: 0.5;
+}
+.sumo-controls-head {
+  padding: 0 2px 4px;
+  border-bottom: 2px solid var(--seat);
+  font-weight: 800;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f4e9cc;
+}
+.sumo-control {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 3px 6px 5px 3px;
+  border-radius: 7px;
+  background: #fff1cb10;
+  overflow: hidden;
+  transition: background 0.15s;
+}
+.sumo-control > :not(.sumo-control-bar) {
+  position: relative;
+}
+.sumo-control-name {
+  font-weight: 700;
+}
+.sumo-control-name small {
+  font-weight: 500;
+  font-size: 0.68rem;
+  opacity: 0.7;
+}
+.sumo-control-state {
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.sumo-cap {
+  --cap: #fff1cb;
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--cap);
+  color: #1b2620;
+  font-weight: 800;
+  font-size: 0.74rem;
+  box-shadow: inset 0 -3px #0003;
+}
+.sumo-controls[data-device="pad"] .sumo-cap {
+  width: 26px;
+  padding: 0;
+  border-radius: 50%;
+  color: white;
+  text-shadow: 0 1px #0006;
+}
+.sumo-controls[data-device="pad"] [data-control="move"] .sumo-cap {
+  --cap: #58625c;
+  font-size: 0.66rem;
+}
+.sumo-controls[data-device="pad"] [data-control="dash"] .sumo-cap {
+  --cap: #3fa34d;
+}
+.sumo-controls[data-device="pad"] [data-control="grab"] .sumo-cap {
+  --cap: #d0453e;
+}
+.sumo-controls[data-device="pad"] [data-control="brace"] .sumo-cap {
+  --cap: #2f7fd0;
+}
+.sumo-controls[data-device="pad"] [data-control="dodge"] .sumo-cap {
+  --cap: #e0aa18;
+}
+.sumo-controls[data-device="touch"] .sumo-cap {
+  display: none;
+}
+.sumo-controls[data-device="touch"] .sumo-control {
+  grid-template-columns: 1fr auto;
+  padding-left: 8px;
+}
+/* While cooling down the row goes dark and this fill sweeps back across it. */
+.sumo-control-bar {
+  position: absolute;
+  inset: 0;
+  background: #fff1cb24;
+  box-shadow: inset 0 -3px #ffb35a;
+  transform-origin: left;
+  transform: scaleX(calc(1 - var(--cooldown, 0)));
+  visibility: hidden;
+}
+.sumo-control[data-status="cooldown"] .sumo-control-bar {
+  visibility: visible;
+}
+.sumo-control[data-status="ready"] .sumo-control-state {
+  color: #8fe07f;
+}
+.sumo-control[data-status="cooldown"] {
+  background: #0a110d99;
+}
+.sumo-control[data-status="cooldown"] .sumo-control-state {
+  color: #ffc98a;
+}
+.sumo-control[data-status="cooldown"] .sumo-cap,
+.sumo-control[data-status="cooldown"] .sumo-control-name {
+  opacity: 0.55;
+}
+.sumo-control[data-status="active"] {
+  background: #fff1cb3a;
+}
+.sumo-control[data-status="active"] .sumo-control-state {
+  color: #fff4d6;
+}
+.sumo-control[data-status="counter"] {
+  background: #a12624;
+  animation: sumo-counter 0.3s ease-in-out infinite alternate;
+}
+@keyframes sumo-counter {
+  to {
+    background: #d6413c;
+  }
+}
+@media (max-width: 620px), (max-height: 520px) {
+  .sumo-controls {
+    width: 132px;
+    padding: 6px;
+    gap: 3px;
+    font-size: 0.74rem;
+  }
+  .sumo-control {
+    min-height: 24px;
+    gap: 6px;
+  }
+  .sumo-cap {
+    min-width: 20px;
+    height: 20px;
+    font-size: 0.64rem;
+  }
+  .sumo-controls[data-device="pad"] .sumo-cap {
+    width: 20px;
   }
 }

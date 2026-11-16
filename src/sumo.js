@@ -41,6 +41,18 @@ const keys = {
   KeyR: "dodge",
 };
 const buttons = { dash: "a", grab: "b", brace: "x", dodge: "y" };
+const glyphs = {
+  keys: { move: "WASD", dash: "Space", grab: "E", brace: "Q", dodge: "R" },
+  pad: { move: "LS", dash: "A", grab: "B", brace: "X", dodge: "Y" },
+  touch: { move: "", dash: "", grab: "", brace: "", dodge: "" },
+};
+const labels = { dash: "Dash", grab: "Grab", brace: "Brace", dodge: "Dodge" };
+const using = {
+  dash: [S.WINDUP, S.DASH],
+  grab: [S.HOLD],
+  brace: [S.PLANT, S.BRACE],
+  dodge: [S.DODGE],
+};
 const diagonal = Math.SQRT1_2;
 const world = (x, down) => ({
   x: (x + down) * diagonal,
@@ -213,6 +225,19 @@ function openSumo(avatar, getMainPad, audio) {
     <div class="sumo-tags" aria-hidden="true">${seats
       .map(({ avatar: a }) => `<span style="--seat:${COLORS[a.color]}"></span>`)
       .join("")}</div>
+    <aside class="sumo-controls" aria-label="Your controls" hidden>
+      <div class="sumo-controls-head" style="--seat:${COLORS[seats[0].avatar.color]}">P1 · <span data-controls-device></span></div>
+      <div class="sumo-control" data-control="move"><span class="sumo-cap"></span><span class="sumo-control-name">Move</span></div>
+      ${SUMO_ACTIONS.map(
+        (action) => `
+      <div class="sumo-control" data-control="${action}">
+        <span class="sumo-cap"></span>
+        <span class="sumo-control-name">${labels[action]}${action === "brace" ? " <small>hold</small>" : ""}</span>
+        <span class="sumo-control-state"></span>
+        <span class="sumo-control-bar"></span>
+      </div>`,
+      ).join("")}
+    </aside>
     <div class="sumo-banner" role="status"></div>
     <section class="sumo-lobby">
       <div>
@@ -242,6 +267,19 @@ function openSumo(avatar, getMainPad, audio) {
     dialog.querySelector(`[data-seat="${id}"]`),
   );
   const ids = seats.map(({ id }) => id);
+  const controls = dialog.querySelector(".sumo-controls");
+  const controlRows = Object.fromEntries(
+    [...controls.querySelectorAll("[data-control]")].map((row) => [
+      row.dataset.control,
+      {
+        row,
+        cap: row.querySelector(".sumo-cap"),
+        state: row.querySelector(".sumo-control-state"),
+        last: {},
+      },
+    ]),
+  );
+  let device = "";
   let match = createSumo(ids);
   let mode = "lobby",
     finishedFor = 0,
@@ -321,6 +359,7 @@ function openSumo(avatar, getMainPad, audio) {
     results.hide();
     clearInputs();
     assignControllers(pads());
+    setDevice(seats[0].pad === undefined ? "keys" : "pad");
     match = createSumo(ids);
     mode = "match";
     count = 0;
@@ -361,6 +400,8 @@ function openSumo(avatar, getMainPad, audio) {
       const was = padHistory.get(seat.pad);
       padHistory.set(seat.pad, now);
       if (!was) continue;
+      if (seat === seats[0] && Object.keys(now).some((k) => now[k] && !was[k]))
+        setDevice("pad");
       if (now.menu && !was.menu) {
         pause();
         return;
@@ -473,6 +514,50 @@ function openSumo(avatar, getMainPad, audio) {
       if (status.textContent !== text) status.textContent = text;
     });
   };
+  function setDevice(next) {
+    if (device === next) return;
+    device = next;
+    get("controls-device").textContent = {
+      pad: "Xbox",
+      keys: "Keyboard",
+      touch: "Touch",
+    }[next];
+    controls.dataset.device = next;
+    for (const [key, { cap }] of Object.entries(controlRows))
+      cap.textContent = glyphs[next][key];
+  }
+
+  /** Mirror P1's cooldowns: a darkened row that refills, plus seconds left. */
+  const updateControls = () => {
+    controls.hidden = mode !== "match";
+    if (controls.hidden) return;
+    const p = match.players[0];
+    controls.classList.toggle("out", p.state === S.OUT);
+    for (const action of SUMO_ACTIONS) {
+      const { row, state, last } = controlRows[action];
+      const left = Math.max(0, p.ready[action] - match.clock) * SUMO.step;
+      const counter = action === "grab" && p.state === S.CAUGHT;
+      const status = counter
+        ? "counter"
+        : using[action].includes(p.state)
+          ? "active"
+          : left > 0
+            ? "cooldown"
+            : "ready";
+      const text = {
+        counter: "Counter!",
+        active: "Active",
+        cooldown: `${left.toFixed(1)}s`,
+        ready: "Ready",
+      }[status];
+      const fraction = (left / SUMO[action].cooldown).toFixed(3);
+      if (last.status !== status) row.dataset.status = last.status = status;
+      if (last.text !== text) state.textContent = last.text = text;
+      if (last.fraction !== fraction)
+        row.style.setProperty("--cooldown", (last.fraction = fraction));
+    }
+  };
+
   const tick = (now) => {
     const dt = Math.min((now - previous) / 1000, 0.05);
     previous = now;
@@ -510,6 +595,7 @@ function openSumo(avatar, getMainPad, audio) {
         setBanner(match.clock - match.start < 40 ? "SUMO!" : "");
     }
     updateRoster(connected);
+    updateControls();
     scene?.draw(match, time, mode === "paused" ? 0 : dt, finishedFor, tags);
     frame = requestAnimationFrame(tick);
   };
@@ -533,6 +619,7 @@ function openSumo(avatar, getMainPad, audio) {
     event.preventDefault();
     event.stopPropagation();
     if (event.repeat) return;
+    setDevice("keys");
     if (match.phase === "playing") press(key);
     held.set(event.code, key);
   });
@@ -551,6 +638,7 @@ function openSumo(avatar, getMainPad, audio) {
   };
   touch.addEventListener("pointerdown", (event) => {
     if (!hasControl()) return;
+    setDevice("touch");
     const button = event.target.closest("[data-action]");
     if (button) {
       event.preventDefault();
