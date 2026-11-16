@@ -1,0 +1,200 @@
+.sumo-game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+  color: #fff4d6;
+  background: #263825;
+  font-family: "Barlow", sans-serif;
+}
+
+.sumo-game [hidden] {
+  display: none !important;
+}
+.sumo-game canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  outline: 0;
+}
+.sumo-hud,
+.sumo-tags {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sumo-hud {
+  inset: max(12px, env(safe-area-inset-top)) 14px auto;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 1;
+}
+.sumo-roster {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.sumo-seat {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding: 7px 10px;
+  background: #253429f2;
+  border-radius: 6px;
+  border-top: 3px solid var(--seat);
+}
+.sumo-seat strong {
+  font-size: 0.94rem;
+}
+.sumo-seat small {
+  font-size: 0.75rem;
+  color: #f4e9cc;
+}
+.sumo-seat.out {
+  opacity: 0.64;
+}
+.sumo-hud button {
+  pointer-events: auto;
+  border: 1px solid #fff1cb70;
+  border-radius: 6px;
+  background: #253429f2;
+  color: #fff4d6;
+  padding: 7px 11px;
+  cursor: pointer;
+}
+.sumo-tags span,
+.sumo-banner {
+  position: absolute;
+  translate: -50% -50%;
+  font-weight: 800;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.sumo-tags span {
+  padding: 1px 7px 2px;
+  color: #192820;
+  background: var(--seat);
+  border: 1px solid #fff2c8;
+  border-radius: 9px;
+  font-size: 0.78rem;
+}
+.sumo-tags .caught {
+  background: #a12624;
+  color: white;
+  z-index: 1;
+}
+.sumo-banner {
+  top: 45%;
+  left: 50%;
+  font-size: clamp(54px, 12vw, 132px);
+  letter-spacing: -0.045em;
+  color: #fff1c8;
+  text-shadow:
+    0 4px #9d442a,
+    0 8px 18px #46291a96;
+}
+.sumo-lobby {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding: 70px 16px max(24px, env(safe-area-inset-bottom));
+  background: linear-gradient(transparent 25%, #1c302ecc 100%);
+  overflow: auto;
+}
+.sumo-lobby > div {
+  max-width: 540px;
+  border: 1px solid #fff1cb45;
+  border-radius: 16px;
+  padding: clamp(12px, 3vw, 26px);
+  background: #202e27f2;
+  text-align: center;
+}
+.sumo-lobby h2 {
+  margin: 0 0 0.3em;
+  font-size: clamp(1.7rem, 5vw, 3rem);
+}
+.sumo-lobby p {
+  margin: 0 0 0.7em;
+}
+.sumo-lobby .sumo-help {
+  font-size: 0.9rem;
+  color: #f0e5c8;
+}
+.sumo-lobby-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sumo-touch {
+  display: none;
+}
+@media (pointer: coarse), (any-pointer: coarse) {
+  .sumo-touch {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    position: absolute;
+    inset: auto max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+    pointer-events: none;
+  }
+  .sumo-stick,
+  .sumo-touch button {
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+  }
+  .sumo-stick {
+    width: 106px;
+    height: 106px;
+    display: grid;
+    place-items: center;
+    background: #253429b9;
+    border: 2px solid #fff1cb82;
+    border-radius: 50%;
+  }
+  .sumo-stick span {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #fff1cb;
+    transform: var(--drag, none);
+    pointer-events: none;
+  }
+  .sumo-touch-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .sumo-touch-actions button {
+    min-height: 42px;
+  }
+}
+@media (max-width: 620px) {
+  .sumo-hud {
+    inset-inline: 8px;
+  }
+  .sumo-roster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sumo-seat {
+    padding: 4px 7px;
+  }
+  .sumo-seat strong {
+    font-size: 0.82rem;
+  }
+}

@@ -308,6 +308,19 @@ Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishi
 
 A game opens with its main button highlighted, not "Back to games". In Firefly Recall, Y X B A (or the D-pad) pick the firefly of the same colour in that spot of the diamond, and Menu pauses (B is the red firefly there, not pause). A game marks its root with `padPlaying()` (true while the controller should steer), optionally `padFaces()` (Y X B A press ↑ ← → ↓ instead of their usual keys) and optionally `padTargets()` (limit navigation to certain buttons). These games use fixed controller buttons; the Controls remapping applies to the arena games. Slipstream's local 2-player mode still needs the keyboard for player two. Leaf Piles' 4-player mode is the exception to one-controller-for-everything: it marks its dialog with `padSeats()` and reads every controller itself, one per corner.
 
+**Sumo Wrestling** uses the menu bridge for start, pause and results. During play each controller drives its own character.
+
+| Input | Sumo Wrestling |
+| --- | --- |
+| Left stick / D-pad | Move |
+| A | Dash |
+| B | Grab and throw, or press again when caught to counter |
+| X (hold) | Brace |
+| Y | Dodge |
+| Menu | Pause |
+
+To play, open **Sumo Wrestling** in the game picker or launch `/?game=sumo`. Join extra controllers on the character screen to select their critters. Connected controllers without a selection take the remaining local seats, and computer opponents fill open seats. Player 1 can also use WASD or the arrow keys, Space to dash, E to grab or counter, Q to brace and R to dodge. Touch devices show the same actions on screen.
+
 ## Characters
 
 Characters use a locally bundled, textured Vanguard soldier rig with independent skeletons. Infiltrators wear sand/olive materials, a light harness and compact pack; Sentinels wear navy/slate materials, heavier chest armor, shoulder guards and a larger radio pack. Idle, walk and run animations blend with movement speed. Crouching and crawling pose joints without squashing the model; sidearms have a visible two-handed stance. Soft character shadows and separate fabric/armor/visor finishes improve grounding. Decoys and sensor reveals use the same team models. Collision and hit detection remain server controlled.

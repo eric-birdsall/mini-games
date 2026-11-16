@@ -4,7 +4,7 @@
 // Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop,
 // Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad
 // Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout,
-// Skee Ball, Bocce Ball, Kubb, Puck Clash).
+// Skee Ball, Bocce Ball, Kubb, Puck Clash, Sumo Wrestling).
 //
 // Those games run in their own overlay and already understand the keyboard,
 // so while one is open the controller is translated into the keys they use:
@@ -22,7 +22,7 @@
 // `padFaces = () => boolean` is true while Y X B A should press the arrow
 // keys ↑ ← → ↓ instead (Firefly Recall's diamond); Menu still pauses.
 // `padSeats = () => boolean` is true while the game reads every controller
-// itself (Leaf Piles' four-player mode); the bridge then stays out of it.
+// itself (Leaf Piles' four-player mode, Sumo Wrestling); the bridge then stays out of it.
 
 export const PAD = {
   A: 0,
