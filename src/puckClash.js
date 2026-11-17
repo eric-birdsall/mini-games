@@ -25,6 +25,8 @@ import {
   setupBoardPosition,
   launchLinePointer,
 } from "./puckClashScene.js";
+import { AVATARS } from "../shared/avatars.js";
+import { headshot } from "./headshots.js";
 import "./puckClash.css";
 
 const title = "Puck Clash";
@@ -34,6 +36,7 @@ const inputHelp =
 const teamNames = ["Blue", "Orange"];
 const freshShot = () => ({ aim: 0, power: 0.7, curl: 0 });
 const knockoutDuration = 0.95;
+const critterSize = 256;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const directions = {
   KeyA: "left",
@@ -145,6 +148,21 @@ function openPuckClash(audio) {
   let launchBlocked = false;
   let overhead = 0;
   let knockouts = [];
+  // Each end of the board has a random critter from the character pool,
+  // re-rolled every match; you always see the one across from you.
+  let critters = [];
+  function rollCritters() {
+    const pool = [...AVATARS];
+    critters = [0, 1].map(() => {
+      const id = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+      const image = new Image();
+      headshot(id, true, undefined, critterSize).then((url) => {
+        if (url) image.src = url;
+      });
+      return image;
+    });
+  }
+  rollCritters();
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   function panel(heading, copy, action, onClick) {
@@ -227,6 +245,7 @@ function openPuckClash(audio) {
   function start(selectedMode) {
     audio?.unlock();
     mode = selectedMode;
+    rollCritters();
     pucks = [];
     round = 1;
     bumpers = [];
@@ -592,6 +611,7 @@ function openPuckClash(audio) {
         state === "setup" ? placement : null,
         overhead * overhead * (3 - 2 * overhead),
         knockouts,
+        critters[1 - team],
       );
     }
     frame = requestAnimationFrame(animate);

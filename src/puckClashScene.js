@@ -63,6 +63,7 @@ export function drawPuckClash(
   placement = null,
   overhead = 0,
   knockouts = [],
+  opponent = null,
 ) {
   const ctx = canvas.getContext("2d");
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
@@ -194,14 +195,15 @@ export function drawPuckClash(
   ctx.fillStyle = backdrop;
   ctx.fillRect(0, 0, width, height);
 
-  if (overhead < 1) {
+  if (opponent && overhead < 1) {
     ctx.globalAlpha = 1 - overhead;
     const [x, y] = project([0, 0, -(l + 0.35) * facing]);
-    drawRaccoon(
+    drawOpponent(
       ctx,
       x,
       y,
       focal / (cameraDistance + l + 0.35),
+      opponent,
       colors[1 - team][1],
     );
     ctx.globalAlpha = 1;
@@ -361,44 +363,25 @@ export function drawPuckClash(
   }
 }
 
-function drawRaccoon(ctx, x, y, scale, scarf) {
+// The rival critter stands behind the far end, rendered full body by
+// headshots.js. The portrait frames the figure with ~12% padding, so its
+// feet sit a little above the image's bottom edge.
+function drawOpponent(ctx, x, y, scale, image, glow) {
+  if (!image.complete || !image.naturalWidth) return;
+  const size = 2.75 * scale;
   ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
-  const oval = (cx, cy, rx, ry, fill, tilt = 0) => {
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, rx, ry, tilt, 0, Math.PI * 2);
-    ctx.fillStyle = fill;
-    ctx.fill();
-  };
-  const fur = "#a5afac";
-  const pale = "#e0ded0";
-  const dark = "#34434b";
-  oval(0.87, -0.54, 0.69, 0.25, dark, -0.59);
-  for (const [tx, ty] of [
-    [0.64, -0.36],
-    [0.94, -0.57],
-    [1.21, -0.77],
-  ]) {
-    oval(tx, ty, 0.12, 0.22, fur, -0.59);
-  }
-  oval(0, -0.53, 0.65, 0.75, dark);
-  oval(0, -0.53, 0.43, 0.52, fur);
-  oval(0, -1.0, 0.59, 0.16, scarf);
-  oval(0.44, -0.84, 0.13, 0.28, scarf, -0.46);
-  for (const side of [-1, 1]) {
-    oval(side * 0.48, -2.03, 0.27, 0.31, dark, side * 0.22);
-    oval(side * 0.48, -2.03, 0.15, 0.19, "#b38c82", side * 0.22);
-  }
-  oval(0, -1.64, 0.76, 0.53, fur);
-  oval(0, -1.79, 0.15, 0.32, pale);
-  for (const side of [-1, 1]) {
-    oval(side * 0.33, -1.62, 0.34, 0.23, dark, side * -0.29);
-    oval(side * 0.28, -1.64, 0.083, 0.1, "#111e25");
-    oval(side * 0.28 - 0.025, -1.68, 0.026, 0.035, "#fff6db");
-    oval(side * 0.42, -0.2, 0.2, 0.16, dark);
-  }
-  oval(0, -1.38, 0.35, 0.2, pale);
-  oval(0, -1.45, 0.13, 0.085, "#222d33");
+  ctx.beginPath();
+  ctx.ellipse(
+    x,
+    y - 0.05 * scale,
+    0.85 * scale,
+    0.2 * scale,
+    0,
+    0,
+    Math.PI * 2,
+  );
+  ctx.fillStyle = `${glow}55`;
+  ctx.fill();
+  ctx.drawImage(image, x - size / 2, y - size * 0.95, size, size);
   ctx.restore();
 }

@@ -8,14 +8,14 @@ const SIZE = 112,
 let renderer = null,
   queue = Promise.resolve();
 
-function draw(asset, fullBody) {
+function draw(asset, fullBody, size = SIZE) {
   renderer ||= new T.WebGLRenderer({
     antialias: true,
     alpha: true,
     preserveDrawingBuffer: true,
   });
   renderer.setPixelRatio(1);
-  renderer.setSize(SIZE, SIZE, false);
+  renderer.setSize(size, size, false);
   renderer.setClearColor(0, 0);
   const scene = new T.Scene();
   scene.add(new T.HemisphereLight(0xffffff, 0x5b4a73, 3));
@@ -60,12 +60,17 @@ function draw(asset, fullBody) {
 }
 
 // Resolves to an image URL, or null if the model could not load.
-export function headshot(id, fullBody = false, load = () => loadCritter(id)) {
-  const key = fullBody ? `body:${id}` : id;
+export function headshot(
+  id,
+  fullBody = false,
+  load = () => loadCritter(id),
+  size = SIZE,
+) {
+  const key = `${fullBody ? `body:${id}` : id}${size === SIZE ? "" : `@${size}`}`;
   if (!cache.has(key)) {
     const result = queue.then(async () => {
       const asset = await load();
-      return asset ? draw(asset, fullBody) : null;
+      return asset ? draw(asset, fullBody, size) : null;
     });
     queue = result.catch(() => null);
     cache.set(key, queue);
