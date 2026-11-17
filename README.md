@@ -295,29 +295,29 @@ Input handling was checked with synthetic standard Xbox button/axis samples and 
 
 ### Controller in the standalone games
 
-Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail and Puck Clash run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
+Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail, Puck Clash and Sink or Float run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
 
-| Xbox               | During play                                                                                                                     | On a start, pause or results screen               |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Left stick / D-pad | Steer, aim (Animal Patrol: WASD), dive/flare, hop, look around, move the yard cursor, aim the roll (A / D in Bocce Ball), aim and set power (Puck Clash)                                          | Move to the nearest button that way               |
-| Right stick        | Look (Slipstream, Shoo Away, Kubb; I J K L), move the launch spot (Puck Clash; J / L)                                                                                           | —                                                 |
-| A / RT             | Drop, cast, reel, release, fire, shoo, throw a capture ball (Animal Patrol), jump, build, shoot / lunge, belly dive, hold and release to roll or throw in Skee Ball, Bocce Ball and Kubb, lock a shot in Puck Clash                             | Press the highlighted button (A only)             |
-| X / LT             | Pump the water blaster (R, Target Blaster); dash (Comet Dash); start wave / fast (Pop Patrol); pass / switch player (Kickabout); cycle curl (Puck Clash) | —                                                 |
-| B                  | Pause (Escape)                                                                                                                  | Back / resume (Escape)                            |
-| Menu (Start)       | Pause                                                                                                                           | Press the main button (Start, Resume, Play again) |
+| Xbox               | During play                                                                                                                                                                                                                                      | On a start, pause or results screen               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
+| Left stick / D-pad | Steer, aim (Animal Patrol: WASD), dive/flare, hop, look around, move the yard cursor, aim the roll (A / D in Bocce Ball), aim and set power (Puck Clash)                                                                                         | Move to the nearest button that way               |
+| Right stick        | Look (Slipstream, Shoo Away, Kubb; I J K L), move the launch spot (Puck Clash; J / L)                                                                                                                                                            | —                                                 |
+| A / RT             | Hop forward (Sink or Float), drop, cast, reel, release, fire, shoo, throw a capture ball (Animal Patrol), jump, build, shoot / lunge, belly dive, hold and release to roll or throw in Skee Ball, Bocce Ball and Kubb, lock a shot in Puck Clash | Press the highlighted button (A only)             |
+| X / LT             | Pump the water blaster (R, Target Blaster); dash (Comet Dash); start wave / fast (Pop Patrol); pass / switch player (Kickabout); cycle curl (Puck Clash)                                                                                         | —                                                 |
+| B                  | Pause (Escape)                                                                                                                                                                                                                                   | Back / resume (Escape)                            |
+| Menu (Start)       | Pause                                                                                                                                                                                                                                            | Press the main button (Start, Resume, Play again) |
 
 A game opens with its main button highlighted, not "Back to games". In Firefly Recall, Y X B A (or the D-pad) pick the firefly of the same colour in that spot of the diamond, and Menu pauses (B is the red firefly there, not pause). A game marks its root with `padPlaying()` (true while the controller should steer), optionally `padFaces()` (Y X B A press ↑ ← → ↓ instead of their usual keys) and optionally `padTargets()` (limit navigation to certain buttons). These games use fixed controller buttons; the Controls remapping applies to the arena games. Slipstream's local 2-player mode still needs the keyboard for player two. Leaf Piles' 4-player mode is the exception to one-controller-for-everything: it marks its dialog with `padSeats()` and reads every controller itself, one per corner.
 
 **Sumo Wrestling** uses the menu bridge for start, pause and results. During play each controller drives its own character.
 
-| Input | Sumo Wrestling |
-| --- | --- |
-| Left stick / D-pad | Move |
-| A | Dash |
-| B | Grab and throw, or press again when caught to counter |
-| X (hold) | Brace |
-| Y | Dodge |
-| Menu | Pause |
+| Input              | Sumo Wrestling                                        |
+| ------------------ | ----------------------------------------------------- |
+| Left stick / D-pad | Move                                                  |
+| A                  | Dash                                                  |
+| B                  | Grab and throw, or press again when caught to counter |
+| X (hold)           | Brace                                                 |
+| Y                  | Dodge                                                 |
+| Menu               | Pause                                                 |
 
 To play, open **Sumo Wrestling** in the game picker or launch `/?game=sumo`. Join extra controllers on the character screen to select their critters. Connected controllers without a selection take the remaining local seats, and computer opponents fill open seats. Player 1 can also use WASD or the arrow keys, Space to dash, E to grab or counter, Q to brace and R to dodge. Touch devices show the same actions on screen.
 
@@ -766,6 +766,15 @@ Open **Game → Toy Box Rescue** for a solo carnival claw game. Move the claw on
 Open **Game → Lantern Trail** for a solo side-scrolling platformer with three short levels. Reach the lantern at the end of each level. Collect optional sparks, stomp beetles from above, and light the trail marker to checkpoint your progress. Falls and side hits send you back to the latest marker, and you keep the sparks you picked up.
 
 Move with **A / D** or **← / →**. Jump with **Space**, **W**, or **↑**. Hold to jump higher. On an Xbox controller, move with the stick or D-pad and jump with **A / RT**. The on-screen arrows and Jump button support touch and mouse. Pause with **Esc**, **B / Menu**, or the on-screen Pause button.
+
+### Sink or Float
+
+Open **Game → Sink or Float** to hop across a pond on stepping stones. Every stone looks the same, but only some of them float. Land on a sinker and it drops you in the water and you swim back to the near bank. Sunk stones stay gone (a ripple marks the spot), and stones that held you get a patch of moss, so each try teaches you more of the safe path. A path of floaters always reaches the far bank using forward, back and sideways hops.
+
+- **Playing:** hop with **WASD** or the arrow keys (**Space** also hops forward), tap a stone next to you, or use the on-screen arrow diamond. On an Xbox controller, use the left stick or D-pad, and **A / RT** hops forward. Pause with **Esc**, **B / Menu**, or the Pause button.
+- **Ponds:** three crossings with 5, 7 and 9 rows of five stones. Each pond earns ★★★ with no splashes, ★★ with up to three, and ★ otherwise. The results show stars (out of nine), total splashes and total time.
+
+The rules are in `shared/sinkOrFloat.js` (tested in `tests/sinkOrFloat.test.js`), the screen in `src/sinkOrFloat.js` and the 3D pond in `src/sinkOrFloatScene.js`.
 
 ### Roof Catch
 

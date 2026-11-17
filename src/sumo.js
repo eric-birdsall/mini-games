@@ -1,3 +1,4 @@
+import preview from "./assets/modes/sumo.jpg";
 import {
   AVATARS,
   CHARACTERS,
@@ -65,40 +66,6 @@ const pads = () =>
       .map((pad) => [pad.index, pad]),
   );
 
-function thumbnail() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 384;
-  canvas.height = 216;
-  const ctx = canvas.getContext("2d");
-  const oval = (x, y, rx, ry, color) => {
-    ctx.beginPath();
-    ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-  };
-  ctx.fillStyle = "#7da74d";
-  ctx.fillRect(0, 0, 384, 216);
-  oval(196, 122, 136, 76, "#698939");
-  oval(192, 113, 131, 76, "#a25e46");
-  oval(192, 100, 131, 76, "#ffd998");
-  oval(192, 100, 122, 68, "#fff1cd");
-  oval(192, 100, 117, 64, "#efc989");
-  ctx.fillStyle = "#fff1cd";
-  ctx.fillRect(171, 94, 15, 8);
-  ctx.fillRect(198, 94, 15, 8);
-  Object.values(COLORS)
-    .slice(0, 4)
-    .forEach((color, i) => {
-      const angle = (i * Math.PI) / 2;
-      const x = 192 + 71 * Math.cos(angle);
-      const y = 100 + 37 * Math.sin(angle);
-      oval(x + 2, y + 5, 18, 10, "#c49862");
-      oval(x, y, 17, 10, color);
-      oval(x, y - 12, 10, 10, "#fff2d9");
-    });
-  return canvas.toDataURL();
-}
-
 export function installSumo(getAvatar, getMainPad, audio) {
   const games = document.querySelector('.choice-row[aria-label="Game"]');
   if (!games) return;
@@ -106,7 +73,7 @@ export function installSumo(getAvatar, getMainPad, audio) {
   entry.className = "choice";
   entry.dataset.game = "sumo";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${thumbnail()}" alt="" draggable="false"></span><strong>${title}</strong><small>Dash, grab and brace in a four-critter ring-out. Last one inside wins.</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Four critters pushing and shoving on a round sumo ring beside a waterfall" draggable="false"></span><strong>${title}</strong><small>Dash, grab and brace in a four-critter ring-out. Last one inside wins.</small>`;
   games.append(entry);
   entry.onclick = () => openSumo(getAvatar(), getMainPad, audio);
 }

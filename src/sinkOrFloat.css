@@ -1,0 +1,210 @@
+.sink-float {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #b9e4ef;
+  color: #f4fbff;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+
+.sink-float [hidden] {
+  display: none !important;
+}
+
+.sink-float canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+}
+
+.sf-hud {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  inset-inline: max(14px, env(safe-area-inset-left))
+    max(14px, env(safe-area-inset-right));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.sf-hud > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 8px 12px;
+  border: 1px solid #bdeaf555;
+  border-radius: 12px;
+  background: #123c4aea;
+  font-size: clamp(0.78rem, 2vw, 0.97rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-hud span {
+  color: #9fe6ff;
+}
+
+.sf-pop {
+  position: absolute;
+  transform: translate(-50%, -100%) scale(0.6);
+  opacity: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #ffffffee;
+  color: #12404e;
+  font-weight: 850;
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  white-space: nowrap;
+  pointer-events: none;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+}
+
+.sf-pop.show {
+  opacity: 1;
+  transform: translate(-50%, -130%) scale(1);
+}
+
+.sf-pop.sink {
+  background: #2f8fb3;
+  color: #fff;
+}
+
+.sf-pop.goal {
+  background: #ffd25c;
+  color: #3b2a07;
+}
+
+.sf-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #0c2c3866;
+}
+
+.sf-card {
+  width: min(100%, 470px);
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid #9fe6ff66;
+  border-radius: 22px;
+  background: #11394af5;
+  box-shadow: 0 24px 74px #06202b8c;
+}
+
+.sf-card p {
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.sf-card h2 {
+  margin: 0 0 9px;
+  color: #f4fbff;
+  font-family: "DM Serif Text", Georgia, serif;
+  font-size: clamp(2.1rem, 6vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.sf-label {
+  color: #ffd25c;
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sf-howto {
+  color: #c7e3ec;
+  font-size: 0.86rem;
+}
+
+.sf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.sf-actions button,
+.sf-hud button,
+.sf-touch button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #9fe6ff77;
+  border-radius: 10px;
+  background: #123c4ae8;
+  color: #f4fbff;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.sf-hud button {
+  pointer-events: auto;
+}
+
+.sf-actions button[data-play] {
+  border-color: #ffd25c;
+  background: #ffd25c;
+  color: #3b2a07;
+}
+
+.sf-actions button:focus-visible,
+.sf-hud button:focus-visible,
+.sf-touch button:focus-visible {
+  outline: 3px solid #ffd25c;
+  outline-offset: 3px;
+}
+
+/* A diamond of big hop buttons in the bottom-right corner. */
+.sf-touch {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(3, 58px);
+  grid-template-rows: repeat(3, 58px);
+  gap: 4px;
+}
+
+.sf-touch button {
+  min-width: 0;
+  padding: 0;
+  font-size: 1.3rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sf-touch [data-hop="up"] {
+  grid-area: 1 / 2;
+}
+.sf-touch [data-hop="left"] {
+  grid-area: 2 / 1;
+}
+.sf-touch [data-hop="right"] {
+  grid-area: 2 / 3;
+}
+.sf-touch [data-hop="down"] {
+  grid-area: 3 / 2;
+}
+
+.sf-touch button:active {
+  background: #ffd25c;
+  color: #3b2a07;
+}
