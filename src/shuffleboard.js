@@ -1,3 +1,4 @@
+import preview from "./assets/modes/shuffleboard.jpg";
 import {
   MAX_AIM,
   PUCKS_PER_PLAYER,
@@ -36,8 +37,7 @@ export function installShuffleboard(getLevel) {
   entry.className = "choice";
   entry.dataset.game = "shuffleboard";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML =
-    '<span class="map-thumb shuffle-thumb" aria-hidden="true"><i></i><i></i></span><strong>Shuffleboard</strong><small>Slide pucks down a polished table. Play the CPU or a friend.</small>';
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Red and teal pucks sliding down a long wooden shuffleboard table in a library with a crackling fireplace" draggable="false"></span><strong>Shuffleboard</strong><small>Slide pucks down a polished table. Play the CPU or a friend.</small>`;
   entry.onclick = () => openShuffleboard(getLevel());
   games.append(entry);
 }

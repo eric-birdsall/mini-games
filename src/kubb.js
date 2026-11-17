@@ -1,3 +1,4 @@
+import preview from "./assets/modes/kubb.jpg";
 import {
   BATONS,
   PITCH,
@@ -47,8 +48,7 @@ export function installKubb(getLevel) {
   entry.className = "choice";
   entry.dataset.game = "kubb";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML =
-    '<span class="map-thumb kubb-thumb" aria-hidden="true"><i></i><i></i><i></i></span><strong>Kubb · Viking Chess</strong><small>Throw batons in first person. Clear the field before taking the king.</small>';
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A wooden baton spinning past the red king toward a row of kubbs on a forest pitch" draggable="false"></span><strong>Kubb · Viking Chess</strong><small>Throw batons in first person. Clear the field before taking the king.</small>`;
   entry.onclick = () => openKubb(getLevel());
   games.append(entry);
 }

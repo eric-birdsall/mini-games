@@ -1,3 +1,4 @@
+import preview from "./assets/modes/bocce.jpg";
 import {
   AIM_LIMIT,
   COURT,
@@ -42,7 +43,7 @@ export function installBocce(getLevel) {
   entry.className = "choice";
   entry.dataset.game = "bocce";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb bocce-thumb" aria-hidden="true"><i></i><i></i><i></i></span><strong>${TITLE}</strong><small>Roll close to the pallino or knock your rival away. First to seven wins.</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Gold and teal bocce balls rolled close to the white pallino on a garden course lined with trees" draggable="false"></span><strong>${TITLE}</strong><small>Roll close to the pallino or knock your rival away. First to seven wins.</small>`;
   entry.onclick = () => openBocce(getLevel());
   games.append(entry);
 }

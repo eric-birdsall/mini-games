@@ -1,27 +1,3 @@
-.shuffle-thumb {
-  position: relative;
-  overflow: hidden;
-  background: repeating-linear-gradient(177deg, #e6b77a 0 4px, #d8a46a 5px 6px);
-  box-shadow: inset 0 0 0 5px #654030;
-}
-
-.shuffle-thumb i {
-  position: absolute;
-  top: 42%;
-  left: 34%;
-  width: 12%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #db5944;
-  box-shadow: 0 2px 0 #49392e;
-}
-
-.shuffle-thumb i + i {
-  top: 58%;
-  left: 68%;
-  background: #40b8b3;
-}
-
 body:has(> #shuffleboard) > #app {
   display: none;
 }
