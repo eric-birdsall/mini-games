@@ -1404,13 +1404,17 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     // A released game shows to kids even while it's still marked WIP.
     if (kidView) wipGames.clear();
     // Finished games first, then WIP; within each, the games greyed out on a
-    // touch device go last.
+    // touch device go last; then alphabetical by name.
     const needsKeys = (o) => o.classList.contains("needs-keys");
+    const gameName = (o) => o.querySelector("strong").textContent.trim();
     options.sort(
       (a, b) =>
         Number(wipGames.has(a.dataset.game)) -
           Number(wipGames.has(b.dataset.game)) ||
-        Number(needsKeys(a)) - Number(needsKeys(b)),
+        Number(needsKeys(a)) - Number(needsKeys(b)) ||
+        gameName(a).localeCompare(gameName(b), undefined, {
+          sensitivity: "base",
+        }),
     );
     list.append(...options);
     // On a touch device the greyed-out games sit under their own title.
