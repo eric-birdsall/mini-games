@@ -1397,7 +1397,6 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       "backyardairmail",
       "poolnoodle",
       "applecatch",
-      "foodfinder",
       "backyardfling",
       "paperplane",
       "pipecrane",

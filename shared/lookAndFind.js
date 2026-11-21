@@ -1190,23 +1190,3 @@ export function sceneLayout(count, width, height, random = rng(1)) {
   }
   throw new Error("Could not fit the picture objects");
 }
-
-export function sceneDimensions(viewWidth, viewHeight) {
-  return {
-    width: Math.max(960, viewWidth * 1.65),
-    height: Math.max(720, viewHeight * 1.65),
-  };
-}
-export function clampView(
-  x,
-  y,
-  worldWidth,
-  worldHeight,
-  viewWidth,
-  viewHeight,
-) {
-  return {
-    x: Math.max(0, Math.min(x, worldWidth - viewWidth)),
-    y: Math.max(0, Math.min(y, worldHeight - viewHeight)),
-  };
-}

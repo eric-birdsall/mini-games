@@ -1,10 +1,4 @@
-import {
-  OBJECTS,
-  rng,
-  sceneLayout,
-  sceneDimensions,
-  clampView,
-} from "../shared/lookAndFind.js";
+import { OBJECTS, rng, sceneLayout } from "../shared/lookAndFind.js";
 const urls = import.meta.glob("./assets/look-and-find/*.svg", {
   eager: true,
   query: "?url",
@@ -43,44 +37,15 @@ export function createFoodFinderScene(canvas) {
     hint = -1,
     cursor = -1,
     time = 0;
+  // The whole area always fits on screen: no panning or scrolling.
   let viewWidth = 1,
-    viewHeight = 1,
-    viewX = 0,
-    viewY = 0;
-  function pan(dx, dy) {
-    const view = clampView(
-      viewX + dx,
-      viewY + dy,
-      width,
-      height,
-      viewWidth,
-      viewHeight,
-    );
-    viewX = view.x;
-    viewY = view.y;
-  }
-  function reveal(index) {
-    const p = spots[index];
-    if (!p) return;
-    const margin = p.size * 0.8;
-    if (p.x - viewX < margin) viewX = p.x - margin;
-    if (p.x - viewX > viewWidth - margin) viewX = p.x - viewWidth + margin;
-    if (p.y - viewY < top + margin) viewY = p.y - top - margin;
-    if (p.y - viewY > viewHeight - bottom - margin)
-      viewY = p.y - viewHeight + bottom + margin;
-    pan(0, 0);
-  }
+    viewHeight = 1;
   function resize() {
     scenery = null;
     viewWidth = canvas.clientWidth || 1;
     viewHeight = canvas.clientHeight || 1;
-    const world = sceneDimensions(
-      viewWidth,
-      Math.max(80, viewHeight - top - bottom),
-    );
-    width = world.width;
-    height = world.height + top + bottom;
-    pan(0, 0);
+    width = viewWidth;
+    height = viewHeight;
     const ratio = Math.min(devicePixelRatio || 1, 2);
     canvas.width = Math.round(viewWidth * ratio);
     canvas.height = Math.round(viewHeight * ratio);
@@ -364,12 +329,11 @@ export function createFoodFinderScene(canvas) {
       details();
       g = live;
     }
-    g.drawImage(scenery, -viewX, -viewY);
+    g.drawImage(scenery, 0, 0);
     g.save();
     g.beginPath();
     g.rect(0, top, viewWidth, Math.max(1, viewHeight - top - bottom));
     g.clip();
-    g.translate(-viewX, -viewY);
     slots.forEach((slot, i) => {
       const p = spots[i];
       if (!slot || !p) return;
@@ -418,44 +382,15 @@ export function createFoodFinderScene(canvas) {
       }
     });
     g.restore();
-    const mapWidth = 100,
-      mapHeight = 44,
-      mapX = 14,
-      mapY = viewHeight - 58;
-    g.fillStyle = theme === "space" ? "#e9dff1e8" : "#fff8eee8";
-    g.fillRect(mapX, mapY, mapWidth, mapHeight);
-    g.fillStyle = "#647f7166";
-    spots.forEach((p, i) => {
-      if (!slots[i]?.found)
-        g.fillRect(
-          mapX + (p.x / width) * mapWidth,
-          mapY + ((p.y - top) / (height - top - bottom)) * mapHeight,
-          2,
-          2,
-        );
-    });
-    g.strokeStyle = "#267a76";
-    g.lineWidth = 2;
-    g.strokeRect(
-      mapX + (viewX / width) * mapWidth,
-      mapY + (viewY / (height - top - bottom)) * mapHeight,
-      Math.min(mapWidth, (viewWidth / width) * mapWidth),
-      Math.min(
-        mapHeight,
-        ((viewHeight - top - bottom) / (height - top - bottom)) * mapHeight,
-      ),
-    );
   }
   return {
     ready,
     draw,
     thumbnail: objectImage,
-    pan,
     layout(count, random, nextTheme) {
       theme = nextTheme;
       slots = Array(count).fill(null);
       hint = cursor = -1;
-      viewX = viewY = 0;
       resize();
     },
     place(i, id) {
@@ -470,11 +405,9 @@ export function createFoodFinderScene(canvas) {
     },
     hint(i) {
       hint = i;
-      reveal(i);
     },
     cursor(i) {
       cursor = i;
-      reveal(i);
     },
     wiggle(i) {
       if (slots[i]) slots[i].cheer = 0.3;
@@ -487,17 +420,13 @@ export function createFoodFinderScene(canvas) {
     },
     screenOf(i) {
       const p = spots[i];
-      return slots[i] && !slots[i].found && p
-        ? { ...p, x: p.x - viewX, y: p.y - viewY }
-        : null;
+      return slots[i] && !slots[i].found && p ? { ...p } : null;
     },
     pick(x, y) {
       const r = canvas.getBoundingClientRect();
       x -= r.left;
       y -= r.top;
       if (y < top || y > viewHeight - bottom) return -1;
-      x += viewX;
-      y += viewY;
       let best = -1,
         distance = Infinity;
       spots.forEach((p, i) => {

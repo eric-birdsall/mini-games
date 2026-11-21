@@ -411,50 +411,6 @@
   }
 }
 
-.finder-explore {
-  position: absolute;
-  z-index: 1;
-  bottom: 12px;
-  left: 128px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.finder-explore span {
-  padding: 6px 8px;
-  border-radius: 10px;
-  background: #fff8eee8;
-  font-size: 12px;
-  font-weight: 800;
-}
-.food-finder .finder-explore button {
-  min-width: 40px;
-  min-height: 40px;
-  padding: 4px 8px;
-  font-size: 20px;
-}
-@media (max-width: 700px) {
-  .finder-explore {
-    left: 124px;
-    bottom: 13px;
-  }
-  .finder-explore span {
-    display: none;
-  }
-  .food-finder .finder-explore button {
-    min-width: 34px;
-    min-height: 40px;
-    padding: 2px 5px;
-  }
-  .finder-basket {
-    bottom: 66px;
-  }
-  .food-finder footer > span {
-    margin-bottom: 88px;
-    max-width: 85vw;
-  }
-}
-
 /* Keep captions, progress, and navigation outside the searchable picture. */
 .food-finder footer > span {
   position: fixed;
