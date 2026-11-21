@@ -254,3 +254,159 @@
     top: 54px;
   }
 }
+
+/* A picture book palette, with the scene filling the whole viewport. */
+.food-finder {
+  background: #bfe7e5;
+  font-family: Nunito, system-ui, sans-serif;
+}
+.food-finder button {
+  min-height: 44px;
+  border-radius: 14px;
+  font-weight: 800;
+}
+.food-finder button:focus-visible,
+.finder-credit a:focus-visible {
+  outline: 4px solid #1672c4;
+  outline-offset: 3px;
+}
+.finder-panel {
+  background: #fff9eceb;
+  padding-top: 66px;
+  padding-bottom: 26px;
+}
+.finder-panel h2 {
+  font-family: Fredoka, system-ui, sans-serif;
+  color: #315c58;
+}
+.finder-options {
+  border: 0;
+  padding: 0;
+  margin: 0 0 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 620px;
+}
+.finder-options legend {
+  float: none;
+  width: 100%;
+  margin-bottom: 9px;
+  font-weight: 800;
+  color: #65796e;
+}
+.finder-options button[aria-pressed="true"] {
+  background: #346f64;
+  color: white;
+  border-color: #346f64;
+  box-shadow: 0 3px 0 #244f48;
+}
+.finder-modes button.primary {
+  background: #bc4256;
+  border-color: #bc4256;
+}
+.finder-credit {
+  font-size: 11px;
+  margin-top: 18px;
+  color: #6c7169;
+}
+.finder-credit a {
+  color: inherit;
+}
+.food-finder .finder-card {
+  top: 12px;
+  box-shadow:
+    0 4px 0 #c99a2e,
+    0 7px 20px #0002;
+}
+.finder-checklist {
+  position: absolute;
+  z-index: 1;
+  top: 12px;
+  left: 12px;
+  right: 150px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.finder-checklist button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  background: #fffdf3f5;
+  font-size: 13px;
+}
+.finder-checklist img {
+  width: 44px;
+  height: 44px;
+}
+.finder-checklist button.is-found {
+  opacity: 0.65;
+  cursor: default;
+  border-color: #388369;
+}
+.finder-checklist button.is-found span {
+  text-decoration: line-through;
+}
+.finder-checklist b {
+  color: #267157;
+}
+.food-finder footer button[data-hint] {
+  top: 64px;
+}
+.finder-basket {
+  bottom: 12px;
+}
+@media (max-width: 620px) {
+  .food-finder .finder-card {
+    top: 64px;
+    max-width: calc(100vw - 24px);
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: 1.25rem;
+  }
+  .finder-card img {
+    width: 58px;
+    height: 58px;
+  }
+  .food-finder footer button[data-hint] {
+    top: 10px;
+    right: 142px;
+  }
+  .finder-checklist {
+    top: 64px;
+    right: 10px;
+    left: 10px;
+  }
+  .finder-checklist button {
+    flex-direction: column;
+    gap: 1px;
+    font-size: 10px;
+    padding: 3px 5px;
+    min-width: 56px;
+  }
+  .finder-checklist img {
+    width: 32px;
+    height: 32px;
+  }
+  .finder-panel h2 {
+    font-size: 1.8rem;
+  }
+  .finder-options {
+    margin-bottom: 12px;
+  }
+  .food-finder footer > span {
+    max-width: 65vw;
+    min-width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finder-card.pop,
+  .finder-card.nudge,
+  .finder-basket li.full {
+    animation: none;
+  }
+}

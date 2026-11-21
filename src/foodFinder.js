@@ -1,6 +1,4 @@
-import preview from "./assets/modes/food-finder.jpg";
-import voiceURL from "./assets/food/voice.mp3";
-import voiceMap from "./assets/food/voice.json";
+import preview from "./assets/look-and-find/1f9f8.svg";
 import { gameResults } from "./gameResults.js";
 import {
   bindDialogEscape,
@@ -10,28 +8,35 @@ import {
 import { nearest } from "./padBridge.js";
 import { createFoodFinderScene } from "./foodFinderScene.js";
 import {
-  HINT_AFTER_MISSES,
-  PRAISE,
-  askLine,
-  doneLine,
-  foodById,
-  foodLevel,
-  pickTarget,
-  replacementFood,
-  otherLine,
-  praiseLine,
+  THEMES,
+  objectById,
+  LEVELS,
+  makeRound,
   rng,
-  startingFoods,
-} from "../shared/foodFinder.js";
+} from "../shared/lookAndFind.js";
+const HINT_AFTER_MISSES = 3;
+const PRAISE = [
+  "Great spotting!",
+  "You found it!",
+  "Wonderful looking!",
+  "Well done!",
+];
+const line = (text) => ({ text });
+const askLine = (id) => line(`Can you find the ${objectById(id).name}?`);
+const praiseLine = (index, id) =>
+  line(`${PRAISE[index]} You found the ${objectById(id).name}!`);
+const otherLine = (id, target) =>
+  line(
+    `That's the ${objectById(id).name}. Can you find the ${objectById(target).name}?`,
+  );
+const doneLine = (count) =>
+  line(`You found all ${count} hidden things! Great job!`);
 import "./foodFinder.css";
 
 const HOW_TO =
-  "Look for food among the toys and household objects on the blanket. The card at the top shows which food to find. Tap the card to hear the clue again, then tap the matching food. You can also use the arrow keys or WASD to move between foods and Space to pick one.";
-// Seconds from a find to the replacement food dropping in, and to the next
-// food to find.
-const DROP_AFTER = 0.8;
-const NEXT_AFTER = 1.7;
-// Seconds without a find before the food starts to hop.
+  "Explore the picture and find the hidden things. Choose One at a time for a big picture clue, or Picture checklist to find things in any order. Tap a clue to hear it. Arrows or WASD move the blue ring; Space or controller A picks. R repeats the clue, H asks for a hint. There is no time limit or penalty.";
+const NEXT_AFTER = 1.1;
+// Seconds without a find before a gentle automatic hint.
 const IDLE_HINT = 14;
 
 function sounds() {
@@ -59,7 +64,6 @@ function sounds() {
       ),
     // Soft, curious: "hmm, not that one". Never a buzz.
     other: () => tone(520, 0, 0.18, "sine", 0.07, 660),
-    drop: () => tone(330, 0, 0.12, "triangle", 0.06, 500),
     done: () =>
       [523, 659, 784, 1047, 1319, 1568].forEach((f, i) =>
         tone(f, i * 0.11, 0.3, "triangle", 0.09),
@@ -67,10 +71,8 @@ function sounds() {
   };
 }
 
-// Speaks a line ({text, keys}). The recorded voice when its clips are
-// loaded (Kokoro, see tools/make_food_voice.py); until then, or if they
-// can't load, the browser's own speech reads the text.
-function speaker(audio) {
+// Browser speech reads every new object name; picture clues also work silently.
+function speaker() {
   const synth = window.speechSynthesis;
   let voice;
   const chooseVoice = () => {
@@ -84,42 +86,11 @@ function speaker(audio) {
   chooseVoice();
   synth?.addEventListener?.("voiceschanged", chooseVoice);
 
-  let clips = null;
-  let playing = [];
-  if (audio)
-    fetch(voiceURL)
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
-      .then((bytes) => audio.decodeAudioData(bytes))
-      .then((buffer) => (clips = buffer))
-      .catch(() => {});
-
-  function hush() {
-    for (const source of playing)
-      try {
-        source.stop();
-      } catch {}
-    playing = [];
-    synth?.cancel();
-  }
-
-  function playClips(keys) {
-    let at = audio.currentTime + 0.05;
-    for (const key of keys) {
-      const [start, length] = voiceMap[key];
-      const source = audio.createBufferSource();
-      source.buffer = clips;
-      source.connect(audio.destination);
-      source.start(at, Math.max(0, start - 0.04), length + 0.1);
-      playing.push(source);
-      at += length + 0.14;
-    }
-  }
+  const hush = () => synth?.cancel();
 
   return {
-    say({ text, keys }) {
+    say({ text }) {
       hush();
-      if (clips && audio.state === "running" && keys.every((k) => voiceMap[k]))
-        return playClips(keys);
       if (!synth) return;
       const line = new SpeechSynthesisUtterance(text);
       if (voice) line.voice = voice;
@@ -142,51 +113,48 @@ export function installFoodFinder(getLevel) {
   entry.className = "choice";
   entry.dataset.game = "foodfinder";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Food Finder blanket" draggable="false"></span><strong>Food Finder</strong><small>Find the food on your card among toys and household objects.</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Teddy bear illustration" draggable="false"></span><strong>Look &amp; Find</strong><small>Explore playful pictures. Find animals, toys, and hidden surprises.</small>`;
   games.append(entry);
   entry.onclick = () => open(getLevel());
 }
 
-function formatTime(seconds) {
-  const s = Math.round(seconds);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
-
 function open(level) {
   document.exitPointerLock?.();
-  const settings = foodLevel(level);
-  const bestKey = `food-finder-best-${level}`;
-  let best = 0;
-  try {
-    const saved = Number(localStorage.getItem(bestKey));
-    if (Number.isFinite(saved) && saved > 0) best = saved;
-  } catch {}
+  const settings = LEVELS[level] || LEVELS.normal;
+  let themeId = "woodland";
+  let mode = "single";
+  let targets = [];
+  let foundIds = new Set();
 
   const dialog = document.createElement("dialog");
   dialog.className = "food-finder";
-  dialog.setAttribute("aria-label", "Food Finder");
+  dialog.setAttribute("aria-label", "Look & Find");
   dialog.innerHTML = `
-    <header><strong>Food Finder</strong><div><button data-exit>Back to games</button></div></header>
+    <header><strong>Look &amp; Find</strong><div><button data-exit>Back to games</button></div></header>
     <div class="finder-field">
-      <canvas aria-label="Food and household objects scattered on a blanket"></canvas>
+      <canvas aria-label="An illustrated scene with hidden animals, toys, and everyday objects"></canvas>
       <button class="finder-card" data-card hidden aria-label="Hear it again">
         <span class="finder-find">Find</span>
         <img data-card-img alt="" draggable="false">
         <strong data-card-name></strong>
         <span class="finder-again" aria-hidden="true">🔊</span>
       </button>
-      <ol class="finder-basket" data-basket hidden aria-label="Foods found"></ol>
+      <div class="finder-checklist" data-checklist hidden aria-label="Picture checklist"></div>
+      <ol class="finder-basket" data-basket hidden aria-label="Objects found"></ol>
       <section class="finder-panel">
         <h2 data-heading></h2><p data-details></p>
+        <fieldset class="finder-options"><legend>Pick a place</legend>${THEMES.map((theme) => `<button data-theme="${theme.id}" aria-pressed="${theme.id === themeId}">${theme.name}</button>`).join("")}</fieldset>
+        <fieldset class="finder-options"><legend>How shall we look?</legend><button data-mode="single" aria-pressed="true">One at a time</button><button data-mode="checklist" aria-pressed="false">Picture checklist</button></fieldset>
         <div class="finder-modes"><button class="primary" data-play disabled>Loading…</button></div>
-        <small class="finder-keys" data-keys></small>
+        <small class="finder-keys" data-keys></small><small class="finder-credit">Illustrations: <a href="https://github.com/jdecked/twemoji/tree/v15.1.0" target="_blank" rel="noopener">Twemoji</a> by Twitter and contributors · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small>
       </section>
     </div>
     <footer>
       <span data-message role="status"></span>
+      <button data-hint hidden>Hint / H</button>
       <button data-pause hidden>Pause / Esc</button>
     </footer>
-    ${pauseScreen("Food Finder", HOW_TO)}`;
+    ${pauseScreen("Look & Find", HOW_TO)}`;
   document.body.append(dialog);
   const get = (key) => dialog.querySelector(`[data-${key}]`);
   const canvas = dialog.querySelector("canvas");
@@ -194,16 +162,15 @@ function open(level) {
   const panel = dialog.querySelector(".finder-panel");
   const card = get("card");
   const sfx = sounds();
-  const voice = speaker(sfx.audio);
+  const voice = speaker();
 
   // ready: start panel. playing: looking. cheering: a find being
   // celebrated. paused. finished: results showing.
   let state = "ready";
   let pausedFrom = null;
   let random = rng(1);
-  let onBlanket = [];
+  let sceneObjects = [];
   let target = null;
-  let recent = [];
   let finds = 0;
   let misses = 0;
   let elapsed = 0;
@@ -237,62 +204,74 @@ function open(level) {
     );
   }
 
+  function checklist() {
+    get("checklist").replaceChildren(
+      ...targets.map((id) => {
+        const button = document.createElement("button");
+        const found = foundIds.has(id);
+        button.className = found ? "is-found" : "";
+        button.setAttribute(
+          "aria-label",
+          `${objectById(id).name}${found ? ", found" : ", hear clue"}`,
+        );
+        button.disabled = found;
+        button.innerHTML = `<img src="${scene.thumbnail(id)}" alt="" draggable="false"><span>${objectById(id).name}</span>${found ? '<b aria-hidden="true">✓</b>' : ""}`;
+        button.onclick = () => {
+          target = id;
+          prompt();
+          canvas.focus({ preventScroll: true });
+        };
+        return button;
+      }),
+    );
+  }
   function ask() {
-    target = pickTarget(onBlanket, recent, random);
-    recent = [target, ...recent].slice(0, 6);
+    target = targets.find((id) => !foundIds.has(id));
     misses = 0;
     sinceFind = 0;
     scene.hint(-1);
     get("card-img").src = scene.thumbnail(target);
-    get("card-name").textContent = foodById(target).name;
+    get("card-name").textContent = objectById(target).name;
     card.classList.remove("pop");
     void card.offsetWidth;
     card.classList.add("pop");
     state = "playing";
     prompt();
   }
-
   const prompt = () => say(askLine(target));
-
   function slotOf(id) {
     for (let i = 0; i < scene.slotCount; i++)
       if (scene.slotFood(i) === id) return i;
     return -1;
   }
-
+  function help() {
+    if (state !== "playing") return;
+    scene.hint(slotOf(target));
+    prompt();
+    canvas.focus({ preventScroll: true });
+  }
   function choose(slot) {
     if (state !== "playing" || slot < 0) return;
     const id = scene.slotFood(slot);
     if (!id) return;
-    if (id === target) {
+    if (
+      mode === "checklist"
+        ? targets.includes(id) && !foundIds.has(id)
+        : id === target
+    ) {
       state = "cheering";
       finds++;
+      foundIds.add(id);
       sfx.found();
       scene.found(slot);
       basket();
+      checklist();
       say(praiseLine(Math.floor(random() * PRAISE.length), id));
-      if (finds >= settings.finds) {
-        later(NEXT_AFTER, finish);
-        return;
-      }
-      later(DROP_AFTER, () => {
-        onBlanket = onBlanket.filter((food) => food !== id);
-        const next = replacementFood([...onBlanket, id], random);
-        if (next) {
-          scene.place(slot, next, { drop: true });
-          onBlanket.push(next);
-          sfx.drop();
-        }
-      });
-      later(NEXT_AFTER, ask);
+      later(NEXT_AFTER, finds >= targets.length ? finish : ask);
     } else {
-      // Not that one: say what it is, then ask again. No penalty.
       misses++;
       sfx.other();
       scene.wiggle(slot);
-      card.classList.remove("nudge");
-      void card.offsetWidth;
-      card.classList.add("nudge");
       say(otherLine(id, target));
       if (misses >= HINT_AFTER_MISSES) scene.hint(slotOf(target));
     }
@@ -307,7 +286,7 @@ function open(level) {
     }
     let from = cursor >= 0 ? scene.screenOf(cursor) : null;
     if (!from) {
-      // Start near the middle of the blanket.
+      // Start near the middle of the scene.
       from = { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
       let closest = -1;
       let distance = Infinity;
@@ -355,24 +334,16 @@ function open(level) {
     scene.cursor(-1);
     card.hidden = true;
     get("pause").hidden = true;
-    const record = !best || elapsed < best;
-    if (record) {
-      best = elapsed;
-      try {
-        localStorage.setItem(bestKey, String(best));
-      } catch {}
-    }
+    get("hint").hidden = true;
+    get("checklist").hidden = true;
     sfx.done();
     voice.say(doneLine(settings.finds));
     results.show(
-      record ? "Super finder!" : "You found them all!",
-      record
-        ? `All ${settings.finds} foods found in ${formatTime(elapsed)}, your fastest yet!`
-        : `All ${settings.finds} foods found. Your fastest is ${formatTime(best)}.`,
+      "You found them all!",
+      `All ${targets.length} hidden things found in ${THEMES.find((t) => t.id === themeId).name}. Wonderful looking!`,
       [
-        [String(settings.finds), "FOUND"],
-        [formatTime(elapsed), "TIME"],
-        [formatTime(best), "BEST"],
+        [String(finds), "FOUND"],
+        ["★", "SUPER FINDER"],
       ],
     );
   }
@@ -385,21 +356,28 @@ function open(level) {
     card.hidden = false;
     get("basket").hidden = false;
     get("pause").hidden = false;
+    get("hint").hidden = false;
+    get("checklist").hidden = mode !== "checklist";
+    card.hidden = mode === "checklist";
     setPauseScreen(dialog, false, canvas);
     canvas.focus({ preventScroll: true });
     if (reset) {
       finds = 0;
-      // Empty basket first: its size sets the room left for foods.
+      // Measure the clue tray before laying out the picture.
       basket();
       measure();
       random = rng((Math.random() * 2 ** 32) >>> 0);
       elapsed = 0;
       timers = [];
-      recent = [];
       cursor = -1;
-      onBlanket = startingFoods(settings.count, random);
-      scene.layout(onBlanket.length, random);
-      onBlanket.forEach((id, slot) => scene.place(slot, id));
+      const round = makeRound(themeId, level, random);
+      sceneObjects = round.objects;
+      targets = round.targets;
+      foundIds = new Set();
+      checklist();
+      measure();
+      scene.layout(sceneObjects.length, random, themeId);
+      sceneObjects.forEach((id, slot) => scene.place(slot, id));
       ask();
     } else {
       state = pausedFrom || "playing";
@@ -411,12 +389,13 @@ function open(level) {
     frame = requestAnimationFrame(loop);
   }
 
-  // Keep the foods clear of the card and basket, which size with the screen.
+  // Keep objects clear of the clue tray and progress dots.
   function measure() {
-    if (card.hidden) return;
+    const field = canvas.getBoundingClientRect();
+    const clue = mode === "checklist" ? get("checklist") : card;
     scene.setInsets(
-      card.getBoundingClientRect().bottom + 6,
-      canvas.clientHeight - get("basket").getBoundingClientRect().top,
+      Math.max(80, clue.getBoundingClientRect().bottom - field.top + 14),
+      82,
     );
   }
 
@@ -430,10 +409,28 @@ function open(level) {
 
   const results = gameResults(
     dialog,
-    "Food Finder",
+    "Look & Find",
     () => start(true),
     () => dialog.close(),
   );
+  dialog.querySelectorAll("[data-theme]").forEach((button) => {
+    button.onclick = () => {
+      themeId = button.dataset.theme;
+      dialog
+        .querySelectorAll("[data-theme]")
+        .forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+      scene.layout(0, rng(1), themeId);
+    };
+  });
+  dialog.querySelectorAll("[data-mode]").forEach((button) => {
+    button.onclick = () => {
+      mode = button.dataset.mode;
+      dialog
+        .querySelectorAll("[data-mode]")
+        .forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+    };
+  });
+  get("hint").onclick = help;
   get("play").onclick = () => start(true);
   get("pause-resume").onclick = () => start(false);
   get("pause-restart").onclick = () => start(true);
@@ -463,9 +460,22 @@ function open(level) {
   dialog.addEventListener("keydown", (event) => {
     event.stopPropagation();
     if (state !== "playing" && state !== "cheering") return;
-    if (event.target === card && (event.key === " " || event.key === "Enter"))
+    if (
+      event.target.closest("button") &&
+      (event.key === " " || event.key === "Enter")
+    )
       return;
     const key = event.key.toLowerCase();
+    if (key === "r") {
+      event.preventDefault();
+      prompt();
+      return;
+    }
+    if (key === "h") {
+      event.preventDefault();
+      help();
+      return;
+    }
     if (moves[key]) {
       event.preventDefault();
       moveCursor(moves[key]);
@@ -504,15 +514,22 @@ function open(level) {
   dialog.showModal();
   previous = performance.now();
   frame = requestAnimationFrame(loop);
-  get("heading").textContent = "Picnic time!";
+  get("heading").textContent = "Little things. Big discoveries.";
   get("details").textContent =
-    `There are ${settings.count} foods mixed in with the objects on the blanket. Tap the food that matches the card. Find ${settings.finds} to finish.${best ? ` Your fastest: ${formatTime(best)}.` : ""}`;
-  get("keys").textContent = "Tap a food · or arrows / WASD and Space";
-  scene.ready.then(() => {
-    if (!dialog.open) return;
-    const play = get("play");
-    play.disabled = false;
-    play.textContent = "Play";
-    play.focus();
-  });
+    "Explore a picture full of surprises. Look closely, take your time, and find the hidden things!";
+  get("keys").textContent =
+    "Tap to find · Arrows + Space · Controller stick + A · R to hear a clue";
+  scene.ready
+    .then(() => {
+      if (!dialog.open) return;
+      const play = get("play");
+      play.disabled = false;
+      play.textContent = "Play";
+      play.focus();
+    })
+    .catch(() => {
+      get("details").textContent =
+        "The pictures could not load. Please close the game and try again.";
+      get("play").textContent = "Pictures unavailable";
+    });
 }

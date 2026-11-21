@@ -1,656 +1,424 @@
-import * as T from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import colormap from "./assets/food/colormap.png";
-import {
-  layoutSpots,
-  rng,
-  scatterProps,
-  shuffle,
-} from "../shared/foodFinder.js";
-
-// Every Kenney food model points at Textures/colormap.png; serve them all
-// the one bundled copy.
-const MODEL_URLS = Object.fromEntries(
-  Object.entries(
-    import.meta.glob("./assets/food/*.glb", {
-      eager: true,
-      query: "?url",
-      import: "default",
-    }),
-  ).map(([path, url]) => [path.match(/([^/]+)\.glb$/)[1], url]),
-);
-const PROP_URLS = Object.values(
-  import.meta.glob("./assets/food-finder-props/*.glb", {
-    eager: true,
-    query: "?url",
-    import: "default",
-  }),
-);
-
-// The camera looks down at the blanket from this far above the horizon.
-const TILT = T.MathUtils.degToRad(64);
-// World units from the top to the bottom of the screen.
-const VIEW = 10;
-// A food's size, as a share of `cell` (the ring, hops and confetti go by
-// the cell).
-const FOOD_SIZE = 0.62;
-
-const ease = (t) => 1 - (1 - t) ** 3;
-
-function cloth() {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 128;
-  const g = canvas.getContext("2d");
-  g.fillStyle = "#96b9cb";
-  g.fillRect(0, 0, 128, 128);
-  const random = rng(125);
-  for (let i = 0; i < 4500; i++) {
-    g.fillStyle = i % 2 ? "#ffffff24" : "#23425524";
-    g.fillRect(random() * 128, random() * 128, 2, 1);
-  }
-  const texture = new T.CanvasTexture(canvas);
-  texture.wrapS = texture.wrapT = T.RepeatWrapping;
-  texture.colorSpace = T.SRGBColorSpace;
-  texture.anisotropy = 4;
-  return texture;
-}
-
-function lights(scene) {
-  scene.add(new T.HemisphereLight("#fff8e8", "#6b8f4e", 1.6));
-  const sun = new T.DirectionalLight("#fff2d6", 2.2);
-  sun.position.set(-4, 10, 6);
-  scene.add(sun);
-}
+import { OBJECTS, rng, sceneLayout } from "../shared/lookAndFind.js";
+const urls = import.meta.glob("./assets/look-and-find/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+export const objectImage = (id) => {
+  const item = OBJECTS.find((item) => item.id === id);
+  return urls[`./assets/look-and-find/${item?.image}`];
+};
 
 export function createFoodFinderScene(canvas) {
-  const renderer = new T.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.outputColorSpace = T.SRGBColorSpace;
-  const scene = new T.Scene();
-  scene.background = new T.Color("#8cc56a");
-  lights(scene);
-
-  const camera = new T.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
-  camera.position.set(0, 30 * Math.sin(TILT), 30 * Math.cos(TILT));
-  camera.lookAt(0, 0, 0);
-
-  const blanketTexture = cloth();
-  const blanket = new T.Mesh(
-    new T.PlaneGeometry(1, 1),
-    new T.MeshLambertMaterial({ map: blanketTexture }),
-  );
-  blanket.rotation.x = -Math.PI / 2;
-  scene.add(blanket);
-
-  // Soft dark spot under each food, and a ring for the hint / cursor.
-  const shadowGeometry = new T.CircleGeometry(0.5, 32);
-  const shadowMaterial = new T.MeshBasicMaterial({
-    color: "#3a1d10",
-    transparent: true,
-    opacity: 0.13,
-    depthWrite: false,
-  });
-  const ringGeometry = new T.RingGeometry(0.42, 0.5, 48);
-  const makeRing = (color) => {
-    const ring = new T.Mesh(
-      ringGeometry,
-      new T.MeshBasicMaterial({
-        color,
-        transparent: true,
-        depthWrite: false,
-      }),
-    );
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.02;
-    ring.visible = false;
-    scene.add(ring);
-    return ring;
-  };
-  const hintRing = makeRing("#ffe14d");
-  const cursorRing = makeRing("#2a7fff");
-
-  // Confetti for a find.
-  const confetti = [];
-  const confettiGeometry = new T.PlaneGeometry(0.14, 0.09);
-  const confettiColors = [
-    "#ff5d8f",
-    "#ffd23f",
-    "#3ec1ff",
-    "#7be36b",
-    "#b57bff",
-  ];
-
-  // Load every model once.
-  const manager = new T.LoadingManager();
-  manager.setURLModifier((url) =>
-    url.endsWith("colormap.png") ? colormap : url,
-  );
-  const loader = new GLTFLoader(manager);
-  const templates = new Map();
-  const propTemplates = new Map();
-  const loadModels = (entries, destination) =>
-    entries.map(([id, url]) =>
-      loader
-        .loadAsync(url)
-        .then((gltf) => destination.set(id, normalize(gltf.scene)))
-        .catch((error) => console.warn(`Food Finder: no ${id}`, error)),
-    );
-  const ready = Promise.all([
-    ...loadModels(Object.entries(MODEL_URLS), templates),
-    ...loadModels(
-      PROP_URLS.map((url, index) => [index, url]),
-      propTemplates,
-    ),
-  ]);
-
-  // Centre a model on its footprint, sit it on y = 0 and scale it so its
-  // biggest side is 1.
-  function normalize(model) {
-    const box = new T.Box3().setFromObject(model);
-    const size = box.getSize(new T.Vector3());
-    const centre = box.getCenter(new T.Vector3());
-    const holder = new T.Group();
-    model.position.set(-centre.x, -box.min.y, -centre.z);
-    holder.add(model);
-    // Tall things (bottles, cakes) look bigger than flat ones; weight height
-    // a little less so a pizza isn't tiny beside a soda can.
-    holder.userData.scale = 1 / Math.max(size.x, size.z, size.y * 0.85);
-    holder.userData.height = size.y / Math.max(size.x, size.z, size.y * 0.85);
-    return holder;
-  }
-
-  // Placed foods by slot: {id, root, spin, model, height, anim}.
-  const slots = [];
-  // Found foods on their way out.
-  const leaving = [];
-  const props = new T.Group();
-  scene.add(props);
-  let propSpots = [];
-  let roundProps = [];
-  let spots = [];
-  let cell = 1;
-  let area = { width: 1, depth: 1, top: 0 };
-  let insetTop = 0;
-  let insetBottom = 0;
-  let time = 0;
-  let hintSlot = -1;
-  let cursorSlot = -1;
-
-  function size() {
-    const width = canvas.clientWidth || 1;
-    const height = canvas.clientHeight || 1;
-    renderer.setSize(width, height, false);
-    const aspect = width / height;
-    camera.left = (-VIEW * aspect) / 2;
-    camera.right = (VIEW * aspect) / 2;
-    camera.top = VIEW / 2;
-    camera.bottom = -VIEW / 2;
-    camera.updateProjectionMatrix();
-    // The ground seen by the screen.
-    const groundW = VIEW * aspect;
-    const groundD = VIEW / Math.sin(TILT);
-    blanket.scale.set(groundW * 0.96, groundD * 0.96, 1);
-    blanketTexture.repeat.set((groundW * 0.96) / 1.6, (groundD * 0.96) / 1.6);
-    // Keep foods clear of the "Find…" card at the top, the basket at the
-    // bottom and the edges.
-    const top = (insetTop / height) * groundD;
-    const bottom = (insetBottom / height) * groundD;
-    const margin = Math.min(groundW, groundD) * 0.05;
-    area = {
-      width: groundW - margin * 2,
-      depth: Math.max(1, groundD - top - bottom - margin * 2.2),
-      top: -groundD / 2 + top + margin * 1.6,
-    };
-    placeAll();
-  }
-
-  function spotWorld(spot) {
-    return {
-      x: spot.u * area.width - area.width / 2,
-      z: area.top + spot.v * area.depth,
-    };
-  }
-
-  function placeAll() {
-    if (!spots.length) return;
-    // The screen changed shape (a phone turned): scatter again to fit it.
-    // Each food keeps its slot, only the spots move.
-    const aspect = area.width / area.depth;
-    if (Math.abs(Math.log(aspect / spots.aspect)) > 0.2) {
-      makeSpots(spots.length, spots.seed);
-      populateProps();
-    }
-    // Foods shrink with the area; spots keep their relative place.
-    const scale = Math.min(area.depth, area.width / spots.aspect);
-    cell = (spots.size * scale) / FOOD_SIZE;
-    slots.forEach((slot, index) => slot && position(slot, index));
-    props.children.forEach((root, index) => {
-      const spot = propSpots[index];
-      const { x, z } = spotWorld(spot);
-      root.position.set(x, 0, z);
-      root.scale.setScalar(cell * FOOD_SIZE * spot.scale);
-    });
-  }
-
-  function position(slot, index) {
-    const spot = spots[index];
-    const { x, z } = spotWorld(spot);
-    const s = cell * FOOD_SIZE * spot.scale;
-    slot.root.position.set(x, 0, z);
-    slot.root.scale.setScalar(s);
-    slot.size = s;
-  }
-
-  // Spots are kept as 0–1 fractions of the area.
-  function makeSpots(count, seed) {
-    const aspect = area.width / area.depth;
-    const random = rng(seed);
-    const result = layoutSpots(count, aspect, 1, random);
-    const size = result.size * 0.94;
-    spots = result.spots.map((spot) => ({
-      u: spot.x / aspect + 0.5,
-      v: spot.z + 0.5,
-      scale: 0.78 + random() * 0.29,
-    }));
-    Object.assign(spots, { size, aspect, seed });
-    propSpots = scatterProps(
-      Math.ceil(count * 0.46),
-      aspect,
-      1,
-      result.spots,
-      size,
-      random,
-    ).map((spot) => ({
-      u: spot.x / aspect + 0.5,
-      v: spot.z + 0.5,
-      scale: spot.scale,
-      angle: (random() - 0.5) * Math.PI,
-    }));
-  }
-
-  function populateProps() {
-    props.clear();
-    if (!roundProps.length) return;
-    propSpots.forEach(({ angle }, index) => {
-      const template = roundProps[index % roundProps.length];
-      props.add(makePiece(template, angle).root);
-    });
-  }
-
-  function layout(count, random) {
-    clear();
-    roundProps = shuffle(
-      [...propTemplates.keys()].sort((a, b) => a - b),
-      random,
-    ).map((id) => propTemplates.get(id));
-    makeSpots(count, (random() * 2 ** 32) >>> 0);
-    populateProps();
-    placeAll();
-  }
-
-  function clear() {
-    for (const slot of [...slots, ...leaving])
-      if (slot) scene.remove(slot.root);
-    slots.length = 0;
-    leaving.length = 0;
-    props.clear();
-    hintSlot = cursorSlot = -1;
-  }
-
-  function makePiece(template, angle) {
-    const root = new T.Group();
-    const spin = new T.Group();
-    const model = template.clone();
-    model.scale.setScalar(template.userData.scale);
-    model.rotation.y = angle;
-    spin.add(model);
-    const shadow = new T.Mesh(shadowGeometry, shadowMaterial);
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.01;
-    shadow.scale.setScalar(0.85);
-    root.add(shadow, spin);
-    return { root, spin, model };
-  }
-
-  function place(index, id, { drop = false } = {}) {
-    const template = templates.get(id);
-    if (!template) return;
-    const { root, spin, model } = makePiece(
-      template,
-      (Math.random() - 0.5) * 2.6,
-    );
-    scene.add(root);
-    const slot = {
-      id,
-      root,
-      spin,
-      model,
-      height: template.userData.height,
-      anim: drop ? { kind: "drop", t: 0 } : null,
-    };
-    slots[index] = slot;
-    position(slot, index);
-    if (drop) spin.position.y = 6;
-  }
-
-  // A found food leaves its slot at once (a new one can drop in while it
-  // celebrates) and is animated on its own until it's gone.
-  function found(index) {
-    const slot = slots[index];
-    if (!slot) return;
-    slot.anim = { kind: "found", t: 0 };
-    slots[index] = null;
-    leaving.push(slot);
-    const { x, z } = spotWorld(spots[index]);
-    for (let i = 0; i < 40; i++) {
-      const piece = new T.Mesh(
-        confettiGeometry,
-        new T.MeshBasicMaterial({
-          color: confettiColors[i % confettiColors.length],
-          side: T.DoubleSide,
-          transparent: true,
+  const g = canvas.getContext("2d");
+  const images = new Map();
+  const ready = Promise.all(
+    OBJECTS.map(
+      ({ id }) =>
+        new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => {
+            images.set(id, image);
+            resolve();
+          };
+          image.onerror = () => reject(new Error(`Could not load ${id}`));
+          image.src = objectImage(id);
         }),
-      );
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 3;
-      piece.position.set(x, cell * 0.5, z);
-      piece.userData = {
-        v: new T.Vector3(
-          Math.cos(angle) * speed,
-          5 + Math.random() * 4,
-          Math.sin(angle) * speed,
-        ),
-        spin: new T.Vector3(Math.random() * 9, Math.random() * 9, 0),
-        life: 1.4 + Math.random() * 0.4,
-      };
-      piece.scale.setScalar(cell * 0.9);
-      scene.add(piece);
-      confetti.push(piece);
-    }
-    if (hintSlot === index) hint(-1);
-  }
-
-  function wiggle(index) {
-    const slot = slots[index];
-    if (slot && !slot.anim) slot.anim = { kind: "wiggle", t: 0 };
-  }
-
-  function hint(index) {
-    hintSlot = index;
-  }
-
-  function cursor(index) {
-    cursorSlot = index;
-  }
-
-  // The slot under a tap: the model itself, else the food whose upright
-  // middle line on screen is nearest, within reach (generous, for small
-  // fingers and thin foods like carrots).
-  const raycaster = new T.Raycaster();
-  const pointer = new T.Vector2();
-  function pick(clientX, clientY) {
-    const rect = canvas.getBoundingClientRect();
-    pointer.set(
-      ((clientX - rect.left) / rect.width) * 2 - 1,
-      -((clientY - rect.top) / rect.height) * 2 + 1,
+    ),
+  );
+  let theme = "woodland",
+    slots = [],
+    spots = [],
+    top = 150,
+    bottom = 90;
+  let width = 1,
+    height = 1,
+    hint = -1,
+    cursor = -1,
+    time = 0;
+  function resize() {
+    width = canvas.clientWidth || 1;
+    height = canvas.clientHeight || 1;
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    g.setTransform(ratio, 0, 0, ratio, 0, 0);
+    spots = sceneLayout(
+      slots.length,
+      width - 28,
+      Math.max(80, height - top - bottom),
+      rng(71),
     );
-    // Foods placed since the last frame have no world matrix yet.
-    scene.updateMatrixWorld();
-    camera.updateMatrixWorld();
-    raycaster.setFromCamera(pointer, camera);
-    const live = slots
-      .map((slot, index) => ({ slot, index }))
-      .filter(({ slot }) => slot);
-    let best = -1;
-    let bestDistance = Infinity;
-    for (const { slot, index } of live) {
-      const hit = raycaster.intersectObject(slot.model, true)[0];
-      if (hit && hit.distance < bestDistance) {
-        bestDistance = hit.distance;
-        best = index;
-      }
-    }
-    if (best >= 0) return best;
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-    const pxPerUnit = rect.height / VIEW;
-    for (const { slot, index } of live) {
-      const base = toScreen(slot.root.position, 0, rect);
-      const top = toScreen(slot.root.position, slot.height * slot.size, rect);
-      const distance = segmentDistance(x, y, base, top);
-      if (distance < Math.min(bestDistance, slot.size * 0.75 * pxPerUnit)) {
-        bestDistance = distance;
-        best = index;
-      }
-    }
-    return best;
+    spots.forEach((p) => {
+      p.x += 14;
+      p.y += top;
+    });
   }
-
-  function toScreen(position, lift, rect) {
-    const at = position.clone();
-    at.y += lift;
-    at.project(camera);
-    return {
-      x: ((at.x + 1) / 2) * rect.width,
-      y: ((1 - at.y) / 2) * rect.height,
-    };
-  }
-
-  function segmentDistance(x, y, a, b) {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const length = dx * dx + dy * dy;
-    const t = length
-      ? Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / length))
-      : 0;
-    return Math.hypot(x - (a.x + dx * t), y - (a.y + dy * t));
-  }
-
-  // Where a slot's food is on screen, in CSS pixels from the canvas corner.
-  function screenOf(index) {
-    const slot = slots[index];
-    if (!slot) return null;
-    return toScreen(
-      slot.root.position,
-      slot.height * slot.size * 0.5,
-      canvas.getBoundingClientRect(),
+  const observer = new ResizeObserver(resize);
+  observer.observe(canvas);
+  const ellipse = (x, y, rx, ry, color) => {
+    g.fillStyle = color;
+    g.beginPath();
+    g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+    g.fill();
+  };
+  const rect = (x, y, w, h, color) => {
+    g.fillStyle = color;
+    g.fillRect(x, y, w, h);
+  };
+  function background() {
+    const sky = g.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(
+      0,
+      theme === "space"
+        ? "#272457"
+        : theme === "playroom"
+          ? "#f8e4c8"
+          : "#bfe7e5",
     );
-  }
-
-  function animate(slot, index, dt) {
-    const anim = slot.anim;
-    slot.spin.rotation.set(0, 0, 0);
-    slot.spin.position.y = 0;
-    slot.spin.scale.setScalar(1);
-    if (index >= 0 && index === hintSlot) {
-      // Hop, hop: "here I am!"
-      const hop = Math.abs(Math.sin(time * 5));
-      slot.spin.position.y = hop * 0.35;
-      slot.spin.scale.setScalar(1 + hop * 0.08);
-    }
-    if (!anim) return;
-    anim.t += dt;
-    if (anim.kind === "drop") {
-      const t = Math.min(anim.t / 0.55, 1);
-      // Fall, then a small bounce.
-      slot.spin.position.y =
-        t < 0.75
-          ? 6 * (1 - (t / 0.75) ** 2)
-          : Math.sin(((t - 0.75) / 0.25) * Math.PI) * 0.18;
-      if (t >= 1) slot.anim = null;
-    } else if (anim.kind === "wiggle") {
-      const t = Math.min(anim.t / 0.6, 1);
-      slot.spin.rotation.z = Math.sin(t * Math.PI * 5) * 0.28 * (1 - t);
-      if (t >= 1) slot.anim = null;
-    } else if (anim.kind === "found") {
-      const t = Math.min(anim.t / 1.1, 1);
-      // Up, a happy spin, then shrink away.
-      slot.spin.position.y =
-        Math.sin(Math.min(t * 1.6, 1) * Math.PI * 0.5) * 1.4;
-      slot.spin.rotation.y = ease(t) * Math.PI * 4;
-      slot.spin.scale.setScalar(
-        t < 0.6
-          ? 1 + Math.sin((t / 0.6) * Math.PI) * 0.45
-          : 1 - ease((t - 0.6) / 0.4),
+    sky.addColorStop(
+      1,
+      theme === "space"
+        ? "#625180"
+        : theme === "playroom"
+          ? "#f6c79d"
+          : "#bdd493",
+    );
+    g.fillStyle = sky;
+    g.fillRect(0, 0, width, height);
+    if (theme === "woodland") {
+      ellipse(width * 0.8, 100, 48, 48, "#ffe5a2");
+      ellipse(
+        width * 0.2,
+        height * 0.7,
+        width * 0.75,
+        height * 0.49,
+        "#a1c98c",
       );
-      slot.root.children[0].visible = t < 0.6;
-      if (t >= 1) {
-        scene.remove(slot.root);
-        leaving.splice(leaving.indexOf(slot), 1);
+      ellipse(
+        width * 0.85,
+        height * 0.93,
+        width * 0.8,
+        height * 0.48,
+        "#8eb77a",
+      );
+      g.strokeStyle = "#e8d4aa";
+      g.lineWidth = width * 0.15;
+      g.beginPath();
+      g.moveTo(width * 0.56, height);
+      g.bezierCurveTo(
+        width * 0.1,
+        height * 0.7,
+        width * 0.86,
+        height * 0.55,
+        width * 0.48,
+        top * 0.8,
+      );
+      g.stroke();
+      for (const x of [width * 0.02, width * 0.95]) {
+        rect(x - 10, top * 0.55, 20, height * 0.65, "#aa8260");
+        ellipse(x, top * 0.7, 75, 95, "#679c70");
+        ellipse(x - 35, top * 0.8, 60, 70, "#7dab79");
       }
+      const r = rng(31);
+      for (let i = 0; i < 65; i++) {
+        const x = r() * width,
+          y = top + r() * (height - top);
+        ellipse(x, y, 2, 4, i % 3 ? "#739c63" : "#f5e3ad");
+      }
+    } else if (theme === "playroom") {
+      for (let x = 20; x < width; x += 70) rect(x, 0, 2, height, "#efd2b2");
+      rect(0, height * 0.52, width, height * 0.48, "#d79e78");
+      for (let y = height * 0.52; y < height; y += 60)
+        rect(0, y, width, 2, "#be896544");
+      rect(
+        width * 0.07,
+        top * 0.3,
+        width * 0.22,
+        Math.max(50, top * 0.6),
+        "#fff8e5",
+      );
+      rect(
+        width * 0.08,
+        top * 0.34,
+        width * 0.2,
+        Math.max(40, top * 0.52),
+        "#a7d8e6",
+      );
+      rect(width * 0.175, top * 0.3, 5, top * 0.6, "#fff8e5");
+      ellipse(
+        width * 0.52,
+        height * 0.68,
+        width * 0.44,
+        height * 0.27,
+        "#b5c5be",
+      );
+      ellipse(
+        width * 0.52,
+        height * 0.68,
+        width * 0.39,
+        height * 0.23,
+        "#cad6cd",
+      );
+      rect(width * 0.75, top * 0.5, width * 0.2, 90, "#bd8d69");
+      rect(width * 0.75, top * 0.5 + 38, width * 0.2, 6, "#f4d9b6");
+    } else {
+      const r = rng(81);
+      for (let i = 0; i < 110; i++)
+        ellipse(
+          r() * width,
+          r() * height,
+          i % 5 ? 1 : 2,
+          i % 5 ? 1 : 2,
+          "#eee2be88",
+        );
+      ellipse(width * 0.86, top * 0.8, 62, 62, "#c3b6c8");
+      ellipse(width * 0.84, top * 0.7, 15, 12, "#afa0bc");
+      ellipse(
+        width * 0.19,
+        height * 0.95,
+        width * 0.8,
+        height * 0.3,
+        "#a998ad",
+      );
+      ellipse(width * 0.85, height * 1.1, width * 0.6, height * 0.4, "#827c9e");
+      for (let i = 0; i < 7; i++)
+        ellipse(
+          ((i * 0.17) % 1) * width,
+          height * (0.85 + (i % 3) * 0.06),
+          20 + i * 4,
+          7 + i,
+          "#77708e55",
+        );
+      g.strokeStyle = "#e2c6a3";
+      g.lineWidth = 3;
+      g.beginPath();
+      g.moveTo(width * 0.04, height * 0.72);
+      g.lineTo(width * 0.1, height * 0.56);
+      g.lineTo(width * 0.16, height * 0.72);
+      g.stroke();
     }
   }
-
+  // Scenery provides the visual clutter of a hidden-picture page. It is drawn
+  // behind the objects and never duplicates a clue illustration.
+  function details() {
+    const r = rng(theme === "woodland" ? 40 : theme === "playroom" ? 50 : 60);
+    const clear = (x, y, size) =>
+      spots.every(
+        (p) => Math.hypot(p.x - x, p.y - y) > p.size * 0.72 + size * 0.55,
+      );
+    for (let i = 0; i < 90; i++) {
+      const x = r() * width,
+        y = top + r() * Math.max(20, height - top - bottom),
+        s = 18 + r() * 40;
+      if (!clear(x, y, s)) continue;
+      g.save();
+      g.translate(x, y);
+      if (theme === "woodland") {
+        if (i % 3 === 0) {
+          rect(-s * 0.1, -s * 0.1, s * 0.2, s * 0.7, "#9a7657");
+          ellipse(0, -s * 0.35, s * 0.55, s * 0.65, "#538a68");
+          ellipse(-s * 0.25, -s * 0.15, s * 0.4, s * 0.4, "#6f9f6c");
+          g.strokeStyle = "#47795a";
+          g.lineWidth = 2;
+          g.beginPath();
+          g.moveTo(0, s * 0.25);
+          g.lineTo(0, -s * 0.65);
+          g.stroke();
+        } else if (i % 3 === 1) {
+          ellipse(0, 0, s * 0.55, s * 0.3, "#71957f");
+          ellipse(-s * 0.1, -s * 0.08, s * 0.36, s * 0.25, "#87aa92");
+          g.strokeStyle = "#537d66";
+          g.lineWidth = 2;
+          g.beginPath();
+          g.moveTo(-s * 0.45, s * 0.1);
+          g.lineTo(s * 0.45, s * 0.1);
+          g.stroke();
+        } else {
+          for (let j = 0; j < 5; j++) {
+            ellipse(
+              (j - 2) * 7,
+              -Math.sin(j) * 7,
+              7,
+              10,
+              j % 2 ? "#769c60" : "#648955",
+            );
+          }
+        }
+      } else if (theme === "playroom") {
+        if (i % 3 === 0) {
+          rect(-s * 0.55, -s * 0.3, s * 1.1, s * 0.7, "#bb8869");
+          rect(-s * 0.5, -s * 0.25, s, 0.12 * s, "#efd2aa");
+          for (let j = 0; j < 4; j++)
+            rect(
+              -s * 0.38 + j * s * 0.2,
+              -s * 0.15,
+              s * 0.12,
+              s * 0.48,
+              ["#ca7180", "#88afa6", "#e3be6b", "#859bb4"][j],
+            );
+        } else if (i % 3 === 1) {
+          g.strokeStyle = "#ba826277";
+          g.lineWidth = 3;
+          g.beginPath();
+          g.arc(0, 0, s * 0.45, 0.2, 5.8);
+          g.stroke();
+          for (let j = 0; j < 6; j++) {
+            g.save();
+            g.rotate(j);
+            rect(s * 0.35, -2, s * 0.2, 4, "#ba826277");
+            g.restore();
+          }
+        } else {
+          rect(-s * 0.5, -s * 0.3, s, s * 0.65, "#d5ac7d");
+          rect(-s * 0.5, -s * 0.3, s, 0.08 * s, "#edcda2");
+          rect(-s * 0.15, -s * 0.3, s * 0.3, s * 0.65, "#f1d9b1");
+        }
+      } else {
+        if (i % 3 === 0) {
+          ellipse(0, 0, s * 0.55, s * 0.3, "#857b9c");
+          ellipse(0, -s * 0.05, s * 0.4, s * 0.2, "#716b8e");
+        } else if (i % 3 === 1) {
+          g.strokeStyle = "#cec0bc99";
+          g.lineWidth = 2;
+          g.beginPath();
+          g.moveTo(-s * 0.4, s * 0.3);
+          g.lineTo(0, -s * 0.4);
+          g.lineTo(s * 0.5, 0);
+          g.stroke();
+          for (const [a, b] of [
+            [-s * 0.4, s * 0.3],
+            [0, -s * 0.4],
+            [s * 0.5, 0],
+          ])
+            ellipse(a, b, 3, 3, "#f4e3b4");
+        } else {
+          rect(-s * 0.3, -s * 0.45, s * 0.6, s * 0.7, "#b3b6c7");
+          rect(-s * 0.22, -s * 0.36, s * 0.44, s * 0.3, "#7099b1");
+          ellipse(0, s * 0.14, 3, 3, "#f3c177");
+          rect(-s * 0.45, s * 0.25, s * 0.9, s * 0.1, "#7b799b");
+        }
+      }
+      g.restore();
+    }
+  }
   function draw(dt) {
     time += dt;
-    slots.forEach((slot, index) => slot && animate(slot, index, dt));
-    for (const slot of [...leaving]) animate(slot, -1, dt);
-    for (const [ring, index, pulse] of [
-      [hintRing, hintSlot, 6],
-      [cursorRing, cursorSlot, 3],
-    ]) {
-      const slot = slots[index];
-      ring.visible = Boolean(slot);
-      if (!slot) continue;
-      ring.position.x = slot.root.position.x;
-      ring.position.z = slot.root.position.z;
-      ring.scale.setScalar(
-        slot.size * 1.3 * (1 + Math.sin(time * pulse) * 0.06),
-      );
-      ring.material.opacity = 0.75 + Math.sin(time * pulse) * 0.2;
-    }
-    for (let i = confetti.length - 1; i >= 0; i--) {
-      const piece = confetti[i];
-      const data = piece.userData;
-      data.life -= dt;
-      data.v.y -= 14 * dt;
-      piece.position.addScaledVector(data.v, dt * cell * 0.5);
-      piece.rotation.x += data.spin.x * dt;
-      piece.rotation.y += data.spin.y * dt;
-      piece.material.opacity = Math.min(1, data.life * 2);
-      if (data.life <= 0) {
-        scene.remove(piece);
-        piece.material.dispose();
-        confetti.splice(i, 1);
+    background();
+    details();
+    slots.forEach((slot, i) => {
+      const p = spots[i];
+      if (!slot || !p) return;
+      const image = images.get(slot.id);
+      if (!image) return;
+      const selected = i === cursor,
+        helping = i === hint && !slot.found;
+      if (selected || helping) {
+        g.strokeStyle = selected ? "#1672c4" : "#f7bd31";
+        g.lineWidth = 5;
+        g.beginPath();
+        g.arc(
+          p.x,
+          p.y,
+          p.size * 0.6 + (helping ? Math.sin(time * 4) * 4 : 0),
+          0,
+          Math.PI * 2,
+        );
+        g.stroke();
       }
-    }
-    renderer.render(scene, camera);
-  }
-
-  // A picture of one food for the "Find…" card.
-  let thumbRenderer;
-  const thumbScene = new T.Scene();
-  lights(thumbScene);
-  const thumbCamera = new T.PerspectiveCamera(30, 1, 0.1, 50);
-  const thumbs = new Map();
-  // Trim the empty edges so the food fills the card's picture.
-  function cropToFood(source) {
-    const { width, height } = source;
-    const flat = document.createElement("canvas");
-    flat.width = width;
-    flat.height = height;
-    const g = flat.getContext("2d");
-    g.drawImage(source, 0, 0);
-    const pixels = g.getImageData(0, 0, width, height).data;
-    let x0 = width,
-      y0 = height,
-      x1 = -1,
-      y1 = -1;
-    for (let y = 0; y < height; y++)
-      for (let x = 0; x < width; x++)
-        if (pixels[(y * width + x) * 4 + 3] > 8) {
-          x0 = Math.min(x0, x);
-          x1 = Math.max(x1, x);
-          y0 = Math.min(y0, y);
-          y1 = Math.max(y1, y);
+      g.save();
+      g.translate(p.x, p.y + (helping ? Math.sin(time * 4) * 3 : 0));
+      g.rotate(p.angle);
+      g.globalAlpha = slot.found ? 0.32 : 1;
+      g.drawImage(image, -p.size / 2, -p.size / 2, p.size, p.size);
+      g.restore();
+      if (slot.found) {
+        ellipse(p.x + p.size * 0.3, p.y - p.size * 0.3, 13, 13, "#388369");
+        g.fillStyle = "white";
+        g.font = "bold 18px sans-serif";
+        g.fillText("✓", p.x + p.size * 0.3 - 7, p.y - p.size * 0.3 + 6);
+      }
+      if (slot.cheer > 0) {
+        slot.cheer = Math.max(0, slot.cheer - dt);
+        for (let k = 0; k < 8; k++) {
+          const a = (k * Math.PI) / 4;
+          const d = (1 - slot.cheer) * 75 + 15;
+          ellipse(
+            p.x + Math.cos(a) * d,
+            p.y + Math.sin(a) * d,
+            3,
+            3,
+            k % 2 ? "#f7bd31" : "#f38b93",
+          );
         }
-    if (x1 < 0) return flat.toDataURL("image/png");
-    const side = Math.max(x1 - x0, y1 - y0) * 1.1;
-    const out = document.createElement("canvas");
-    out.width = out.height = 200;
-    out
-      .getContext("2d")
-      .drawImage(
-        flat,
-        (x0 + x1 - side) / 2,
-        (y0 + y1 - side) / 2,
-        side,
-        side,
-        0,
-        0,
-        200,
-        200,
-      );
-    return out.toDataURL("image/png");
-  }
-  function thumbnail(id) {
-    if (thumbs.has(id)) return thumbs.get(id);
-    const template = templates.get(id);
-    if (!template) return "";
-    thumbRenderer ||= new T.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      preserveDrawingBuffer: true,
+      }
     });
-    thumbRenderer.setSize(400, 400, false);
-    thumbRenderer.outputColorSpace = T.SRGBColorSpace;
-    const model = template.clone();
-    model.scale.setScalar(template.userData.scale);
-    model.rotation.y = -0.4;
-    thumbScene.add(model);
-    // Fill the frame: aim at the food's middle from the blanket's angle,
-    // just far enough back for its bounding sphere.
-    const sphere = new T.Box3()
-      .setFromObject(model)
-      .getBoundingSphere(new T.Sphere());
-    const distance =
-      (sphere.radius * 1.08) / Math.sin(T.MathUtils.degToRad(15));
-    const angle = T.MathUtils.degToRad(35);
-    thumbCamera.position
-      .set(0, Math.sin(angle), Math.cos(angle))
-      .multiplyScalar(distance)
-      .add(sphere.center);
-    thumbCamera.lookAt(sphere.center);
-    thumbRenderer.render(thumbScene, thumbCamera);
-    thumbScene.remove(model);
-    const url = cropToFood(thumbRenderer.domElement);
-    thumbs.set(id, url);
-    return url;
   }
-
-  const observer = new ResizeObserver(size);
-  observer.observe(canvas);
-  size();
-
   return {
     ready,
-    layout,
-    place,
-    found,
-    wiggle,
-    hint,
-    cursor,
-    pick,
-    screenOf,
-    thumbnail,
     draw,
-    // Screen space (CSS px) the overlays take at the top and bottom.
-    setInsets(top, bottom) {
-      insetTop = top;
-      insetBottom = bottom;
-      size();
+    thumbnail: objectImage,
+    layout(count, random, nextTheme) {
+      theme = nextTheme;
+      slots = Array(count).fill(null);
+      hint = cursor = -1;
+      resize();
+    },
+    place(i, id) {
+      slots[i] = { id, found: false, cheer: 0 };
+    },
+    found(i) {
+      if (slots[i]) {
+        slots[i].found = true;
+        slots[i].cheer = 1;
+      }
+      hint = -1;
+    },
+    hint(i) {
+      hint = i;
+    },
+    cursor(i) {
+      cursor = i;
+    },
+    wiggle(i) {
+      if (slots[i]) slots[i].cheer = 0.3;
     },
     get slotCount() {
-      return spots.length;
+      return slots.length;
     },
-    slotFood: (index) => slots[index]?.id ?? null,
+    slotFood(i) {
+      return slots[i]?.found ? null : slots[i]?.id;
+    },
+    screenOf(i) {
+      return slots[i] && !slots[i].found ? spots[i] : null;
+    },
+    pick(x, y) {
+      const r = canvas.getBoundingClientRect();
+      x -= r.left;
+      y -= r.top;
+      let best = -1,
+        distance = Infinity;
+      spots.forEach((p, i) => {
+        const d = Math.hypot(x - p.x, y - p.y);
+        if (
+          !slots[i]?.found &&
+          d <= Math.max(23, p.size * 0.6) &&
+          d < distance
+        ) {
+          best = i;
+          distance = d;
+        }
+      });
+      return best;
+    },
+    setInsets(a, b) {
+      top = a;
+      bottom = b;
+      resize();
+    },
     dispose() {
       observer.disconnect();
-      clear();
-      for (const piece of confetti) piece.material.dispose();
-      blanketTexture.dispose();
-      renderer.dispose();
-      thumbRenderer?.dispose();
+      images.clear();
     },
   };
 }
