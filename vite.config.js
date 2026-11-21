@@ -1,9 +1,19 @@
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig(({ mode }) => {
   return {
+    define: {
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+      __BUILD_COMMIT__: JSON.stringify(
+        process.env.GITHUB_SHA?.slice(0, 7) ||
+          execFileSync("git", ["rev-parse", "--short=7", "HEAD"], {
+            encoding: "utf8",
+          }).trim(),
+      ),
+    },
     base: mode === "pages" ? "/mini-games/" : "/",
     plugins: [
       VitePWA({
