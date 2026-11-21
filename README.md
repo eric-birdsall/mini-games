@@ -9,6 +9,22 @@ Practice, AI opponents, and games that share one device run on GitHub Pages.
 The public build uses the Pop character designs with procedurally generated bodies and animations.
 Private matches across devices use the Node.js server below.
 
+## iPad Home Screen and offline play
+
+1. Open [Mini Games](https://eric-birdsall.github.io/mini-games/) in **Safari**, then choose **Share → Add to Home Screen → Add**.
+2. Stay online while the first visit downloads the complete game (about 46 MiB). Slow connections may need a minute or more. The browser console reports “Mini Games is ready for offline play” when caching succeeds. Before travelling, turn off Wi-Fi and cellular data and reopen the Home Screen app to confirm it loads.
+3. Launch from the Home Screen for standalone mode without Safari navigation controls. Portrait and landscape remain available; the default viewport keeps iPad safe-area protection.
+
+Practice, AI and shared-device games work offline. Private matches across devices still require the Node server and are unavailable on Pages. Fonts, models, music, voice clips and Three.js decoders are included locally; there are no required external font requests. Saves remain in the existing local storage. iPadOS can evict website data under storage pressure; reopen online to restore the offline cache.
+
+Updates download in the background on launch, returning online, returning to the app, and hourly while open. An updated worker waits until **all** Mini Games tabs and Home Screen windows are closed. Reopen to use the new version. An active game is never automatically reloaded. If caching fails, the current installed version remains available and a later online visit can retry. To reinstall the shortcut, remove its Home Screen icon, reopen the Pages URL in Safari, and add it again. Clearing Safari website data is usually unnecessary and can erase saved scores/settings and offline downloads.
+
+The Pages-only `vite-plugin-pwa` configuration uses base-aware manifest/start/scope paths, 192/512 px icons and a 180 px Apple touch icon. Its Workbox precache includes every emitted file except source maps, with a 64 MiB per-file ceiling (oversized files fail the build). Cache names are scoped by the service-worker registration URL; no domain-wide runtime caching is enabled. Old revisions are removed when the new worker safely activates. The existing Actions workflow still supplies the deployment base path; local `npm run build:pages` defaults to `/mini-games/`.
+
+Optional repeatable Chrome checks: after `npm run build:pages`, install Playwright locally (`npm install --no-save playwright` and `npx playwright install chromium`), then run `node tools/test-pwa.mjs`. `CHROME_PATH` can select an existing Chrome executable. This tests asset responses, offline reload/reopen, reconnection and a simulated deployment that waits for the open game to close.
+
+Physical iPad checks after deployment: install from Safari; confirm standalone launch, icon and both orientations; start games using touch/controller; test offline relaunch and audio; reconnect; deploy an update while playing and confirm it appears only after closing every game window. Browser automation cannot verify iPadOS installation or storage eviction behavior.
+
 ## Run locally
 
 Requires Node.js 22.12+ (tested on Node 24).

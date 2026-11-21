@@ -1,3 +1,4 @@
+import "./pwa.js";
 import {
   RELEASED_GAMES,
   showAllGames,

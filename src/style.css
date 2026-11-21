@@ -1,4 +1,19 @@
-@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap");
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("@fontsource-variable/fredoka/files/fredoka-latin-wght-normal.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2")
+    format("woff2");
+}
 :root {
   font-family: "Nunito", "Arial Rounded MT Bold", Arial, sans-serif;
   color: #faf8fb;
@@ -4668,8 +4683,7 @@ body.sprinklers #bearing {
 #home .headshot {
   position: relative;
   aspect-ratio: 1;
-  flex: 0 0
-    calc((100% - (var(--columns) - 1) * var(--gap)) / var(--columns));
+  flex: 0 0 calc((100% - (var(--columns) - 1) * var(--gap)) / var(--columns));
   min-width: 0;
   padding: 0;
   border-radius: 50%;
