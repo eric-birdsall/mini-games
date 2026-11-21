@@ -1,4 +1,10 @@
-import { OBJECTS, rng, sceneLayout } from "../shared/lookAndFind.js";
+import {
+  OBJECTS,
+  rng,
+  sceneLayout,
+  sceneDimensions,
+  clampView,
+} from "../shared/lookAndFind.js";
 const urls = import.meta.glob("./assets/look-and-find/*.svg", {
   eager: true,
   query: "?url",
@@ -10,7 +16,8 @@ export const objectImage = (id) => {
 };
 
 export function createFoodFinderScene(canvas) {
-  const g = canvas.getContext("2d");
+  let g = canvas.getContext("2d");
+  let scenery = null;
   const images = new Map();
   const ready = Promise.all(
     OBJECTS.map(
@@ -36,12 +43,47 @@ export function createFoodFinderScene(canvas) {
     hint = -1,
     cursor = -1,
     time = 0;
+  let viewWidth = 1,
+    viewHeight = 1,
+    viewX = 0,
+    viewY = 0;
+  function pan(dx, dy) {
+    const view = clampView(
+      viewX + dx,
+      viewY + dy,
+      width,
+      height,
+      viewWidth,
+      viewHeight,
+    );
+    viewX = view.x;
+    viewY = view.y;
+  }
+  function reveal(index) {
+    const p = spots[index];
+    if (!p) return;
+    const margin = p.size * 0.8;
+    if (p.x - viewX < margin) viewX = p.x - margin;
+    if (p.x - viewX > viewWidth - margin) viewX = p.x - viewWidth + margin;
+    if (p.y - viewY < top + margin) viewY = p.y - top - margin;
+    if (p.y - viewY > viewHeight - bottom - margin)
+      viewY = p.y - viewHeight + bottom + margin;
+    pan(0, 0);
+  }
   function resize() {
-    width = canvas.clientWidth || 1;
-    height = canvas.clientHeight || 1;
+    scenery = null;
+    viewWidth = canvas.clientWidth || 1;
+    viewHeight = canvas.clientHeight || 1;
+    const world = sceneDimensions(
+      viewWidth,
+      Math.max(80, viewHeight - top - bottom),
+    );
+    width = world.width;
+    height = world.height + top + bottom;
+    pan(0, 0);
     const ratio = Math.min(devicePixelRatio || 1, 2);
-    canvas.width = Math.round(width * ratio);
-    canvas.height = Math.round(height * ratio);
+    canvas.width = Math.round(viewWidth * ratio);
+    canvas.height = Math.round(viewHeight * ratio);
     g.setTransform(ratio, 0, 0, ratio, 0, 0);
     spots = sceneLayout(
       slots.length,
@@ -207,7 +249,7 @@ export function createFoodFinderScene(canvas) {
       spots.every(
         (p) => Math.hypot(p.x - x, p.y - y) > p.size * 0.72 + size * 0.55,
       );
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 220; i++) {
       const x = r() * width,
         y = top + r() * Math.max(20, height - top - bottom),
         s = 18 + r() * 40;
@@ -304,8 +346,30 @@ export function createFoodFinderScene(canvas) {
   }
   function draw(dt) {
     time += dt;
-    background();
-    details();
+    g.clearRect(0, 0, viewWidth, viewHeight);
+    g.fillStyle =
+      theme === "space"
+        ? "#272457"
+        : theme === "playroom"
+          ? "#f8e4c8"
+          : "#bfe7e5";
+    g.fillRect(0, 0, viewWidth, viewHeight);
+    if (!scenery) {
+      scenery = document.createElement("canvas");
+      scenery.width = Math.ceil(width);
+      scenery.height = Math.ceil(height);
+      const live = g;
+      g = scenery.getContext("2d");
+      background();
+      details();
+      g = live;
+    }
+    g.drawImage(scenery, -viewX, -viewY);
+    g.save();
+    g.beginPath();
+    g.rect(0, top, viewWidth, Math.max(1, viewHeight - top - bottom));
+    g.clip();
+    g.translate(-viewX, -viewY);
     slots.forEach((slot, i) => {
       const p = spots[i];
       if (!slot || !p) return;
@@ -353,15 +417,45 @@ export function createFoodFinderScene(canvas) {
         }
       }
     });
+    g.restore();
+    const mapWidth = 100,
+      mapHeight = 44,
+      mapX = 14,
+      mapY = viewHeight - 58;
+    g.fillStyle = theme === "space" ? "#e9dff1e8" : "#fff8eee8";
+    g.fillRect(mapX, mapY, mapWidth, mapHeight);
+    g.fillStyle = "#647f7166";
+    spots.forEach((p, i) => {
+      if (!slots[i]?.found)
+        g.fillRect(
+          mapX + (p.x / width) * mapWidth,
+          mapY + ((p.y - top) / (height - top - bottom)) * mapHeight,
+          2,
+          2,
+        );
+    });
+    g.strokeStyle = "#267a76";
+    g.lineWidth = 2;
+    g.strokeRect(
+      mapX + (viewX / width) * mapWidth,
+      mapY + (viewY / (height - top - bottom)) * mapHeight,
+      Math.min(mapWidth, (viewWidth / width) * mapWidth),
+      Math.min(
+        mapHeight,
+        ((viewHeight - top - bottom) / (height - top - bottom)) * mapHeight,
+      ),
+    );
   }
   return {
     ready,
     draw,
     thumbnail: objectImage,
+    pan,
     layout(count, random, nextTheme) {
       theme = nextTheme;
       slots = Array(count).fill(null);
       hint = cursor = -1;
+      viewX = viewY = 0;
       resize();
     },
     place(i, id) {
@@ -376,9 +470,11 @@ export function createFoodFinderScene(canvas) {
     },
     hint(i) {
       hint = i;
+      reveal(i);
     },
     cursor(i) {
       cursor = i;
+      reveal(i);
     },
     wiggle(i) {
       if (slots[i]) slots[i].cheer = 0.3;
@@ -390,12 +486,18 @@ export function createFoodFinderScene(canvas) {
       return slots[i]?.found ? null : slots[i]?.id;
     },
     screenOf(i) {
-      return slots[i] && !slots[i].found ? spots[i] : null;
+      const p = spots[i];
+      return slots[i] && !slots[i].found && p
+        ? { ...p, x: p.x - viewX, y: p.y - viewY }
+        : null;
     },
     pick(x, y) {
       const r = canvas.getBoundingClientRect();
       x -= r.left;
       y -= r.top;
+      if (y < top || y > viewHeight - bottom) return -1;
+      x += viewX;
+      y += viewY;
       let best = -1,
         distance = Infinity;
       spots.forEach((p, i) => {
@@ -419,6 +521,7 @@ export function createFoodFinderScene(canvas) {
     dispose() {
       observer.disconnect();
       images.clear();
+      scenery = null;
     },
   };
 }

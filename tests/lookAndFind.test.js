@@ -8,6 +8,8 @@ import {
   makeRound,
   rng,
   sceneLayout,
+  sceneDimensions,
+  clampView,
 } from "../shared/lookAndFind.js";
 
 test("all themes have unique recognizable objects and bundled images", () => {
@@ -21,7 +23,13 @@ test("all themes have unique recognizable objects and bundled images", () => {
     );
   for (const theme of THEMES) {
     assert.equal(new Set(theme.objects).size, theme.objects.length);
-    assert.ok(theme.objects.length >= 24);
+    assert.ok(theme.objects.length >= LEVELS.hard.count);
+    assert.equal(
+      new Set(theme.objects.map((id) => OBJECTS.find((o) => o.id === id).image))
+        .size,
+      theme.objects.length,
+      "Every clue image has exactly one answer",
+    );
     theme.objects.forEach((id) => assert.ok(OBJECTS.some((o) => o.id === id)));
   }
 });
@@ -62,4 +70,26 @@ test("the same seed produces the same scene, without regular rows", () => {
   assert.deepEqual(first, sceneLayout(24, 900, 600, rng(71)));
   assert.ok(new Set(first.map((p) => Math.round(p.x))).size > 20);
   assert.ok(new Set(first.map((p) => Math.round(p.y))).size > 20);
+});
+
+test("expanded areas keep small objects readable on phone and desktop", () => {
+  for (const [w, h] of [
+    [390, 560],
+    [1512, 600],
+    [844, 220],
+  ]) {
+    const world = sceneDimensions(w, h);
+    assert.ok(world.width > w && world.height > h);
+    const spots = sceneLayout(64, world.width, world.height, rng(71));
+    assert.equal(spots.length, 64);
+    assert.ok(spots.every((p) => p.size >= 40 && p.size <= 62));
+    assert.deepEqual(clampView(-100, -100, world.width, world.height, w, h), {
+      x: 0,
+      y: 0,
+    });
+    assert.deepEqual(clampView(1e6, 1e6, world.width, world.height, w, h), {
+      x: world.width - w,
+      y: world.height - h,
+    });
+  }
 });

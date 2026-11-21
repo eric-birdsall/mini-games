@@ -34,7 +34,7 @@ const doneLine = (count) =>
 import "./foodFinder.css";
 
 const HOW_TO =
-  "Explore the picture and find the hidden things. Choose One at a time for a big picture clue, or Picture checklist to find things in any order. Tap a clue to hear it. Arrows or WASD move the blue ring; Space or controller A picks. R repeats the clue, H asks for a hint. There is no time limit or penalty.";
+  "Explore the picture and find the hidden things. Choose One at a time for a big picture clue, or Picture checklist to find things in any order. Tap a clue to hear it. Arrows or WASD move the blue ring; Space or controller A picks. R repeats the clue, H asks for a hint. Drag the picture to explore. I J K L or the controller right stick also move the view. There is no time limit or penalty.";
 const NEXT_AFTER = 1.1;
 // Seconds without a find before a gentle automatic hint.
 const IDLE_HINT = 14;
@@ -140,6 +140,7 @@ function open(level) {
         <span class="finder-again" aria-hidden="true">🔊</span>
       </button>
       <div class="finder-checklist" data-checklist hidden aria-label="Picture checklist"></div>
+      <div class="finder-explore" data-explore hidden aria-label="Explore the scene"><span>Drag to explore</span><button data-pan="left" aria-label="Explore left">←</button><button data-pan="up" aria-label="Explore up">↑</button><button data-pan="down" aria-label="Explore down">↓</button><button data-pan="right" aria-label="Explore right">→</button></div>
       <ol class="finder-basket" data-basket hidden aria-label="Objects found"></ol>
       <section class="finder-panel">
         <h2 data-heading></h2><p data-details></p>
@@ -305,8 +306,12 @@ function open(level) {
     scene.cursor(cursor);
   }
 
+  const panHeld = new Set();
   function step(dt) {
     if (state !== "playing" && state !== "cheering") return;
+    const dx = (Number(panHeld.has("l")) - Number(panHeld.has("j"))) * 420 * dt;
+    const dy = (Number(panHeld.has("k")) - Number(panHeld.has("i"))) * 420 * dt;
+    if (dx || dy) scene.pan(dx, dy);
     elapsed += dt;
     if (state === "playing") {
       sinceFind += dt;
@@ -335,6 +340,7 @@ function open(level) {
     card.hidden = true;
     get("pause").hidden = true;
     get("hint").hidden = true;
+    get("explore").hidden = true;
     get("checklist").hidden = true;
     sfx.done();
     voice.say(doneLine(settings.finds));
@@ -357,6 +363,7 @@ function open(level) {
     get("basket").hidden = false;
     get("pause").hidden = false;
     get("hint").hidden = false;
+    get("explore").hidden = false;
     get("checklist").hidden = mode !== "checklist";
     card.hidden = mode === "checklist";
     setPauseScreen(dialog, false, canvas);
@@ -395,12 +402,14 @@ function open(level) {
     const clue = mode === "checklist" ? get("checklist") : card;
     scene.setInsets(
       Math.max(80, clue.getBoundingClientRect().bottom - field.top + 14),
-      82,
+      canvas.clientWidth <= 700 ? 130 : 110,
     );
   }
 
   function pause() {
     if (state !== "playing" && state !== "cheering") return;
+    panHeld.clear();
+    gesture = null;
     pausedFrom = state;
     state = "paused";
     voice.hush();
@@ -428,6 +437,18 @@ function open(level) {
       dialog
         .querySelectorAll("[data-mode]")
         .forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+    };
+  });
+  const panDirections = {
+    left: [-180, 0],
+    right: [180, 0],
+    up: [0, -150],
+    down: [0, 150],
+  };
+  dialog.querySelectorAll("[data-pan]").forEach((button) => {
+    button.onclick = () => {
+      scene.pan(...panDirections[button.dataset.pan]);
+      canvas.focus({ preventScroll: true });
     };
   });
   get("hint").onclick = help;
@@ -466,6 +487,12 @@ function open(level) {
     )
       return;
     const key = event.key.toLowerCase();
+    const panKeys = { i: "up", j: "left", k: "down", l: "right" };
+    if (panKeys[key]) {
+      event.preventDefault();
+      panHeld.add(key);
+      return;
+    }
     if (key === "r") {
       event.preventDefault();
       prompt();
@@ -485,16 +512,63 @@ function open(level) {
       else if (cursor < 0) moveCursor("up");
     }
   });
-  dialog.addEventListener("keyup", (event) => event.stopPropagation());
+  dialog.addEventListener("keyup", (event) => {
+    event.stopPropagation();
+    panHeld.delete(event.key.toLowerCase());
+  });
+  let gesture = null;
   canvas.addEventListener("pointerdown", (event) => {
-    if (state !== "playing") return;
+    if (
+      state !== "playing" ||
+      gesture ||
+      !event.isPrimary ||
+      event.button !== 0
+    )
+      return;
     event.preventDefault();
     canvas.focus({ preventScroll: true });
-    // Tapping hides the keyboard ring; it comes back with the arrows.
-    cursor = -1;
-    scene.cursor(-1);
-    choose(scene.pick(event.clientX, event.clientY));
+    canvas.setPointerCapture(event.pointerId);
+    gesture = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragged: false,
+    };
   });
+  canvas.addEventListener("pointermove", (event) => {
+    if (!gesture || gesture.id !== event.pointerId || state !== "playing")
+      return;
+    if (
+      Math.hypot(
+        event.clientX - gesture.startX,
+        event.clientY - gesture.startY,
+      ) > 8
+    )
+      gesture.dragged = true;
+    if (gesture.dragged)
+      scene.pan(gesture.x - event.clientX, gesture.y - event.clientY);
+    gesture.x = event.clientX;
+    gesture.y = event.clientY;
+  });
+  canvas.addEventListener("pointerup", (event) => {
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const tap = !gesture.dragged;
+    gesture = null;
+    if (canvas.hasPointerCapture(event.pointerId))
+      canvas.releasePointerCapture(event.pointerId);
+    if (tap && state === "playing") {
+      cursor = -1;
+      scene.cursor(-1);
+      choose(scene.pick(event.clientX, event.clientY));
+    }
+  });
+  const cancelGesture = () => {
+    gesture = null;
+  };
+  canvas.addEventListener("pointercancel", cancelGesture);
+  canvas.addEventListener("lostpointercapture", cancelGesture);
 
   window.addEventListener("blur", pause);
   window.addEventListener("resize", measure);
@@ -516,9 +590,9 @@ function open(level) {
   frame = requestAnimationFrame(loop);
   get("heading").textContent = "Little things. Big discoveries.";
   get("details").textContent =
-    "Explore a picture full of surprises. Look closely, take your time, and find the hidden things!";
+    "Explore a big picture full of surprises! Drag to look around, take your time, and find the hidden things.";
   get("keys").textContent =
-    "Tap to find · Arrows + Space · Controller stick + A · R to hear a clue";
+    "Drag to explore · Tap to find · Arrows + Space · Right stick / IJKL to explore · R to hear a clue";
   scene.ready
     .then(() => {
       if (!dialog.open) return;
