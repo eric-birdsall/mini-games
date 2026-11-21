@@ -1,4 +1,4 @@
-import "./pwa.js";
+import { applyUpdate } from "./pwa.js";
 import {
   RELEASED_GAMES,
   showAllGames,
@@ -256,6 +256,20 @@ const buildTime = new Date(__BUILD_TIME__);
 buildLabel.textContent = `Last Updated: ${buildTime.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} · ${__BUILD_COMMIT__}`;
 buildLabel.title = `Build time: ${__BUILD_TIME__} · Commit: ${__BUILD_COMMIT__}`;
 $("#home .menu").append(buildLabel);
+const updateRow = document.createElement("div");
+updateRow.className = "update-ready";
+updateRow.setAttribute("data-nav-row", "");
+updateRow.hidden = true;
+updateRow.innerHTML = `<span>A new version is ready.</span><button class="secondary" id="update-now">UPDATE NOW</button>`;
+$("#home .menu").append(updateRow);
+const showUpdate = () => (updateRow.hidden = !applyUpdate);
+window.addEventListener("pwa-update-ready", showUpdate);
+showUpdate();
+updateRow.querySelector("button").addEventListener("click", (event) => {
+  event.currentTarget.disabled = true;
+  event.currentTarget.textContent = "UPDATING…";
+  applyUpdate?.();
+});
 
 $("#app").insertAdjacentHTML(
   "beforeend",

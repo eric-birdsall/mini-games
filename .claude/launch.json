@@ -103,6 +103,21 @@
       ],
       "port": 3061,
       "autoPort": false
+    },
+    {
+      "name": "pages-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--mode",
+        "pages",
+        "--port",
+        "4173",
+        "--strictPort"
+      ],
+      "port": 4173,
+      "autoPort": false
     }
   ]
 }

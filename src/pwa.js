@@ -1,7 +1,11 @@
 import { registerSW } from "virtual:pwa-register";
 
+// Set once a new version has downloaded; calling it swaps to that version
+// and reloads. The main menu shows an "Update ready" button for it.
+export let applyUpdate = null;
+
 if (import.meta.env.MODE === "pages") {
-  registerSW({
+  const updateSW = registerSW({
     onRegisteredSW(_url, registration) {
       if (!registration) return;
       const check = () => {
@@ -17,11 +21,10 @@ if (import.meta.env.MODE === "pages") {
       console.info("Mini Games is ready for offline play.");
     },
     onNeedRefresh() {
-      // Keep this session's assets. The waiting worker activates once all
-      // controlled windows close; reopening then loads the complete new version.
-      console.info(
-        "Mini Games update downloaded. Close all game windows and reopen to update.",
-      );
+      // Keep this session's assets until the player chooses to update. The
+      // waiting worker also activates on its own once all windows close.
+      applyUpdate = () => updateSW(true);
+      window.dispatchEvent(new Event("pwa-update-ready"));
     },
     onRegisterError(error) {
       console.warn(
