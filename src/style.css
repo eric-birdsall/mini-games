@@ -4021,40 +4021,6 @@ body:has(#home[hidden]) .vignette {
 #home .menu-step {
   margin-bottom: 24px;
 }
-#home .choice-row[aria-label="How you're playing"] {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-#home [data-mode] {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  min-height: 112px;
-  padding: 19px 16px;
-  border-radius: 16px;
-  background: #281341d9;
-  border: 1px solid #c4b4d733;
-  border-left-width: 1px;
-}
-#home [data-mode] strong {
-  font-size: 19px;
-  color: #faf8fc;
-}
-#home [data-mode] small {
-  font-size: 12px;
-  line-height: 1.5;
-  color: #c2b4d3;
-}
-#home [data-mode].selected {
-  border-color: var(--accent);
-  background: #402f53;
-  box-shadow: inset 0 3px var(--accent);
-}
-#home [data-mode].selected strong {
-  color: var(--accent);
-}
 #home .dropdown-trigger {
   min-height: 92px;
   border-radius: 16px;
@@ -4185,15 +4151,6 @@ body:has(#home[hidden]) .vignette {
   }
 }
 @media (max-width: 480px) {
-  #home [data-mode] {
-    padding: 14px 10px;
-  }
-  #home [data-mode] strong {
-    font-size: 15px;
-  }
-  #home [data-mode] small {
-    font-size: 11px;
-  }
   .game-picker {
     padding: 18px;
     width: calc(100vw - 20px);
@@ -4223,9 +4180,6 @@ body:has(#home[hidden]) .vignette {
   margin: 2vh 5vw 32px;
   width: min(760px, 90vw);
   padding-bottom: 28px;
-}
-#home [data-mode] {
-  min-width: 0;
 }
 #home .dropdown-trigger > span {
   min-width: 0;
@@ -4262,11 +4216,6 @@ body:has(#home[hidden]) .vignette {
 }
 #home .step-label {
   margin-bottom: 7px;
-}
-#home [data-mode] {
-  min-height: 80px;
-  padding: 12px;
-  gap: 5px;
 }
 #home .dropdown-trigger {
   min-height: 66px;
@@ -4953,13 +4902,13 @@ nav .text-button,
   }
 }
 
-/* Home is three screens: how you're playing (with difficulty) → game →
-   character and Start. #home[data-screen] says which one is showing. */
-#home[data-screen="mode"] .screen-head,
-#home:not([data-screen="mode"]) .mode-step,
-#home:not([data-screen="mode"]) .menu-links,
+/* Home is two screens: the game tiles (how you're playing and difficulty
+   above them) → character and Start. #home[data-screen] says which one is
+   showing. */
+#home[data-screen="game"] .screen-head,
+#home:not([data-screen="game"]) .menu-bar,
+#home:not([data-screen="game"]) .menu-links,
 #home:not([data-screen="game"]) .game-step,
-#home:not([data-screen="mode"]) #bot-step,
 #home:not([data-screen="character"]) .menu-go,
 #home:not([data-screen="character"]) .avatar-picker,
 #home:not([data-screen="character"]) .character-step {
@@ -4994,24 +4943,20 @@ nav .text-button,
   font-size: 11px;
   letter-spacing: 0.14em;
 }
-/* Screen 1: three big cards. */
-#home[data-screen="mode"] .menu {
-  max-width: 980px;
-  margin-top: 8vh;
+/* Screen 1: how you're playing and difficulty side by side, then the game
+   tiles filling the page. */
+#home .menu-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  max-width: 760px;
 }
-#home[data-screen="mode"] [data-mode] {
-  min-height: 190px;
-  padding: 24px 20px;
-  gap: 12px;
-  justify-content: flex-end;
+#home .menu-bar .menu-step {
+  margin: 0;
 }
-#home[data-screen="mode"] [data-mode] strong {
-  font-size: 28px;
+#home .menu-bar .dropdown-trigger {
+  min-height: 56px;
 }
-#home[data-screen="mode"] [data-mode] small {
-  font-size: 14px;
-}
-/* Screen 2: the game cards fill the page, with the rules above. */
 #home[data-screen="game"] .menu {
   max-width: none;
 }
@@ -5030,15 +4975,6 @@ nav .text-button,
   margin-top: 36px;
 }
 @media (max-width: 680px) {
-  #home[data-screen="mode"] .menu {
-    margin-top: 0;
-  }
-  #home[data-screen="mode"] .choice-row[aria-label="How you're playing"] {
-    grid-template-columns: 1fr;
-  }
-  #home[data-screen="mode"] [data-mode] {
-    min-height: 110px;
-  }
   #home .game-picker {
     padding: 16px;
   }
@@ -5171,4 +5107,55 @@ nav .text-button,
   #game-backdrop::after {
     background: #211233b3;
   }
+}
+
+/* The game screen's cards are tiles: the game's square icon and its name,
+   like a Home Screen. The rules show as the tile's tooltip; the screenshot
+   (.map-thumb) stays in the card for the character screen's backdrop. */
+#home .game-picker-body {
+  display: block;
+}
+#home .game-rules,
+#home .game-options .choice .map-thumb,
+#home .game-options .choice small,
+#home .game-card-number {
+  display: none;
+}
+#home .game-options .choice-row {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+#home .game-options .choice {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 0;
+  padding: 14px 10px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  background: #231335d9;
+  text-align: center;
+}
+#home .game-options .choice:hover,
+#home .game-options .choice:focus-visible,
+#home .game-options .choice.previewed {
+  border-color: #e8b5ff;
+  background: #33204ad9;
+}
+#home .game-options .choice.selected {
+  border-color: var(--accent);
+  box-shadow: none;
+}
+#home .game-tile-icon {
+  width: min(96px, 100%);
+  aspect-ratio: 1;
+  border-radius: 22px;
+  box-shadow: 0 6px 16px #0006;
+}
+#home .game-options .choice strong {
+  font-size: 16px;
+  padding: 0;
+}
+#home .game-options .choice .game-wip-badge {
+  margin: 0;
 }

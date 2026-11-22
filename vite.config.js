@@ -98,6 +98,32 @@ function homeLinks() {
   };
 }
 
+// Dev server: the same play/ game list. Its
+// per-game links (play/<id>/) open the menu with ?pick=<id>, which does the
+// same as the built per-game pages.
+function devHomeLinks() {
+  return {
+    name: "mini-games-dev-home-links",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = (req.url || "").split("?")[0];
+        if (path === "/play" || path === "/play/") {
+          res.setHeader("content-type", "text/html; charset=utf-8");
+          res.end(homeLinksPage("/"));
+          return;
+        }
+        const game = /^\/play\/([a-z0-9]+)\/?$/.exec(path);
+        if (game) {
+          res.writeHead(302, { location: `/?pick=${game[1]}` }).end();
+          return;
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   return {
     define: {
@@ -111,7 +137,7 @@ export default defineConfig(({ mode }) => {
     },
     base: mode === "pages" ? "/mini-games/" : "/",
     plugins: [
-      ...(mode === "pages" ? [homeLinks()] : []),
+      ...(mode === "pages" ? [homeLinks()] : [devHomeLinks()]),
       VitePWA({
         disable: mode !== "pages",
         registerType: "prompt",
@@ -149,10 +175,11 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    // The game icons (the menu's tiles) are in public-pages/ in every mode.
+    publicDir: "public-pages",
     ...(mode !== "pages"
       ? {}
       : {
-          publicDir: "public-pages",
           resolve: {
             alias: {
               "./critterAssets.js": fileURLToPath(

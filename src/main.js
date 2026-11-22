@@ -232,7 +232,7 @@ function syncBackdrop() {
 $("#app").innerHTML = `
 <div id="viewport"></div><div class="vignette"></div>
 <header><a class="brand" href="${import.meta.env.BASE_URL}" aria-label="Mini Games home"><span class="brand-mark">M<span></span></span>MINI GAMES<span class="build-tag">PROTOTYPE / 0.1</span></a><nav><span class="status-dot"></span><span id="connection-status">BACKYARD HIDE &amp; SEEK</span><button class="text-button" id="music-mute" aria-pressed="false">MUSIC ON</button><button class="text-button" id="controls-button">CONTROLS</button><button class="text-button" id="help-button">FIELD MANUAL <span>↗</span></button></nav></header>
-<main id="home" data-screen="mode"><section class="menu"><div class="screen-head" data-nav-row><button class="text-button" id="menu-back" aria-label="Back to the previous screen">← BACK</button><span id="screen-crumb"></span></div><div class="menu-step mode-step"><div class="step-label"><b>01</b> HOW YOU'RE PLAYING</div><div class="choice-row" data-nav-row role="group" aria-label="How you're playing"><button class="choice selected" data-mode="training" aria-pressed="true"><strong>Practice</strong><small>Just you. Every gadget, no timer</small></button><button class="choice" data-mode="solo" aria-pressed="false"><strong>Against AI</strong><small>Take on a bot opponent</small></button><button class="choice" data-mode="multi" aria-pressed="false"><strong>With Friends</strong><small>Host or join a private match</small></button></div></div><div class="menu-step" id="bot-step"><div class="step-label">DIFFICULTY</div><div class="choice-row" data-nav-row data-nav-choice role="group" aria-label="Difficulty">${Object.entries(
+<main id="home" data-screen="game"><section class="menu"><div class="screen-head" data-nav-row><button class="text-button" id="menu-back" aria-label="Back to the previous screen">← BACK</button><span id="screen-crumb"></span></div><div class="menu-bar"><div class="menu-step mode-step"><div class="step-label">HOW YOU'RE PLAYING</div><div class="choice-row" data-nav-row role="group" aria-label="How you're playing"><button class="choice selected" data-mode="training" aria-pressed="true"><strong>Practice</strong><small>Just you. Every gadget, no timer</small></button><button class="choice" data-mode="solo" aria-pressed="false"><strong>Against AI</strong><small>Take on a bot opponent</small></button><button class="choice" data-mode="multi" aria-pressed="false"><strong>With Friends</strong><small>Host or join a private match</small></button></div></div><div class="menu-step" id="bot-step"><div class="step-label">DIFFICULTY</div><div class="choice-row" data-nav-row data-nav-choice role="group" aria-label="Difficulty">${Object.entries(
   BOT_LEVEL_TEXT,
 )
   .map(
@@ -241,7 +241,7 @@ $("#app").innerHTML = `
   )
   .join(
     "",
-  )}</div></div><div class="menu-step game-step"><div class="choice-row two" data-nav-row data-nav-choice role="group" aria-label="Game"><button class="choice" data-game="splash" aria-pressed="false"><strong>Splash</strong><small>Kid-friendly: water balloons. ${CONFIG.splashHits} splashes and you're soaked.</small></button><button class="choice" data-game="hotpotato" aria-pressed="false"><strong>Hot Potato</strong><small>One silly potato! Toss it across before it sneezes confetti. First to 2 rounds.</small></button><button class="choice" data-game="breakout" aria-pressed="false"><strong>Breakout</strong><small>Auto run down three lanes, faster as you go. Jump logs and dodge hay bales. How far can you go?</small></button><button class="choice" data-game="boulders" aria-pressed="false"><strong>Boulder Dash</strong><small>Party: race up a steep channel as boulders roll down. Duck into the recesses, dash for the next. First to the top.</small></button><button class="choice" data-game="sprinklers" aria-pressed="false"><strong>Sprinkler Dodge</strong><small>Dodge pop-up sprinklers in a compact yard. More spray each wave. Last one dry wins!</small></button><button class="choice" data-game="livewire" aria-pressed="false"><strong>Beach Ball Dodge</strong><small>Bots throw beach balls straight across the pool. Step out of their path to stay on the float. Last one dry wins.</small></button></div></div><div class="menu-go"><div class="step-label">START</div><div id="menu-summary"></div><button class="primary" id="deploy">START PRACTICE ${icon("arrow")}</button><div id="join-row" data-nav-row hidden><span>OR JOIN A FRIEND'S MATCH</span><input id="room-code" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="join" class="secondary">JOIN ${icon("arrow", 16)}</button></div><div id="home-error" class="error"></div></div><div class="menu-links" data-nav-row><button class="text-button" id="menu-controls">CONTROLS &amp; SETTINGS</button><button class="text-button" id="menu-manual">FIELD MANUAL</button><button class="text-button" id="menu-builder">MAP BUILDER</button><button class="text-button" id="menu-home-links" hidden>GROWN-UPS: GAMES &amp; LINKS</button><span class="micro"><span class="status-dot"></span><span id="pad-status">CONTROLLER: PRESS ANY BUTTON</span></span></div></section></main>
+  )}</div></div></div><div class="menu-step game-step"><div class="choice-row two" data-nav-row data-nav-choice role="group" aria-label="Game"><button class="choice" data-game="splash" aria-pressed="false"><strong>Splash</strong><small>Kid-friendly: water balloons. ${CONFIG.splashHits} splashes and you're soaked.</small></button><button class="choice" data-game="hotpotato" aria-pressed="false"><strong>Hot Potato</strong><small>One silly potato! Toss it across before it sneezes confetti. First to 2 rounds.</small></button><button class="choice" data-game="breakout" aria-pressed="false"><strong>Breakout</strong><small>Auto run down three lanes, faster as you go. Jump logs and dodge hay bales. How far can you go?</small></button><button class="choice" data-game="boulders" aria-pressed="false"><strong>Boulder Dash</strong><small>Party: race up a steep channel as boulders roll down. Duck into the recesses, dash for the next. First to the top.</small></button><button class="choice" data-game="sprinklers" aria-pressed="false"><strong>Sprinkler Dodge</strong><small>Dodge pop-up sprinklers in a compact yard. More spray each wave. Last one dry wins!</small></button><button class="choice" data-game="livewire" aria-pressed="false"><strong>Beach Ball Dodge</strong><small>Bots throw beach balls straight across the pool. Step out of their path to stay on the float. Last one dry wins.</small></button></div></div><div class="menu-go"><div class="step-label">START</div><div id="menu-summary"></div><button class="primary" id="deploy">START PRACTICE ${icon("arrow")}</button><div id="join-row" data-nav-row hidden><span>OR JOIN A FRIEND'S MATCH</span><input id="room-code" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="join" class="secondary">JOIN ${icon("arrow", 16)}</button></div><div id="home-error" class="error"></div></div><div class="menu-links" data-nav-row><button class="text-button" id="menu-controls">CONTROLS &amp; SETTINGS</button><button class="text-button" id="menu-manual">FIELD MANUAL</button><button class="text-button" id="menu-builder">MAP BUILDER</button><span class="micro"><span class="status-dot"></span><span id="pad-status">CONTROLLER: PRESS ANY BUTTON</span></span></div></section></main>
 
 <section id="purchase" class="panel-screen" hidden><div class="purchase-heading"><div><div class="eyebrow" id="loadout-label">GAME / BACKPACK</div><h2 id="purchase-title">Pack your bag</h2><div class="role-chip" id="role-chip"></div><p id="purchase-description"></p></div></div><div class="purchase-body"><aside class="loadout-side"><div class="section-label">YOUR BACKPACK</div><div class="credits" id="credits-block"><div><span id="credits">1,000</span><span class="credit-unit">CR LEFT</span></div><div class="credit-bar"><i id="credit-spent"></i></div><small id="credit-note"></small></div><ul id="loadout-list" data-nav-row></ul><div class="room-label" id="room-label">SESSION CODE <strong id="session-code"></strong><button id="copy-code" class="text-button">COPY ↗</button></div></aside><div class="shop"><div class="shop-top"><span>MISSION EQUIPMENT</span><span id="shop-privacy">YOUR PURCHASES ARE PRIVATE ${icon("shield", 15)}</span><span id="training-fill" hidden><button data-fill="all" class="text-button">TAKE ALL</button><button data-fill="none" class="text-button">CLEAR ALL</button></span></div><div id="gadget-grid"></div><div id="bot-loadout" hidden></div><div class="shop-note">${icon("eye", 17)} Pack a Smoke Puff, Glitter Popper, Peek-a-Boo Ball or Door Stopper.</div></div><aside id="gadget-detail" class="gadget-detail" aria-live="polite"></aside></div><footer class="purchase-footer"><div><span class="status-dot"></span><span id="footer-credits"></span><span id="ready-status">RESET CREDITS EACH ROUND · NO PERSISTENT PROGRESSION</span></div><button id="walk-around" class="secondary">WALK AROUND ↗</button><button id="ready" class="primary">PACK BACKPACK ${icon("arrow")}</button></footer></section>
 <div id="hud" hidden><div id="flash-veil"></div><div id="splash-veil"></div><div id="chase-veil"></div><div id="climb" hidden><div class="climb-track"><i id="climb-them"></i><i id="climb-you"></i></div><div class="climb-label"><strong id="climb-height">0 M</strong><span id="climb-of">OF 130</span><span id="climb-hits">0 HITS</span></div></div><div id="livewire" hidden><div class="lw-wave"><span>WAVE</span><strong id="lw-wave">1</strong><time id="lw-time">00:00</time></div><div class="lw-row" id="lw-you"><i></i><span>YOU</span><b>0 BUMPS</b></div><div class="lw-row" id="lw-them"><i></i><span>BOT</span><b>0 BUMPS</b></div></div><div id="boulder-warn" hidden><b id="boulder-lane"><i></i><i></i></b><span id="boulder-text">BOULDER</span></div><div id="chase" hidden><div class="chase-label"><span id="chase-who">BREAKOUT</span><strong id="chase-gap">JUMP LOGS · DODGE HAY</strong><span id="chase-run">0 M</span></div></div><div id="soaked-card" hidden>Soaked!<small>You're out. Great try!</small></div><div class="hud-top"><div class="objective"><span id="phase-tag">INFILTRATION</span><div id="objective-text">RAISE THE FLAG</div><small id="round-info">TRAINING GROUND 09</small></div><div class="timer"><span class="status-dot"></span><strong id="timer">04:00</strong><span id="team-tag">INFILTRATOR</span></div></div><div id="crosshair"><span></span><span></span><span></span><span></span></div><div id="compass" aria-hidden="true"><div class="compass-strip"></div><div class="compass-marks"></div><i class="compass-caret"></i></div><div id="bearing">000°</div><div id="camera-banner" hidden>LIVE / CAM 01 <span>KEEP AN INTRUDER IN FRAME TO TAG THEM</span></div><div id="center-feedback"><div id="alert" hidden></div><div id="progress-area" hidden><span id="progress-label"></span><div class="progress-track"><i id="progress-bar"></i></div></div><div id="interaction"></div></div><canvas id="minimap" width="200" height="200"></canvas><div class="map-caption" id="map-caption">THE COMPOUND</div><div id="equipment-bar"></div><div id="stance" data-stance="stand"><div class="stance-icons">${Object.entries(
@@ -275,9 +275,14 @@ $("#home .menu").append(buildLabel);
 const refreshRow = document.createElement("div");
 refreshRow.className = "update-ready refresh-row";
 refreshRow.setAttribute("data-nav-row", "");
-refreshRow.innerHTML = `<button class="secondary" id="hard-refresh" title="Clear the saved copy and load the newest version">↻ REFRESH</button>`;
+// Grown-ups: the play/ page's keypad, then every game, which ones are
+// released to this menu, and the Home Screen links.
+refreshRow.innerHTML = `<button class="secondary" id="menu-grown-ups" title="Choose which games show here, and make Home Screen links">GROWN-UPS</button><button class="secondary" id="hard-refresh" title="Clear the saved copy and load the newest version">↻ REFRESH</button>`;
 $("#home .menu").append(refreshRow);
-refreshRow.querySelector("button").addEventListener("click", (event) => {
+$("#menu-grown-ups").addEventListener("click", () =>
+  location.assign(`${import.meta.env.BASE_URL}play/?grown`),
+);
+$("#hard-refresh").addEventListener("click", (event) => {
   event.currentTarget.disabled = true;
   event.currentTarget.textContent = "REFRESHING…";
   hardRefresh();
@@ -959,8 +964,6 @@ document.querySelectorAll("[data-mode]").forEach(
       visible("#join-row", mode === "multi" && !launchers[menuGame]);
       showBotStep();
       updateSummary();
-      // Choosing how you're playing moves on to the game selection.
-      showScreen("game");
     }),
 );
 // The rules choice, remembered in this browser. Splash is the kid-friendly
@@ -1238,10 +1241,10 @@ $("#deploy").onclick = () => {
   role = Math.random() < 0.5 ? "attacker" : "defender";
   connect(true);
 };
-// The home menu is three screens, one after another: how you're playing
-// (with difficulty), then the game, then your character and Start. Back,
-// Escape and the controller's B step back one screen.
-const SCREENS = ["mode", "game", "character"];
+// The home menu is two screens: the game tiles (with how you're playing and
+// difficulty above them), then your character and Start. Back, Escape and
+// the controller's B step back one screen.
+const SCREENS = ["game", "character"];
 const MODE_NAMES = {
   solo: "Against AI",
   multi: "With Friends",
@@ -1253,12 +1256,6 @@ const MODE_NAMES = {
 let setGameView = () => {};
 function showScreen(name) {
   const home = $("#home");
-  // Coming forward from how you're playing always starts on the main games.
-  if (name === "game" && home.dataset.screen === "mode") {
-    const search = $("#game-search");
-    if (search) search.value = "";
-    setGameView("main");
-  }
   home.dataset.screen = name;
   closeDropdowns();
   syncBackdrop();
@@ -1272,18 +1269,16 @@ function showScreen(name) {
     .toUpperCase();
   home.scrollTop = 0;
   const target =
-    name === "mode"
-      ? $("#home [data-mode].selected")
-      : name === "game"
-        ? (() => {
-            const shown = [
-              ...document.querySelectorAll("#home [data-game]"),
-            ].filter((el) => !el.hidden);
-            return (
-              shown.find((el) => el.classList.contains("selected")) || shown[0]
-            );
-          })()
-        : $('#home .headshot[aria-pressed="true"]');
+    name === "game"
+      ? (() => {
+          const shown = [
+            ...document.querySelectorAll("#home [data-game]"),
+          ].filter((el) => !el.hidden);
+          return (
+            shown.find((el) => el.classList.contains("selected")) || shown[0]
+          );
+        })()
+      : $('#home .headshot[aria-pressed="true"]');
   target?.focus({ preventScroll: true });
 }
 // A game opened from the game list (play/, the Home Screen launcher): Back
@@ -1291,11 +1286,7 @@ function showScreen(name) {
 const gameListUrl = `${import.meta.env.BASE_URL}play/`;
 const fromGameList = (() => {
   try {
-    return (
-      staticHosting &&
-      !!pickedGame() &&
-      sessionStorage.getItem(FROM_LIST_KEY) === "1"
-    );
+    return !!pickedGame() && sessionStorage.getItem(FROM_LIST_KEY) === "1";
   } catch {
     return false;
   }
@@ -1313,12 +1304,12 @@ function menuBack() {
     location.assign(gameListUrl);
     return true;
   }
-  if (i <= 0) return false;
   // Work in Progress steps back to the main game list first.
   if (SCREENS[i] === "game" && $("#home").dataset.gameView === "wip") {
     setGameView("main", true);
     return true;
   }
+  if (i <= 0) return false;
   showScreen(SCREENS[i - 1]);
   return true;
 }
@@ -1445,7 +1436,6 @@ if (window.matchMedia?.("(pointer: coarse)").matches) {
 }
 
 for (const list of document.querySelectorAll("#home .choice-row")) {
-  if (list.getAttribute("aria-label") === "How you're playing") continue;
   if (list.getAttribute("aria-label") === "Game") {
     // Screen 2: every game as a card, with the rules of the one under the
     // pointer or focus beside them.
@@ -1455,7 +1445,7 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     picker.className = "game-picker";
     picker.setAttribute("role", "region");
     picker.setAttribute("aria-labelledby", "game-picker-title");
-    picker.innerHTML = `<div class="game-picker-head"><div><div class="step-label"><b>02</b> GAME</div><h2 id="game-picker-title">Choose your game.</h2></div><div class="game-picker-tools" data-nav-row><input type="search" id="game-search" class="game-search" placeholder="Search games" aria-label="Search games" autocomplete="off" spellcheck="false"><button class="secondary game-wip-toggle" id="game-wip-toggle"></button></div></div><p class="game-search-empty" hidden></p><div class="game-picker-body"><aside class="game-rules" aria-live="polite"><div class="eyebrow">THE RULES</div><h3></h3><p></p><span class="micro">Select a game to play.</span></aside><div class="game-options"></div></div>`;
+    picker.innerHTML = `<div class="game-picker-head"><div><div class="step-label">GAMES</div><h2 id="game-picker-title">Choose your game.</h2></div><div class="game-picker-tools" data-nav-row><input type="search" id="game-search" class="game-search" placeholder="Search games" aria-label="Search games" autocomplete="off" spellcheck="false"><button class="secondary game-wip-toggle" id="game-wip-toggle"></button></div></div><p class="game-search-empty" hidden></p><div class="game-picker-body"><aside class="game-rules" aria-live="polite"><div class="eyebrow">THE RULES</div><h3></h3><p></p><span class="micro">Select a game to play.</span></aside><div class="game-options"></div></div>`;
     list.before(picker);
     picker.querySelector(".game-options").append(list);
     const gameMaps = {
@@ -1513,6 +1503,13 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
                           ? mapThumb(ground)
                           : `<span class="map-thumb game-arena">${icon("flag", 36)}<b>DEDICATED ARENA</b></span>`,
         );
+      // The tile: the game's square Home Screen icon (public-pages/icons),
+      // with its rules as the tooltip.
+      option.title = option.querySelector("small").textContent;
+      option.insertAdjacentHTML(
+        "afterbegin",
+        `<img class="game-tile-icon" src="${import.meta.env.BASE_URL}icons/games/${option.dataset.game}-180.png" alt="" draggable="false">`,
+      );
       option.insertAdjacentHTML(
         "beforeend",
         `<span class="game-card-number">${String(index + 1).padStart(2, "0")} / PLAY${isWip ? ' <span class="game-wip-badge">WIP</span>' : ""}</span>`,
@@ -1520,6 +1517,7 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     });
     list.removeAttribute("data-nav-choice");
     list.setAttribute("data-nav-row", "");
+    list.setAttribute("data-nav-tiles", "");
     const preview = (option) => {
       picker.querySelector("h3").textContent =
         option.querySelector("strong").textContent;
@@ -1841,12 +1839,6 @@ const builder = createBuilder({
     updateSummary();
   },
 });
-// The Pages build's play/ page: the released games' Home Screen links, and
-// (behind the grown-ups' code) every game and which ones are released.
-// Not on the dev server, which has no play/ page.
-$("#menu-home-links").hidden = !staticHosting;
-$("#menu-home-links").onclick = () =>
-  location.assign(`${import.meta.env.BASE_URL}play/`);
 $("#menu-builder").onclick = () => {
   visible("#home", false);
   builder.open();
@@ -3444,6 +3436,35 @@ function navigateMenu(direction, horizontal = false) {
       if (row.hasAttribute("data-nav-choice")) next.click();
     }
     return;
+  }
+  // In a grid of tiles ([data-nav-tiles], the game tiles), up/down moves to
+  // the nearest tile in the line above or below, and leaves the grid from
+  // its top or bottom line.
+  if (!horizontal && row?.hasAttribute("data-nav-tiles")) {
+    const a = current.getBoundingClientRect(),
+      centre = (b) => b.left + b.width / 2,
+      beyond = items
+        .filter((el) => rowOf(el) === row && el !== current)
+        .map((el) => [el, el.getBoundingClientRect()])
+        .filter(([, b]) =>
+          direction > 0 ? b.top >= a.bottom - 1 : b.bottom <= a.top + 1,
+        );
+    if (beyond.length) {
+      const tops = beyond.map(([, b]) => b.top),
+        lineTop = direction > 0 ? Math.min(...tops) : Math.max(...tops),
+        [next] = beyond
+          .filter(([, b]) => Math.abs(b.top - lineTop) < 2)
+          .reduce((best, t) =>
+            Math.abs(centre(t[1]) - centre(a)) <
+            Math.abs(centre(best[1]) - centre(a))
+              ? t
+              : best,
+          );
+      next.focus();
+      markRow(next);
+      next.scrollIntoView({ block: "nearest" });
+      return;
+    }
   }
   if (horizontal) {
     let index = items.indexOf(focused);

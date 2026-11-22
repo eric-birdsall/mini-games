@@ -227,6 +227,8 @@ ${section("Work in progress", "Still being built: these may change or break.", w
     $("#grown-up").focus();
   };
   $("#grown-up").onclick = openPad;
+  // From the main menu's GROWN-UPS button (?grown): ask for the code now.
+  if (new URLSearchParams(location.search).has("grown") && !document.body.classList.contains("grown")) openPad();
   const press = (digit) => {
     if (typed.length >= CFG.code.length) return;
     typed += digit;

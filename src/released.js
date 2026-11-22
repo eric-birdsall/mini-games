@@ -28,13 +28,14 @@ export function saveReleasedGames(ids) {
 export const FROM_LIST_KEY = "minigames.fromList";
 
 // The kids' menu shows only the released games (no Work in Progress, no
-// search). That's the default on the published app; the dev server shows
-// every game unless opened with ?kids. Typing "all" on the kids' game screen
-// shows every game until the app or tab is closed (SHOW_ALL_KEY).
+// search), on the dev server too. ?all shows every game; so does typing
+// "all" on the kids' game screen, until the app or tab is closed
+// (SHOW_ALL_KEY).
 export const SHOW_ALL_KEY = "minigames.showAll";
 export function showAllGames(search = location.search) {
-  if (new URLSearchParams(search).has("kids")) return false;
-  if (import.meta.env?.MODE !== "pages") return true;
+  const params = new URLSearchParams(search);
+  if (params.has("kids")) return false;
+  if (params.has("all")) return true;
   try {
     return sessionStorage.getItem(SHOW_ALL_KEY) === "1";
   } catch {
