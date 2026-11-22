@@ -142,6 +142,10 @@ export default defineConfig(({ mode }) => {
           skipWaiting: false,
           clientsClaim: false,
           navigateFallback: "index.html",
+          // The game list and per-game pages are their own pages: never
+          // answer them with the main menu (e.g. a page newer than this
+          // offline copy); go to the network instead.
+          navigateFallbackDenylist: [/\/play\//],
         },
       }),
     ],

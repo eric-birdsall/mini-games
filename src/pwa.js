@@ -4,6 +4,29 @@ import { registerSW } from "virtual:pwa-register";
 // and reloads. The main menu shows an "Update ready" button for it.
 export let applyUpdate = null;
 
+// An older offline copy answers pages it doesn't know (the game list at
+// play/, a game page added since) with the main menu. The main menu at such
+// an address (a real game page carries <meta name="mini-games-pick">) means
+// this copy is stale: drop it and load the page from the network once. The
+// offline copy is set up again on that load, reusing the files it has.
+const stalePage =
+  import.meta.env.MODE === "pages" &&
+  location.pathname.startsWith(`${import.meta.env.BASE_URL}play/`) &&
+  !document.querySelector('meta[name="mini-games-pick"]');
+if (stalePage) {
+  let tried = false;
+  try {
+    tried = sessionStorage.getItem("minigames.staleFix") === location.pathname;
+    sessionStorage.setItem("minigames.staleFix", location.pathname);
+  } catch {}
+  if (!tried)
+    navigator.serviceWorker
+      ?.getRegistrations()
+      .then((all) => Promise.all(all.map((r) => r.unregister())))
+      .catch(console.warn)
+      .finally(() => location.reload());
+}
+
 if (import.meta.env.MODE === "pages") {
   const updateSW = registerSW({
     onRegisteredSW(_url, registration) {
