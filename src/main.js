@@ -1,4 +1,4 @@
-import { applyUpdate } from "./pwa.js";
+import { applyUpdate, hardRefresh } from "./pwa.js";
 import {
   DEFAULT_RELEASED,
   releasedGames,
@@ -271,6 +271,17 @@ const buildTime = new Date(__BUILD_TIME__);
 buildLabel.textContent = `Last Updated: ${buildTime.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })} · ${__BUILD_COMMIT__}`;
 buildLabel.title = `Build time: ${__BUILD_TIME__} · Commit: ${__BUILD_COMMIT__}`;
 $("#home .menu").append(buildLabel);
+// Refresh: clears the offline copy and reloads the newest version.
+const refreshRow = document.createElement("div");
+refreshRow.className = "update-ready refresh-row";
+refreshRow.setAttribute("data-nav-row", "");
+refreshRow.innerHTML = `<button class="secondary" id="hard-refresh" title="Clear the saved copy and load the newest version">↻ REFRESH</button>`;
+$("#home .menu").append(refreshRow);
+refreshRow.querySelector("button").addEventListener("click", (event) => {
+  event.currentTarget.disabled = true;
+  event.currentTarget.textContent = "REFRESHING…";
+  hardRefresh();
+});
 const updateRow = document.createElement("div");
 updateRow.className = "update-ready";
 updateRow.setAttribute("data-nav-row", "");

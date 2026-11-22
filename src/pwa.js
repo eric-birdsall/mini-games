@@ -34,3 +34,33 @@ if (import.meta.env.MODE === "pages") {
     },
   });
 }
+
+// The menu's Refresh button: drop the offline copy (service worker and its
+// caches) and reload from the network, so a stuck old version can't linger.
+export async function hardRefresh() {
+  try {
+    const registrations =
+      (await navigator.serviceWorker?.getRegistrations()) ?? [];
+    await Promise.all(registrations.map((r) => r.unregister()));
+  } catch (error) {
+    console.warn(error);
+  }
+  try {
+    if (window.caches)
+      await Promise.all((await caches.keys()).map((k) => caches.delete(k)));
+  } catch (error) {
+    console.warn(error);
+  }
+  const url = new URL(location.href);
+  url.searchParams.set("refresh", Date.now().toString(36));
+  location.replace(url.toString());
+}
+
+// Drop the cache-busting stamp from the address bar once the page has loaded.
+{
+  const url = new URL(location.href);
+  if (url.searchParams.has("refresh")) {
+    url.searchParams.delete("refresh");
+    history.replaceState(history.state, "", url.toString());
+  }
+}

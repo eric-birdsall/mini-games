@@ -118,7 +118,7 @@ body.grown .kid { display: none; }
 </style>
 </head>
 <body>
-<header><h1>Games</h1><button class="pill kid" id="grown-up">GROWN-UPS</button><button class="pill grown" id="lock">🔒 LOCK</button><a class="pill" id="back" href="${base}">← MINI GAMES</a></header>
+<header><h1>Games</h1><button class="pill kid" id="grown-up">GROWN-UPS</button><button class="pill grown" id="refresh" title="Clear the saved copy and load the newest version">↻ REFRESH</button><button class="pill grown" id="lock">🔒 LOCK</button><a class="pill" id="back" href="${base}">← MINI GAMES</a></header>
 <div class="grown">
 <p class="how">Tap <b>Release</b> to put a game on the kids' menu on this device; only released games show there and on this page once you lock it. Release games from inside the Home Screen app: an iPad keeps Safari's list and each Home Screen icon's list separately.</p>
 <p class="how">To make a game its own Home Screen icon, open it here in Safari and choose <b>Share → Add to Home Screen</b>. Its icon opens straight to the character screen.</p>
@@ -148,6 +148,14 @@ ${section("Work in progress", "Still being built: these may change or break.", w
   };
   for (const a of document.querySelectorAll("li a")) a.addEventListener("click", () => fromList(true));
   $("#back").addEventListener("click", () => fromList(false));
+  // Refresh (grown-ups): drop the offline copy and reload the newest version.
+  $("#refresh").addEventListener("click", async (e) => {
+    e.currentTarget.disabled = true;
+    e.currentTarget.textContent = "REFRESHING…";
+    try { await Promise.all(((await navigator.serviceWorker?.getRegistrations()) || []).map((r) => r.unregister())); } catch {}
+    try { if (window.caches) await Promise.all((await caches.keys()).map((k) => caches.delete(k))); } catch {}
+    location.replace(location.pathname + "?refresh=" + Date.now().toString(36));
+  });
   const cards = [...document.querySelectorAll("li[data-id]")];
   const known = new Set(cards.map((li) => li.dataset.id));
   const load = () => {
