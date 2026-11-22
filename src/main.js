@@ -1293,7 +1293,12 @@ if (fromGameList) $("header .brand").href = gameListUrl;
 function menuBack() {
   if ($("#home").hidden) return false;
   const i = SCREENS.indexOf($("#home").dataset.screen);
-  if (fromGameList && SCREENS[i] === "character") {
+  // A game without a character came back to the game screen instead.
+  if (
+    fromGameList &&
+    (SCREENS[i] === "character" ||
+      (SCREENS[i] === "game" && skipsCharacter(menuGame)))
+  ) {
     location.assign(gameListUrl);
     return true;
   }
@@ -1319,6 +1324,25 @@ function closeDropdowns(except) {
       .setAttribute("aria-expanded", "false");
   });
 }
+// Standalone games that never show the player's character skip the
+// character screen: picking one opens it straight to its own How to Play.
+const NO_CHARACTER = new Set([
+  "memory",
+  "toybox",
+  "lanterntrail",
+  "targetblaster",
+  "racetrack",
+  "foodfinder",
+  "paperplane",
+  "bigbadburger",
+  "animalpatrol",
+  "shadowshop",
+  "bocce",
+  "shuffleboard",
+  "kubb",
+  "puckclash",
+]);
+const skipsCharacter = (id) => NO_CHARACTER.has(id) && !!launchers[id];
 // Register standalone games before capturing the popup options.
 installSlipstream(() => botLevel, selectedAvatar);
 installMemory(() => botLevel);
@@ -1579,8 +1603,12 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
     options.forEach((o) => {
       o.addEventListener("pointerenter", () => preview(o));
       o.addEventListener("focus", () => preview(o));
-      // Choosing a game moves on to the character selection.
-      o.addEventListener("click", () => showScreen("character"));
+      // Choosing a game moves on to the character selection, or opens it
+      // when it doesn't use a character.
+      o.addEventListener("click", () => {
+        if (skipsCharacter(o.dataset.game)) launchers[o.dataset.game]();
+        else showScreen("character");
+      });
     });
     continue;
   }
@@ -4266,7 +4294,8 @@ if (kidView) {
 // game, as if it had been picked and Start pressed. Leaving it lands on the
 // character screen like any other game.
 // A game's Home Screen link (or ?pick=<id or name>) stops one step earlier,
-// on the character screen with that game picked.
+// on the character screen with that game picked. Games without a character
+// (NO_CHARACTER) open straight away either way and leave to the game list.
 {
   const findGame = (want) =>
     want &&
@@ -4280,8 +4309,13 @@ if (kidView) {
     entry = findGame(want || pick);
   if (entry) {
     pickGame(entry.dataset.game);
-    showScreen("character");
-    if (want) $("#deploy").click();
+    if (skipsCharacter(entry.dataset.game)) {
+      showScreen("game");
+      launchers[entry.dataset.game]();
+    } else {
+      showScreen("character");
+      if (want) $("#deploy").click();
+    }
   } else if (want || pick)
     console.warn(
       `${want ? "?game" : "pick"}: no game called "${want || pick}"`,

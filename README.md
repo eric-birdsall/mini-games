@@ -11,13 +11,13 @@ Private matches across devices use the Node.js server below.
 
 ## iPad Home Screen and offline play
 
-1. Open the game list, [mini-games/play/](https://eric-birdsall.github.io/mini-games/play/), in **Safari**, then choose **Share → Add to Home Screen → Add**. The icon opens full screen on that list. Tapping a game opens its character screen, and **Back** (or B, or the Mini Games logo) returns to the list. Use **← MINI GAMES** on the list for the full menu.
+1. Open the game list, [mini-games/play/](https://eric-birdsall.github.io/mini-games/play/), in **Safari**, then choose **Share → Add to Home Screen → Add**. The icon opens full screen on that list. Tapping a game opens its character screen (games that don't show a character open straight to their How to Play), and **Back** (or B, or the Mini Games logo) returns to the list. Use **← MINI GAMES** on the list for the full menu.
 2. Stay online while the first visit downloads the complete game (about 46 MiB). Slow connections may need a minute or more. The browser console reports “Mini Games is ready for offline play” when caching succeeds. Before travelling, turn off Wi-Fi and cellular data and reopen the Home Screen app to confirm it loads.
 3. Launch from the Home Screen for standalone mode without Safari navigation controls. Portrait and landscape remain available; the default viewport keeps iPad safe-area protection.
 
 **Releasing games to kids:** the installed app's menu shows only released games (Big Bad Burger to start). On the main menu, choose **GROWN-UPS: GAMES & LINKS**, tap **GROWN-UPS** and enter the code (`GROWN_UP_CODE` in `src/released.js`, `2580`). Every game appears, tagged **WIP** or **Not for mobile**. Tap **Release** on the ones you want, then **LOCK**. The list is saved in this device's `localStorage`. On iPad, Safari and each Home Screen icon keep separate storage, so release games from inside the Home Screen app. The dev server shows every game unless opened with `?kids`. Typing `all` on the kids' game screen shows every game until the app closes.
 
-**One icon per game:** in Safari, unlock the same page, tap a game, then **Share → Add to Home Screen**. That icon shows the game's screenshot and opens straight to the character screen with the game picked, released or not. The list is `src/homeLinks.js`; after adding a game there, run `node tools/make_home_icons.mjs` and commit the icons. Locally, `?pick=<game>` does the same on any page.
+**One icon per game:** in Safari, unlock the same page, tap a game, then **Share → Add to Home Screen**. That icon shows the game's screenshot and opens straight to the character screen with the game picked, released or not (or straight into the game, for one without a character). The list is `src/homeLinks.js`; after adding a game there, run `node tools/make_home_icons.mjs` and commit the icons. Locally, `?pick=<game>` does the same on any page.
 
 Practice, AI and shared-device games work offline. Private matches across devices still require the Node server and are unavailable on Pages. Fonts, models, music, voice clips and Three.js decoders are included locally; there are no required external font requests. Saves remain in the existing local storage. iPadOS can evict website data under storage pressure; reopen online to restore the offline cache.
 
@@ -92,6 +92,8 @@ The home menu is three screens, one after another, over a live flyover of the ma
 **Search:** a search box at the top of the game screen filters every game (finished and Work in Progress) by name and rules as you type. Enter picks the top result, ↓ moves to the results, Escape clears it. With a controller, ↑ from the cards reaches the box.
 
 **Direct link:** `?game=<id or name>` skips the menu and opens that game, as if picked and Start pressed, e.g. [`?game=bigbadburger`](https://eric-birdsall.github.io/mini-games/?game=bigbadburger). Names match ignoring case, spaces and punctuation (`?game=big-bad-burger` works too). Leaving the game lands on the character screen.
+
+**Games without a character** (Firefly Recall, Toy Box Rescue, Lantern Trail, Target Blaster, Racetrack Builder, Look & Find, Paper Plane Pitch, Big Bad Burger, Animal Patrol, Shadow Shop, Bocce Ball, Shuffleboard, Kubb, Puck Clash) skip the character screen: picking one opens it straight to its own How to Play, and leaving it returns to the game list. The list is `NO_CHARACTER` in `src/main.js`.
 
 **Kids view:** the normal page shows every game. Open it with `?kids` (e.g. `localhost:3000/?kids`) to show only the games listed in `RELEASED_GAMES` in `src/released.js` (so far Big Bad Burger), with no search and no Work in Progress button. Games are released to the kids one at a time: add a game's id to that list to release it. On the `?kids` game screen, typing **all** on the keyboard reloads without `?kids`, keeps how you're playing and opens back on the game screen.
 
