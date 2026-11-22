@@ -1,9 +1,15 @@
 import { applyUpdate } from "./pwa.js";
 import {
-  RELEASED_GAMES,
+  DEFAULT_RELEASED,
+  releasedGames,
+  SHOW_ALL_KEY,
+  FROM_LIST_KEY,
   showAllGames,
   directGame,
+  pickedGame,
   squashName,
+  WIP_GAMES,
+  NEEDS_KEYS,
 } from "./released.js";
 import { LocalMatch } from "./localMatch.js";
 import { resultTrophy } from "./gameResults.js";
@@ -16,6 +22,7 @@ import breakoutPreview from "./assets/modes/breakout.png";
 import slipstreamPreview from "./assets/modes/slipstream.jpg";
 import fireflyRecallPreview from "./assets/modes/firefly-recall.jpg";
 import { installAvatarPicker } from "./avatarPicker.js";
+import { installGameBackdrop } from "./gameBackdrop.js";
 import { CHARACTERS } from "../shared/avatars.js";
 import { installSlipstream } from "./slipstream.js";
 import { installMemory } from "./memory.js";
@@ -213,6 +220,14 @@ const icon = (name, size = 20) => {
     .join("")}</svg>`;
 };
 const staticHosting = import.meta.env.MODE === "pages";
+// The character screen's parallax backdrop of the picked game's screenshot.
+let gameBackdrop = null;
+function syncBackdrop() {
+  const home = $("#home");
+  if (!home) return;
+  gameBackdrop ??= installGameBackdrop(home);
+  gameBackdrop(home.dataset.screen, $(`#home [data-game="${menuGame}"]`));
+}
 
 $("#app").innerHTML = `
 <div id="viewport"></div><div class="vignette"></div>
@@ -226,7 +241,7 @@ $("#app").innerHTML = `
   )
   .join(
     "",
-  )}</div></div><div class="menu-step game-step"><div class="choice-row two" data-nav-row data-nav-choice role="group" aria-label="Game"><button class="choice" data-game="splash" aria-pressed="false"><strong>Splash</strong><small>Kid-friendly: water balloons. ${CONFIG.splashHits} splashes and you're soaked.</small></button><button class="choice" data-game="hotpotato" aria-pressed="false"><strong>Hot Potato</strong><small>One silly potato! Toss it across before it sneezes confetti. First to 2 rounds.</small></button><button class="choice" data-game="breakout" aria-pressed="false"><strong>Breakout</strong><small>Auto run down three lanes, faster as you go. Jump logs and dodge hay bales. How far can you go?</small></button><button class="choice" data-game="boulders" aria-pressed="false"><strong>Boulder Dash</strong><small>Party: race up a steep channel as boulders roll down. Duck into the recesses, dash for the next. First to the top.</small></button><button class="choice" data-game="sprinklers" aria-pressed="false"><strong>Sprinkler Dodge</strong><small>Dodge pop-up sprinklers in a compact yard. More spray each wave. Last one dry wins!</small></button><button class="choice" data-game="livewire" aria-pressed="false"><strong>Beach Ball Dodge</strong><small>Bots throw beach balls straight across the pool. Step out of their path to stay on the float. Last one dry wins.</small></button></div></div><div class="menu-go"><div class="step-label">START</div><div id="menu-summary"></div><button class="primary" id="deploy">START PRACTICE ${icon("arrow")}</button><div id="join-row" data-nav-row hidden><span>OR JOIN A FRIEND'S MATCH</span><input id="room-code" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="join" class="secondary">JOIN ${icon("arrow", 16)}</button></div><div id="home-error" class="error"></div></div><div class="menu-links" data-nav-row><button class="text-button" id="menu-controls">CONTROLS &amp; SETTINGS</button><button class="text-button" id="menu-manual">FIELD MANUAL</button><button class="text-button" id="menu-builder">MAP BUILDER</button><span class="micro"><span class="status-dot"></span><span id="pad-status">CONTROLLER: PRESS ANY BUTTON</span></span></div></section></main>
+  )}</div></div><div class="menu-step game-step"><div class="choice-row two" data-nav-row data-nav-choice role="group" aria-label="Game"><button class="choice" data-game="splash" aria-pressed="false"><strong>Splash</strong><small>Kid-friendly: water balloons. ${CONFIG.splashHits} splashes and you're soaked.</small></button><button class="choice" data-game="hotpotato" aria-pressed="false"><strong>Hot Potato</strong><small>One silly potato! Toss it across before it sneezes confetti. First to 2 rounds.</small></button><button class="choice" data-game="breakout" aria-pressed="false"><strong>Breakout</strong><small>Auto run down three lanes, faster as you go. Jump logs and dodge hay bales. How far can you go?</small></button><button class="choice" data-game="boulders" aria-pressed="false"><strong>Boulder Dash</strong><small>Party: race up a steep channel as boulders roll down. Duck into the recesses, dash for the next. First to the top.</small></button><button class="choice" data-game="sprinklers" aria-pressed="false"><strong>Sprinkler Dodge</strong><small>Dodge pop-up sprinklers in a compact yard. More spray each wave. Last one dry wins!</small></button><button class="choice" data-game="livewire" aria-pressed="false"><strong>Beach Ball Dodge</strong><small>Bots throw beach balls straight across the pool. Step out of their path to stay on the float. Last one dry wins.</small></button></div></div><div class="menu-go"><div class="step-label">START</div><div id="menu-summary"></div><button class="primary" id="deploy">START PRACTICE ${icon("arrow")}</button><div id="join-row" data-nav-row hidden><span>OR JOIN A FRIEND'S MATCH</span><input id="room-code" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="join" class="secondary">JOIN ${icon("arrow", 16)}</button></div><div id="home-error" class="error"></div></div><div class="menu-links" data-nav-row><button class="text-button" id="menu-controls">CONTROLS &amp; SETTINGS</button><button class="text-button" id="menu-manual">FIELD MANUAL</button><button class="text-button" id="menu-builder">MAP BUILDER</button><button class="text-button" id="menu-home-links" hidden>GROWN-UPS: GAMES &amp; LINKS</button><span class="micro"><span class="status-dot"></span><span id="pad-status">CONTROLLER: PRESS ANY BUTTON</span></span></div></section></main>
 
 <section id="purchase" class="panel-screen" hidden><div class="purchase-heading"><div><div class="eyebrow" id="loadout-label">GAME / BACKPACK</div><h2 id="purchase-title">Pack your bag</h2><div class="role-chip" id="role-chip"></div><p id="purchase-description"></p></div></div><div class="purchase-body"><aside class="loadout-side"><div class="section-label">YOUR BACKPACK</div><div class="credits" id="credits-block"><div><span id="credits">1,000</span><span class="credit-unit">CR LEFT</span></div><div class="credit-bar"><i id="credit-spent"></i></div><small id="credit-note"></small></div><ul id="loadout-list" data-nav-row></ul><div class="room-label" id="room-label">SESSION CODE <strong id="session-code"></strong><button id="copy-code" class="text-button">COPY ↗</button></div></aside><div class="shop"><div class="shop-top"><span>MISSION EQUIPMENT</span><span id="shop-privacy">YOUR PURCHASES ARE PRIVATE ${icon("shield", 15)}</span><span id="training-fill" hidden><button data-fill="all" class="text-button">TAKE ALL</button><button data-fill="none" class="text-button">CLEAR ALL</button></span></div><div id="gadget-grid"></div><div id="bot-loadout" hidden></div><div class="shop-note">${icon("eye", 17)} Pack a Smoke Puff, Glitter Popper, Peek-a-Boo Ball or Door Stopper.</div></div><aside id="gadget-detail" class="gadget-detail" aria-live="polite"></aside></div><footer class="purchase-footer"><div><span class="status-dot"></span><span id="footer-credits"></span><span id="ready-status">RESET CREDITS EACH ROUND · NO PERSISTENT PROGRESSION</span></div><button id="walk-around" class="secondary">WALK AROUND ↗</button><button id="ready" class="primary">PACK BACKPACK ${icon("arrow")}</button></footer></section>
 <div id="hud" hidden><div id="flash-veil"></div><div id="splash-veil"></div><div id="chase-veil"></div><div id="climb" hidden><div class="climb-track"><i id="climb-them"></i><i id="climb-you"></i></div><div class="climb-label"><strong id="climb-height">0 M</strong><span id="climb-of">OF 130</span><span id="climb-hits">0 HITS</span></div></div><div id="livewire" hidden><div class="lw-wave"><span>WAVE</span><strong id="lw-wave">1</strong><time id="lw-time">00:00</time></div><div class="lw-row" id="lw-you"><i></i><span>YOU</span><b>0 BUMPS</b></div><div class="lw-row" id="lw-them"><i></i><span>BOT</span><b>0 BUMPS</b></div></div><div id="boulder-warn" hidden><b id="boulder-lane"><i></i><i></i></b><span id="boulder-text">BOULDER</span></div><div id="chase" hidden><div class="chase-label"><span id="chase-who">BREAKOUT</span><strong id="chase-gap">JUMP LOGS · DODGE HAY</strong><span id="chase-run">0 M</span></div></div><div id="soaked-card" hidden>Soaked!<small>You're out. Great try!</small></div><div class="hud-top"><div class="objective"><span id="phase-tag">INFILTRATION</span><div id="objective-text">RAISE THE FLAG</div><small id="round-info">TRAINING GROUND 09</small></div><div class="timer"><span class="status-dot"></span><strong id="timer">04:00</strong><span id="team-tag">INFILTRATOR</span></div></div><div id="crosshair"><span></span><span></span><span></span><span></span></div><div id="compass" aria-hidden="true"><div class="compass-strip"></div><div class="compass-marks"></div><i class="compass-caret"></i></div><div id="bearing">000°</div><div id="camera-banner" hidden>LIVE / CAM 01 <span>KEEP AN INTRUDER IN FRAME TO TAG THEM</span></div><div id="center-feedback"><div id="alert" hidden></div><div id="progress-area" hidden><span id="progress-label"></span><div class="progress-track"><i id="progress-bar"></i></div></div><div id="interaction"></div></div><canvas id="minimap" width="200" height="200"></canvas><div class="map-caption" id="map-caption">THE COMPOUND</div><div id="equipment-bar"></div><div id="stance" data-stance="stand"><div class="stance-icons">${Object.entries(
@@ -1034,6 +1049,7 @@ function pickGame(next) {
   } catch {}
   visible("#join-row", mode === "multi" && !launchers[menuGame]);
   updateSummary();
+  syncBackdrop();
 }
 // Backyard Hide & Seek words (shared/kidWords.js): every text on screen,
 // in every game, says Sneaker, Seeker, cookie jar and so on instead of the
@@ -1234,6 +1250,7 @@ function showScreen(name) {
   }
   home.dataset.screen = name;
   closeDropdowns();
+  syncBackdrop();
   $("#screen-crumb").textContent = [
     MODE_NAMES[mode],
     name === "character" &&
@@ -1258,9 +1275,28 @@ function showScreen(name) {
         : $('#home .headshot[aria-pressed="true"]');
   target?.focus({ preventScroll: true });
 }
+// A game opened from the game list (play/, the Home Screen launcher): Back
+// from its character screen, and the Mini Games logo, return to the list.
+const gameListUrl = `${import.meta.env.BASE_URL}play/`;
+const fromGameList = (() => {
+  try {
+    return (
+      staticHosting &&
+      !!pickedGame() &&
+      sessionStorage.getItem(FROM_LIST_KEY) === "1"
+    );
+  } catch {
+    return false;
+  }
+})();
+if (fromGameList) $("header .brand").href = gameListUrl;
 function menuBack() {
   if ($("#home").hidden) return false;
   const i = SCREENS.indexOf($("#home").dataset.screen);
+  if (fromGameList && SCREENS[i] === "character") {
+    location.assign(gameListUrl);
+    return true;
+  }
   if (i <= 0) return false;
   // Work in Progress steps back to the main game list first.
   if (SCREENS[i] === "game" && $("#home").dataset.gameView === "wip") {
@@ -1327,29 +1363,32 @@ document.querySelectorAll("#home [data-game]").forEach((entry) => {
   launchers[entry.dataset.game] = () => open();
   entry.onclick = () => pickGame(entry.dataset.game);
 });
-// ?kids shows only the released games (src/released.js); the normal page
-// shows every one.
+// The kids' menu (the published app, or ?kids) shows only the games a
+// grown-up released on the links page (src/released.js). A game's own Home
+// Screen link (or ?game=) still gets its game, released or not.
 const kidView = !showAllGames();
 if (kidView) {
-  document.querySelectorAll("#home [data-game]").forEach((entry) => {
-    if (!RELEASED_GAMES.includes(entry.dataset.game)) entry.remove();
-  });
-  if (!RELEASED_GAMES.includes(savedGame)) savedGame = RELEASED_GAMES[0];
+  const entries = [...document.querySelectorAll("#home [data-game]")],
+    asked = directGame() || pickedGame(),
+    isAsked = (entry) =>
+      asked &&
+      (squashName(entry.dataset.game) === asked ||
+        squashName(entry.querySelector("strong")?.textContent) === asked);
+  let released = releasedGames();
+  if (!entries.some((entry) => released.includes(entry.dataset.game)))
+    released = [...DEFAULT_RELEASED];
+  for (const entry of entries)
+    if (!released.includes(entry.dataset.game) && !isAsked(entry))
+      entry.remove();
+  if (!released.includes(savedGame))
+    savedGame =
+      entries.find((entry) => released.includes(entry.dataset.game))?.dataset
+        .game || DEFAULT_RELEASED[0];
 }
 if (launchers[savedGame]) pickGame(savedGame);
 // On a touch device (phone or tablet), the games with no touch controls are
 // greyed out and can't be picked: the arena games (WASD + mouse look),
 // Slipstream and Loop & Glide.
-const NEEDS_KEYS = [
-  "splash",
-  "hotpotato",
-  "breakout",
-  "boulders",
-  "sprinklers",
-  "livewire",
-  "slipstream",
-  "backyardairmail",
-];
 if (window.matchMedia?.("(pointer: coarse)").matches) {
   const entries = [...document.querySelectorAll("#home [data-game]")];
   for (const entry of entries) {
@@ -1389,18 +1428,7 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       livewire: "crucible",
       sprinklers: "yard",
     };
-    const wipGames = new Set([
-      "splash",
-      "hotpotato",
-      "livewire",
-      "toybox",
-      "backyardairmail",
-      "poolnoodle",
-      "applecatch",
-      "backyardfling",
-      "paperplane",
-      "pipecrane",
-    ]);
+    const wipGames = new Set(WIP_GAMES);
     // A released game shows to kids even while it's still marked WIP.
     if (kidView) wipGames.clear();
     // Finished games first, then WIP; within each, the games greyed out on a
@@ -1774,6 +1802,12 @@ const builder = createBuilder({
     updateSummary();
   },
 });
+// The Pages build's play/ page: the released games' Home Screen links, and
+// (behind the grown-ups' code) every game and which ones are released.
+// Not on the dev server, which has no play/ page.
+$("#menu-home-links").hidden = !staticHosting;
+$("#menu-home-links").onclick = () =>
+  location.assign(`${import.meta.env.BASE_URL}play/`);
 $("#menu-builder").onclick = () => {
   visible("#home", false);
   builder.open();
@@ -4194,8 +4228,9 @@ function frame(now) {
   lastPings = pings;
 }
 requestAnimationFrame(frame);
-// Grown-ups: typing "all" on the ?kids game screen reloads without ?kids
-// (every game), keeping how you're playing and landing back on the game screen.
+// Grown-ups: typing "all" on the kids' game screen reloads showing every game
+// (until the app or tab closes), keeping how you're playing and landing back
+// on the game screen.
 if (kidView) {
   let typed = "";
   addEventListener(
@@ -4207,6 +4242,7 @@ if (kidView) {
       if (typed !== "all") return;
       try {
         sessionStorage.setItem("minigames.allGames", mode);
+        sessionStorage.setItem(SHOW_ALL_KEY, "1");
       } catch {}
       const url = new URL(location.href);
       url.searchParams.delete("kids");
@@ -4229,18 +4265,25 @@ if (kidView) {
 // ?game=<id or name> (e.g. ?game=bigbadburger) skips the menu and opens that
 // game, as if it had been picked and Start pressed. Leaving it lands on the
 // character screen like any other game.
+// A game's Home Screen link (or ?pick=<id or name>) stops one step earlier,
+// on the character screen with that game picked.
 {
-  const want = directGame();
-  const entry =
+  const findGame = (want) =>
     want &&
     [...document.querySelectorAll("#home [data-game]")].find(
       (el) =>
         squashName(el.dataset.game) === want ||
         squashName(el.querySelector("strong")?.textContent) === want,
     );
+  const want = directGame(),
+    pick = !want && pickedGame(),
+    entry = findGame(want || pick);
   if (entry) {
     pickGame(entry.dataset.game);
     showScreen("character");
-    $("#deploy").click();
-  } else if (want) console.warn(`?game: no game called "${want}"`);
+    if (want) $("#deploy").click();
+  } else if (want || pick)
+    console.warn(
+      `${want ? "?game" : "pick"}: no game called "${want || pick}"`,
+    );
 }

@@ -5125,3 +5125,50 @@ nav .text-button,
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+
+/* Character screen: the picked game's screenshot fills the screen behind the
+   menu with a slow parallax (src/gameBackdrop.js). A purple wash on the left
+   keeps the menu readable. */
+#game-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  background: #2a1641;
+  animation: game-backdrop-in 0.5s ease-out;
+}
+#game-backdrop[hidden] {
+  display: none;
+}
+#game-backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.16);
+  will-change: transform;
+}
+#game-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #211233cc 0%, #21123300 22%),
+    linear-gradient(
+      90deg,
+      #211233e6 0%,
+      #271440b3 40%,
+      #27144033 70%,
+      #27144000 100%
+    );
+}
+@keyframes game-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 680px) {
+  #game-backdrop::after {
+    background: #211233b3;
+  }
+}

@@ -2,6 +2,101 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { HOME_LINKS } from "./src/homeLinks.js";
+import { escapeHtml, homeLinksPage } from "./tools/homeLinksPage.mjs";
+
+// Pages build: one page per game at play/<id>/ (src/homeLinks.js). Each is
+// the built index.html with the game's name, icon and its own manifest, plus
+// <meta name="mini-games-pick"> so it opens on the character screen. Adding
+// one to the iPad Home Screen makes a separate shortcut for that game.
+// play/ lists them all.
+function homeLinks() {
+  let base = "/";
+  return {
+    name: "mini-games-home-links",
+    apply: "build",
+    enforce: "post",
+    configResolved(config) {
+      base = config.base;
+    },
+    generateBundle(_options, bundle) {
+      const page = bundle["index.html"];
+      if (!page) return;
+      const html = String(page.source);
+      for (const { id, name } of HOME_LINKS) {
+        const icon = (size) => `${base}icons/games/${id}-${size}.png`;
+        const title = escapeHtml(name);
+        this.emitFile({
+          type: "asset",
+          fileName: `play/${id}/index.html`,
+          source: html
+            .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
+            .replace(
+              /(<meta name="apple-mobile-web-app-title" content=")[^"]*/,
+              `$1${title}`,
+            )
+            .replace(
+              /(<link rel="apple-touch-icon" href=")[^"]*/,
+              `$1${icon(180)}`,
+            )
+            .replace(
+              /<link rel="manifest" href="[^"]*"/,
+              `<link rel="manifest" href="${base}play/${id}/manifest.webmanifest"`,
+            )
+            .replace(
+              "</head>",
+              `<meta name="mini-games-pick" content="${id}" />\n</head>`,
+            ),
+        });
+        this.emitFile({
+          type: "asset",
+          fileName: `play/${id}/manifest.webmanifest`,
+          source: JSON.stringify({
+            id: `${base}play/${id}/`,
+            name,
+            short_name: name,
+            start_url: `${base}play/${id}/`,
+            scope: base,
+            display: "standalone",
+            theme_color: "#2a1641",
+            background_color: "#2a1641",
+            icons: [192, 512].map((size) => ({
+              src: icon(size),
+              sizes: `${size}x${size}`,
+              type: "image/png",
+            })),
+          }),
+        });
+      }
+      this.emitFile({
+        type: "asset",
+        fileName: "play/index.html",
+        source: homeLinksPage(base),
+      });
+      // The game list is the Home Screen launcher: its own manifest starts
+      // there, full screen, as "Mini Games".
+      this.emitFile({
+        type: "asset",
+        fileName: "play/manifest.webmanifest",
+        source: JSON.stringify({
+          id: `${base}play/`,
+          name: "Mini Games",
+          short_name: "Mini Games",
+          start_url: `${base}play/`,
+          scope: base,
+          display: "standalone",
+          theme_color: "#2a1641",
+          background_color: "#2a1641",
+          icons: [192, 512].map((size) => ({
+            src: `${base}icons/icon-${size}.png`,
+            sizes: `${size}x${size}`,
+            type: "image/png",
+          })),
+        }),
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   return {
@@ -16,6 +111,7 @@ export default defineConfig(({ mode }) => {
     },
     base: mode === "pages" ? "/mini-games/" : "/",
     plugins: [
+      ...(mode === "pages" ? [homeLinks()] : []),
       VitePWA({
         disable: mode !== "pages",
         registerType: "prompt",
@@ -39,7 +135,8 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // Cache every emitted game asset, including lazy-loaded models and audio.
           globPatterns: ["**/*"],
-          globIgnores: ["**/*.map"],
+          // The per-game 192 / 512 px icons are only fetched when installing.
+          globIgnores: ["**/*.map", "icons/games/*-{192,512}.png"],
           maximumFileSizeToCacheInBytes: 64 * 1024 * 1024,
           cleanupOutdatedCaches: true,
           skipWaiting: false,
