@@ -316,7 +316,7 @@ Input handling was checked with synthetic standard Xbox button/axis samples and 
 
 ### Controller in the standalone games
 
-Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail, Puck Clash, Sink or Float and Look & Find run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
+Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail, Puck Clash, Sink or Float, Look & Find and Fire & Ice run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
 
 | Xbox               | During play                                                                                                                                                                                                                                                                      | On a start, pause or results screen               |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
@@ -953,6 +953,17 @@ Open **Game → Backyard Fling** to drive your chosen critter's toy car down the
 - **Difficulty:** Easy gives 5 cars a yard, Normal 4 and Hard 3. Hard has no landing ring.
 
 The physics is [cannon-es](https://github.com/pmndrs/cannon-es). The track and ramp are scripted; from the lip on, the car is a rolling ball (so it lands and coasts rather than digging a corner in), the picnic table top and benches are fixed slabs, and the blocks are boxes. The track, ramp, yards and physics are in `shared/backyardFling.js`, tested in `tests/backyardFling.test.js`. The tests check the steering time and rails, that faster flies further, and that the landing ring matches where the car lands. They also check that every block sits on the table, that a straight shot lands on it, that the structures stand still on their own, and they drive a spread of runs at every yard to check most knock blocks down, every structure can be toppled, and runs settle soon. The game is in `src/backyardFling.js`, and the 3D track, ramp and yard are in `src/backyardFlingScene.js`.
+
+### Fire & Ice
+
+Open **Game → Fire & Ice** for a secret-pick duel against the computer, made for children who can't read yet: the start card shows the rules as pictures, and there are no words or voice during play. Each round, tap one of four moves (Fire Ball, Ice Ball, Fire Shield, Ice Shield), then tap the head, body or legs on the critter it's aimed at. The computer picks at random at the same moment, and both moves play out together:
+
+- A ball at a different height from the shield is a hit, a star for the thrower.
+- A shield at the right height blocks the ball. If it is the opposite element (ice stops fire, fire stops ice), the ball bounces back for a star to the defender.
+- Two balls meet in the middle in a puff of steam, and two shields do nothing.
+- After a throw you must raise a shield on your next turn: the ball buttons grey out with a spinning arrow, and the same arrow over the computer shows when it can't throw.
+
+First to five stars wins. Keys: 1–4 pick a move, 1–3 pick head, body or legs, arrow keys move between the buttons, Esc steps back or pauses. On a controller the stick or D-pad moves between the buttons, A picks and B steps back or pauses. The rules are in `shared/fireIce.js` (tested in `tests/fireIce.test.js`), and the game is in `src/fireIce.js`.
 
 ### Kubb · Viking Chess
 
