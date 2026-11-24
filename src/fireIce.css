@@ -122,6 +122,28 @@
   --hat: #2f86d6;
   --band: #b8ecff;
 }
+.fi-critter.fi-el-fire {
+  --hat: #e5532f;
+  --band: #ffd23a;
+}
+.fi-critter.fi-el-ice {
+  --hat: #2f86d6;
+  --band: #b8ecff;
+}
+.fi-critter:has(.fi-portrait) {
+  aspect-ratio: 1;
+  height: var(--fi-critter);
+}
+.fi-portrait {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 50% 100%;
+}
+.fi-cpu .fi-portrait {
+  transform: scaleX(-1);
+}
 .fi-cpu svg {
   transform: scaleX(-1);
 }
@@ -355,6 +377,12 @@
 .fi-move:not(:disabled):active {
   transform: scale(0.94);
 }
+.fi-move .fi-pic,
+.fi-move .fi-pic svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .fi-move .fi-lock {
   display: none;
 }
@@ -501,15 +529,67 @@
   position: absolute;
   inset: 0;
   z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 2.4vh, 22px);
+  display: grid;
+  place-items: center;
   padding: 16px;
   background: #1d1838b0;
   backdrop-filter: blur(4px);
   overflow: auto;
+}
+.fi-howto {
+  width: min(560px, 100%);
+  padding: clamp(18px, 4vw, 36px);
+  border-radius: 24px;
+  background: #2a2350f0;
+  box-shadow: 0 12px 40px #0008;
+  font-family: "Nunito", sans-serif;
+  font-size: clamp(0.95rem, 2.2vh, 1.1rem);
+  line-height: 1.45;
+  text-align: left;
+}
+.fi-kicker {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  color: #c9b8ff;
+}
+.fi-howto h2 {
+  margin: 4px 0 10px;
+}
+.fi-howto h3 {
+  margin: 18px 0 10px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.2rem;
+  text-align: center;
+}
+.fi-howto p {
+  margin: 8px 0;
+}
+.fi-howto b {
+  color: #ffd23a;
+}
+.fi-keys {
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+.fi-moves-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+.fi-moves-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: #ffffff14;
+}
+.fi-moves-list .fi-ico {
+  flex: none;
+  width: 44px;
 }
 .fi-intro h2 {
   margin: 0;
@@ -518,22 +598,6 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-.fi-rules {
-  display: grid;
-  gap: clamp(6px, 1.4vh, 12px);
-}
-.fi-rule {
-  display: flex;
-  align-items: center;
-  gap: clamp(6px, 1.4vw, 14px);
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: #ffffff1c;
-}
-.fi-rule b {
-  font-size: clamp(1.2rem, 4vh, 2rem);
-  opacity: 0.8;
 }
 .fi-ico {
   display: grid;
@@ -547,79 +611,49 @@
   width: 100%;
   height: 100%;
 }
-.fi-ico.fi-mini {
-  --fur: #8b6be8;
-  --belly: #e2d8ff;
-  --hat: #2f86d6;
-  --band: #b8ecff;
-}
-.fi-ico.fi-mini svg {
-  transform: scaleX(-1);
-}
-.fi-ico.fi-gold svg {
-  fill: #ffd23a;
-}
-.fi-ico.fi-bounce {
-  color: #fff;
-}
-.fi-ico.fi-bounce svg {
-  fill: none;
-}
-.fi-intro
-  .fi-mini
-  :is(
-    .fi-legs rect,
-    .fi-body > ellipse:first-child,
-    .fi-arm,
-    .fi-head > circle:first-child
-  ) {
-  fill: var(--fur);
-}
-.fi-intro .fi-mini .fi-belly {
-  fill: var(--belly);
-}
-.fi-intro .fi-mini .fi-hat {
-  fill: var(--hat);
-}
-.fi-intro .fi-mini .fi-hat-band {
-  fill: var(--band);
-}
-.fi-intro .fi-mini :is(.fi-eye, .fi-hat-star) {
-  fill: #fff;
-}
-.fi-intro .fi-mini .fi-pupil {
-  fill: #1d1838;
-}
-.fi-intro .fi-mini :is(.fi-cheek, .fi-mouth, .fi-foot) {
-  display: none;
+.fi-picks {
+  display: flex;
+  justify-content: center;
+  gap: clamp(20px, 6vw, 56px);
 }
 .fi-play {
   display: grid;
   place-items: center;
   width: clamp(88px, 16vh, 140px);
   aspect-ratio: 1;
-  padding: 24px;
+  padding: 16px;
   border: 6px solid #fff;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff8a3a, #6cb8ee);
   box-shadow: 0 8px 24px #0006;
   animation: fi-pulse 1.4s ease-in-out infinite;
+  transition: transform 0.15s;
+}
+.fi-play:hover,
+.fi-play:focus-visible {
+  transform: scale(1.08);
+}
+.fi-pick-fire {
+  background: radial-gradient(#ffe2b0, #f07a3a);
+}
+.fi-pick-ice {
+  background: radial-gradient(#ffffff, #6cb8ee);
+  animation-delay: -0.7s;
+}
+.fi-play {
+  grid-template-rows: 1fr auto;
+  padding: 14px 14px 10px;
 }
 .fi-play svg {
   width: 100%;
   height: 100%;
-  fill: #fff;
-  translate: 6% 0;
+  filter: drop-shadow(0 3px 4px #0005);
 }
-.fi-grownups {
-  max-width: 34rem;
-  font-family: "Nunito", sans-serif;
-  font-size: 0.9rem;
-  opacity: 0.75;
-}
-.fi-grownups summary {
-  cursor: pointer;
-  text-align: center;
+.fi-play span {
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 2px 4px #0006;
 }
 .fi-exit {
   position: absolute;
@@ -641,7 +675,7 @@
 /* Tall, narrow screens: critters a little closer to the middle. */
 @media (max-aspect-ratio: 3 / 4) {
   .fire-ice {
-    --fi-critter: min(36vh, 44vw);
+    --fi-critter: min(30vh, 38vw);
   }
   .fi-you {
     left: 5%;

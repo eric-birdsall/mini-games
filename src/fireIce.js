@@ -6,27 +6,29 @@ import {
   setPauseScreen,
 } from "./pauseActions.js";
 import { nearest } from "./padBridge.js";
+import { headshot } from "./headshots.js";
+import { AVATARS } from "../shared/avatars.js";
 import {
-  MOVES,
+  ACTIONS,
   WIN_SCORE,
   canThrow,
   computerMove,
   newDuel,
+  otherElement,
   playRound,
 } from "../shared/fireIce.js";
 import "./fireIce.css";
 
-// Fire & Ice: a one-tap secret-pick duel against the computer. Pictures
-// only: no words or voice during play, so a child who can't read can play.
-// The rules are in shared/fireIce.js.
+// Fire & Ice: a one-tap secret-pick duel against the computer. Your picked
+// character faces a random other one; they stand still and the balls and
+// shields do the work. The rules are in shared/fireIce.js.
 
 const TITLE = "Fire & Ice";
 const HOW_TO =
-  "Each round, tap a Fire Ball or Ice Ball to throw, Reload, or a Fire Shield or Ice Shield to block. The computer picks at the same time. A ball hits someone who is reloading. A shield of the same element blocks it, and a shield of the opposite element (ice stops fire, fire stops ice) bounces it back for a point. Two balls make steam. After a throw you must reload before you can throw again. First to five stars wins. Keys: 1–5 pick a move, arrows move between buttons, Esc pauses. Controller: stick or D-pad to move, A to pick, B to pause.";
+  "Pick fire or ice to start; the computer gets the other. Each round, tap Attack to throw your ball, Reload, or Shield. The computer picks at the same time. An attack hits someone who is reloading, and a shield blocks it. Two attacks meet in a puff of steam. You start loaded, and after an attack you must reload before attacking again. Fire and ice work the same. First to five stars wins. Keys: 1–3 pick a move, arrows move between buttons, Esc pauses. Controller: stick or D-pad to move, A to pick, B to pause.";
 
 // Where on a critter balls fly and shields sit (fraction of its height).
 const AIM = 0.6;
-const MOVE_ORDER = MOVES;
 const critter = (side) => `
 <svg viewBox="0 0 200 300" aria-hidden="true">
   <g class="fi-legs">
@@ -67,18 +69,12 @@ const SHIELD = {
 };
 const DEFS = `<svg class="fi-defs" width="0" height="0" aria-hidden="true"><defs><radialGradient id="fi-fb" cx="40%" cy="40%"><stop offset="0" stop-color="#fff6a8"/><stop offset=".45" stop-color="#ffb02e"/><stop offset="1" stop-color="#e8401c"/></radialGradient><radialGradient id="fi-ib" cx="38%" cy="36%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#9fe2ff"/><stop offset="1" stop-color="#2f86d6"/></radialGradient><linearGradient id="fi-fs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23a"/><stop offset="1" stop-color="#e5391b"/></linearGradient><linearGradient id="fi-is" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9fbff"/><stop offset="1" stop-color="#3a9be8"/></linearGradient></defs></svg>`;
 const RELOAD = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="#f3eeff"/><g fill="none" stroke="#6b55d6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M76 50a26 26 0 1 1-8-19"/><path d="M72 18v15h-15"/></g><circle cx="40" cy="52" r="9" fill="url(#fi-fb)"/><circle cx="60" cy="52" r="9" fill="url(#fi-ib)"/></svg>`;
-const picture = (move) =>
-  move.action === "reload"
-    ? RELOAD
-    : (move.action === "ball" ? BALL : SHIELD)[move.element];
-const LABEL = (m) =>
-  m.action === "reload"
-    ? "Reload"
-    : `${m.element === "fire" ? "Fire" : "Ice"} ${m.action === "ball" ? "Ball" : "Shield"}`;
+const picture = (action, element) =>
+  action === "reload" ? RELOAD : (action === "ball" ? BALL : SHIELD)[element];
+const LABEL = { ball: "Attack", reload: "Reload", shield: "Shield" };
 const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>`;
 const BACK = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>`;
 const PAUSE = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>`;
-const PLAY = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>`;
 const RECHARGE = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>`;
 
 function sounds() {
@@ -150,7 +146,6 @@ function sounds() {
     },
     steam: () => noise(0.16, 1, 5000, 1800, 0, "highpass"),
     bonk: () => tone(320, 0, 0.3, "triangle", 0.14, 140),
-    boing: () => tone(260, 0, 0.35, "sine", 0.1, 700),
     star: () =>
       [784, 1047].forEach((f, i) => tone(f, i * 0.08, 0.2, "triangle", 0.07)),
     cheer: () =>
@@ -164,19 +159,32 @@ function sounds() {
   };
 }
 
-export function installFireIce() {
+export function installFireIce(getAvatar = () => ({})) {
   const games = document.querySelector('.choice-row[aria-label="Game"]');
   if (!games) return;
   const entry = document.createElement("button");
   entry.className = "choice";
   entry.dataset.game = "fireice";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Two little wizard critters in the snow: one throws a fire ball, the other holds up an ice shield" draggable="false"></span><strong>${TITLE}</strong><small>Throw fire balls and ice balls, reload, or block with a fire or ice shield. The computer picks at the same time. First to five stars wins!</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Two little wizard critters in the snow: one throws a fire ball, the other holds up an ice shield" draggable="false"></span><strong>${TITLE}</strong><small>Pick fire or ice, then attack, reload or shield. The computer picks at the same time. First to five stars wins!</small>`;
   games.append(entry);
-  entry.onclick = () => open();
+  entry.onclick = () => open(getAvatar().character);
 }
 
-function open() {
+// A still, full-body picture of a character. Until it loads (or if the
+// model can't), the drawn critter stands in.
+function portrait(box, id) {
+  headshot(id, true, undefined, 384).then((url) => {
+    if (!url || !box.isConnected) return;
+    const img = document.createElement("img");
+    img.className = "fi-portrait";
+    img.alt = "";
+    img.src = url;
+    box.querySelector("svg").replaceWith(img);
+  });
+}
+
+function open(character) {
   document.exitPointerLock?.();
   const dialog = document.createElement("dialog");
   dialog.className = "fire-ice";
@@ -200,22 +208,29 @@ function open() {
       <div class="fi-score fi-score-cpu" data-score="1" aria-label="Computer's stars">${stars(1)}</div>
     </div>
     <div class="fi-bar" data-bar hidden>
-      ${MOVE_ORDER.map(
-        (m, i) =>
-          `<button type="button" class="fi-move fi-${m.action} fi-${m.element || "reload"}" data-move="${i}" aria-label="${LABEL(m)} (${i + 1})">${picture(m)}<span class="fi-lock">${RECHARGE}</span></button>`,
+      ${ACTIONS.map(
+        (action, i) =>
+          `<button type="button" class="fi-move fi-${action}" data-move="${i}" aria-label="${LABEL[action]} (${i + 1})"><span class="fi-pic"></span><span class="fi-lock">${RECHARGE}</span></button>`,
       ).join("")}
     </div>
-    <section class="fi-intro" data-intro>
-      <h2>${TITLE}</h2>
-      <div class="fi-rules" aria-hidden="true">
-        <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><i class="fi-ico">${RELOAD}</i><b>=</b><i class="fi-ico fi-gold">${STAR}</i></div>
-        <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><i class="fi-ico">${SHIELD.fire}</i><b>=</b><i class="fi-ico fi-poof">✋</i></div>
-        <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><i class="fi-ico">${SHIELD.ice}</i><b>=</b><i class="fi-ico fi-bounce">${BACK}</i><i class="fi-ico fi-gold">${STAR}</i></div>
-        <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><b>⬅</b><i class="fi-ico">${BALL.ice}</i><b>=</b><i class="fi-ico fi-poof">☁️</i></div>
-        <div class="fi-rule"><i class="fi-ico">${BALL.ice}</i><b>➜</b><i class="fi-ico">${RELOAD}</i><b>➜</b><i class="fi-ico">${BALL.fire}</i></div>
+    <section class="fi-intro" data-intro aria-labelledby="fi-how">
+      <div class="fi-howto">
+        <span class="fi-kicker">${TITLE.toUpperCase()}</span>
+        <h2 id="fi-how">How to play</h2>
+        <p>You and the computer pick a move at the same time. Each round, choose one:</p>
+        <ul class="fi-moves-list">
+          <li><i class="fi-ico" data-howto="ball">${BALL.fire}</i><span><b>Attack</b> throws your ball. It scores a star if the other side is reloading.</span></li>
+          <li><i class="fi-ico" data-howto="shield">${SHIELD.fire}</i><span><b>Shield</b> blocks any attack.</span></li>
+          <li><i class="fi-ico">${RELOAD}</i><span><b>Reload</b> gets your next ball ready. After every attack you must reload before you can attack again.</span></li>
+        </ul>
+        <p>If you both attack, the balls crash into a puff of steam. First to <b>five stars</b> wins!</p>
+        <p class="fi-keys">Tap a move, or press 1, 2, 3. Controller: stick to choose, A to pick, B to pause.</p>
+        <h3>Choose fire or ice</h3>
+        <div class="fi-picks">
+          <button type="button" class="fi-play fi-pick-fire" data-begin data-pick="fire" aria-label="Play as fire">${BALL.fire}<span>FIRE</span></button>
+          <button type="button" class="fi-play fi-pick-ice" data-pick="ice" aria-label="Play as ice">${BALL.ice}<span>ICE</span></button>
+        </div>
       </div>
-      <button type="button" class="fi-play" data-begin aria-label="Play">${PLAY}</button>
-      <details class="fi-grownups"><summary>For grown-ups</summary><p>${HOW_TO}</p></details>
       <button type="button" class="fi-exit" data-exit aria-label="Back to games">${BACK}</button>
     </section>
     ${pauseScreen(TITLE, HOW_TO)}`;
@@ -225,6 +240,11 @@ function open() {
   const fx = get("fx");
   const critters = [0, 1].map((i) => get(`critter="${i}"`));
   const moveButtons = [...dialog.querySelectorAll("[data-move]")];
+  // Your character, and a random different one for the computer.
+  const yours = AVATARS.includes(character) ? character : AVATARS[0];
+  const pool = AVATARS.filter((id) => id !== yours);
+  portrait(critters[0], yours);
+  portrait(critters[1], pool[Math.floor(Math.random() * pool.length)]);
   const sfx = sounds();
   const timers = new Set();
 
@@ -232,6 +252,7 @@ function open() {
   let phase = "ready";
   let resumeTo = "move";
   let duel = newDuel();
+  let elements = ["fire", "ice"]; // [yours, the computer's]
   let generation = 0;
 
   // The pad bridge moves focus between buttons and A presses them, so the
@@ -266,7 +287,7 @@ function open() {
     }
     const ready = canThrow(duel, 0);
     moveButtons.forEach((b, i) => {
-      const locked = MOVE_ORDER[i].action === "ball" && !ready;
+      const locked = ACTIONS[i] === "ball" && !ready;
       b.disabled = locked;
       b.classList.toggle("locked", locked);
     });
@@ -358,8 +379,8 @@ function open() {
 
   function pickMove(index) {
     if (phase !== "move") return;
-    const mine = MOVE_ORDER[index];
-    if (!mine || (mine.action === "ball" && !canThrow(duel, 0))) return;
+    const mine = ACTIONS[index];
+    if (!mine || (mine === "ball" && !canThrow(duel, 0))) return;
     sfx.resume();
     sfx.tap();
     const theirs = computerMove(duel, 1);
@@ -376,7 +397,13 @@ function open() {
         .forEach((s, i) =>
           s.classList.toggle("on", i < duel.score[side] - result.points[side]),
         );
-    show([mine, theirs], result);
+    show(
+      [mine, theirs].map((action, side) => ({
+        action,
+        element: elements[side],
+      })),
+      result,
+    );
   }
 
   // Play out the round: shields pop up, balls fly, then the outcome.
@@ -444,30 +471,14 @@ function open() {
         }, FLY);
         return;
       }
-      // Blocked or bounced: the ball stops at the shield.
+      // Blocked: the ball stops at the shield.
       const at = spot(1 - by, "shield");
       fly(el, from, at, FLY * 0.85);
       later(() => {
         shields[1 - by]?.classList.add("fi-flash");
-        if (result.outcome === "blocked") {
-          el.remove();
-          burst(at, ball.element, 0.8);
-          later(finishRound, 1000);
-          return;
-        }
-        sfx.boing();
-        const back = spot(by, "middle");
-        el.getAnimations().forEach((a) => a.cancel());
-        el.style.left = `${at.x - from.size * 0.1}px`;
-        el.style.top = `${at.y - from.size * 0.1}px`;
-        fly(el, at, back, FLY * 0.85, 0.2);
-        later(() => {
-          el.remove();
-          burst(back, ball.element);
-          ouch(by);
-          later(() => award(1 - by), 350);
-          later(finishRound, 1300);
-        }, FLY * 0.85);
+        el.remove();
+        burst(at, ball.element, 0.8);
+        later(finishRound, 1000);
       }, FLY * 0.85);
     }, 380);
   }
@@ -498,7 +509,40 @@ function open() {
     }, 1800);
   }
 
-  function start() {
+  // Fire or ice: the buttons and hats take your element; the computer gets
+  // the other.
+  function setElement(element) {
+    elements = [element, otherElement(element)];
+    moveButtons.forEach((b, i) => {
+      b.classList.remove("fi-fire", "fi-ice");
+      b.classList.add(`fi-${element}`);
+      b.querySelector(".fi-pic").innerHTML = picture(ACTIONS[i], element);
+    });
+    critters.forEach((c, side) => {
+      c.classList.remove("fi-el-fire", "fi-el-ice");
+      c.classList.add(`fi-el-${elements[side]}`);
+    });
+  }
+
+  // Back to the start card to pick an element.
+  function showIntro() {
+    clearTimers();
+    results.hide();
+    fx.replaceChildren();
+    critters.forEach((c) =>
+      c.classList.remove("fi-dance", "fi-ouch", "fi-cheer"),
+    );
+    phase = "ready";
+    duel = newDuel();
+    hud();
+    get("bar").hidden = true;
+    setPauseScreen(dialog, false);
+    get("intro").hidden = false;
+    get("begin").focus({ preventScroll: true });
+  }
+
+  function start(element) {
+    if (element) setElement(element);
     clearTimers();
     results.hide();
     fx.replaceChildren();
@@ -532,13 +576,15 @@ function open() {
   }
 
   const close = () => dialog.close();
-  const results = gameResults(dialog, TITLE, start, close);
+  const results = gameResults(dialog, TITLE, showIntro, close);
   moveButtons.forEach((b, i) => (b.onclick = () => pickMove(i)));
-  get("begin").onclick = start;
+  dialog.querySelectorAll("[data-pick]").forEach((b) => {
+    b.onclick = () => start(b.dataset.pick);
+  });
   get("exit").onclick = close;
   get("pause").onclick = pause;
   get("pause-resume").onclick = resume;
-  get("pause-restart").onclick = start;
+  get("pause-restart").onclick = showIntro;
   get("pause-home").onclick = close;
   bindDialogEscape(dialog, () => {
     if (phase === "paused") resume();
@@ -579,7 +625,7 @@ function open() {
     }
     if (event.repeat) return;
     const n = Number(event.key);
-    if (phase === "move" && n >= 1 && n <= MOVE_ORDER.length) {
+    if (phase === "move" && n >= 1 && n <= ACTIONS.length) {
       event.preventDefault();
       pickMove(n - 1);
     }

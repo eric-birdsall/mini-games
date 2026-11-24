@@ -1,26 +1,20 @@
-// Fire & Ice: a secret-pick duel. Each round both sides pick at once:
-// throw a Fire Ball or Ice Ball, raise a Fire Shield or Ice Shield, or
-// reload. You start loaded; after a throw you must reload before you can
-// throw again.
+// Fire & Ice: a secret-pick duel. The player picks fire or ice at the start
+// and the computer gets the other; the element is only for looks. Each round
+// both sides pick at once: attack (throw a ball), reload, or shield. You
+// start loaded, and after an attack you must reload before attacking again.
 //
-//   ball vs reload               → hit, a point to the thrower
-//   ball vs shield, same element → blocked, nobody scores
-//   ball vs shield, other element→ bounces back, a point to the shield
-//   ball vs ball                 → steam in the middle, nobody scores
-//   anything else                → nothing happens
+//   attack vs reload → hit, a point to the attacker
+//   attack vs shield → blocked, nobody scores
+//   attack vs attack → the balls meet in a puff of steam, nobody scores
+//   anything else    → nothing happens
 //
 // First to WIN_SCORE points wins.
 
 export const WIN_SCORE = 5;
 export const ELEMENTS = ["fire", "ice"];
+export const ACTIONS = ["ball", "reload", "shield"];
 
-export const MOVES = [
-  { action: "ball", element: "fire" },
-  { action: "ball", element: "ice" },
-  { action: "reload", element: null },
-  { action: "shield", element: "fire" },
-  { action: "shield", element: "ice" },
-];
+export const otherElement = (element) => (element === "fire" ? "ice" : "fire");
 
 export function newDuel() {
   return { score: [0, 0], loaded: [true, true], round: 0, winner: null };
@@ -28,45 +22,39 @@ export function newDuel() {
 
 export const canThrow = (duel, side) => duel.loaded[side];
 
-// Every move a side may pick this round.
-export const legalMoves = (duel, side) =>
-  MOVES.filter((m) => m.action !== "ball" || canThrow(duel, side));
+// Every action a side may pick this round.
+export const legalActions = (duel, side) =>
+  ACTIONS.filter((a) => a !== "ball" || canThrow(duel, side));
 
-export function isLegal(duel, side, move) {
-  return (
-    !!move &&
-    MOVES.some((m) => m.action === move.action && m.element === move.element) &&
-    (move.action !== "ball" || canThrow(duel, side))
-  );
-}
+export const isLegal = (duel, side, action) =>
+  legalActions(duel, side).includes(action);
 
-// The computer picks at random from its legal moves.
+// The computer picks at random from its legal actions.
 export function computerMove(duel, side = 1, random = Math.random) {
-  const moves = legalMoves(duel, side);
-  return moves[Math.min(moves.length - 1, Math.floor(random() * moves.length))];
+  const actions = legalActions(duel, side);
+  return actions[
+    Math.min(actions.length - 1, Math.floor(random() * actions.length))
+  ];
 }
 
-// What happens when `a` (side 0) meets `b` (side 1). `points` is per side.
-// outcome: "steam" | "calm" | "hit" | "blocked" | "bounce"; `by` is the
-// throwing side for the last three.
+// What happens when action `a` (side 0) meets action `b` (side 1).
+// outcome: "steam" | "calm" | "hit" | "blocked"; `by` is the attacking side
+// for the last two. `points` is per side.
 export function resolve(a, b) {
-  const balls = [a, b].filter((m) => m.action === "ball").length;
+  const balls = [a, b].filter((x) => x === "ball").length;
   if (balls === 2) return { outcome: "steam", points: [0, 0] };
   if (balls === 0) return { outcome: "calm", points: [0, 0] };
-  const by = a.action === "ball" ? 0 : 1;
-  const ball = by ? b : a;
+  const by = a === "ball" ? 0 : 1;
   const other = by ? a : b;
   const points = [0, 0];
-  if (other.action === "reload") {
+  if (other === "reload") {
     points[by] = 1;
     return { outcome: "hit", by, points };
   }
-  if (ball.element === other.element) return { outcome: "blocked", by, points };
-  points[1 - by] = 1;
-  return { outcome: "bounce", by, points };
+  return { outcome: "blocked", by, points };
 }
 
-// Play one round: both moves at once. Returns the resolve() result.
+// Play one round: both actions at once. Returns the resolve() result.
 export function playRound(duel, a, b) {
   if (duel.winner !== null) throw new Error("The duel is over");
   if (!isLegal(duel, 0, a) || !isLegal(duel, 1, b))
@@ -74,9 +62,9 @@ export function playRound(duel, a, b) {
   const result = resolve(a, b);
   duel.score[0] += result.points[0];
   duel.score[1] += result.points[1];
-  [a, b].forEach((m, side) => {
-    if (m.action === "ball") duel.loaded[side] = false;
-    if (m.action === "reload") duel.loaded[side] = true;
+  [a, b].forEach((action, side) => {
+    if (action === "ball") duel.loaded[side] = false;
+    if (action === "reload") duel.loaded[side] = true;
   });
   duel.round++;
   // Only one side scores per round, so both can't reach WIN_SCORE at once.

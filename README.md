@@ -956,14 +956,14 @@ The physics is [cannon-es](https://github.com/pmndrs/cannon-es). The track and r
 
 ### Fire & Ice
 
-Open **Game → Fire & Ice** for a secret-pick duel against the computer, made for children who can't read yet: the start card shows the rules as pictures, and there are no words or voice during play. Each round, tap one of five moves: Fire Ball, Ice Ball, Reload, Fire Shield or Ice Shield. The computer picks at random at the same moment, and both moves play out together:
+Open **Game → Fire & Ice**, pick your character, then **Start** for a secret-pick duel against the computer. Your character faces a random different one; they stand still as pictures (drawn with `headshot()` from `src/headshots.js`), and the balls and shields do the action. The How to Play screen explains the moves; tap **Fire** or **Ice** at the bottom of it to pick your side, and the computer gets the other. Fire and ice play the same. Each round, tap one of three moves: Attack (throw your ball), Reload or Shield. The computer picks at random at the same moment, and both moves play out together:
 
-- A ball hits someone who is reloading: a star for the thrower.
-- A shield of the same element blocks the ball. A shield of the opposite element (ice stops fire, fire stops ice) bounces it back for a star to the defender.
-- Two balls meet in the middle in a puff of steam. Anything else does nothing.
-- You start loaded. After a throw you must reload before you can throw again: the ball buttons grey out until you tap Reload, and a reload sign over the computer shows when it can't throw.
+- An attack hits someone who is reloading: a star for the attacker.
+- A shield blocks an attack.
+- Two attacks meet in the middle in a puff of steam. Anything else does nothing.
+- You start loaded. After an attack you must reload before you can attack again: the Attack button greys out until you tap Reload, and a reload sign over the computer shows when it can't attack.
 
-First to five stars wins. Keys: 1–5 pick a move, arrow keys move between the buttons, Esc pauses. On a controller the stick or D-pad moves between the buttons, A picks and B pauses. The rules are in `shared/fireIce.js` (tested in `tests/fireIce.test.js`), and the game is in `src/fireIce.js`.
+First to five stars wins; Play again goes back to How to Play to pick a side. Keys: 1–3 pick a move, arrow keys move between the buttons, Esc pauses. On a controller the stick or D-pad moves between the buttons, A picks and B pauses. The rules are in `shared/fireIce.js` (tested in `tests/fireIce.test.js`), and the game is in `src/fireIce.js`.
 
 ### Kubb · Viking Chess
 
