@@ -7,6 +7,7 @@ import {
 } from "./pauseActions.js";
 import { nearest } from "./padBridge.js";
 import {
+  MOVES,
   WIN_SCORE,
   canThrow,
   computerMove,
@@ -15,29 +16,17 @@ import {
 } from "../shared/fireIce.js";
 import "./fireIce.css";
 
-// Fire & Ice: a two-tap secret-pick duel against the computer. Pictures
+// Fire & Ice: a one-tap secret-pick duel against the computer. Pictures
 // only: no words or voice during play, so a child who can't read can play.
 // The rules are in shared/fireIce.js.
 
 const TITLE = "Fire & Ice";
 const HOW_TO =
-  "Each round, tap a Fire Ball or Ice Ball to throw, or a Fire Shield or Ice Shield to block, then tap the head, body or legs. The computer picks at the same time. A ball that misses the shield's height is a hit. A shield at the right height blocks it, and if it's the opposite element (ice stops fire, fire stops ice) the ball bounces back for a point. Two balls make steam. After a throw you need a shield turn to recharge. First to five stars wins. Keys: 1–4 pick a move, 1–3 pick head, body or legs, arrows move between buttons, Esc goes back or pauses. Controller: stick or D-pad to move, A to pick, B to go back.";
+  "Each round, tap a Fire Ball or Ice Ball to throw, Reload, or a Fire Shield or Ice Shield to block. The computer picks at the same time. A ball hits someone who is reloading. A shield of the same element blocks it, and a shield of the opposite element (ice stops fire, fire stops ice) bounces it back for a point. Two balls make steam. After a throw you must reload before you can throw again. First to five stars wins. Keys: 1–5 pick a move, arrows move between buttons, Esc pauses. Controller: stick or D-pad to move, A to pick, B to pause.";
 
-// Each zone's band on the critter (fractions of its height, top to bottom)
-// and where a ball aims inside it.
-const ZONE = {
-  head: { top: 0, bottom: 0.48, aim: 0.33 },
-  body: { top: 0.48, bottom: 0.8, aim: 0.65 },
-  legs: { top: 0.8, bottom: 1, aim: 0.9 },
-};
-const ZONE_ORDER = ["head", "body", "legs"];
-const MOVE_ORDER = [
-  { action: "ball", element: "fire" },
-  { action: "ball", element: "ice" },
-  { action: "shield", element: "fire" },
-  { action: "shield", element: "ice" },
-];
-
+// Where on a critter balls fly and shields sit (fraction of its height).
+const AIM = 0.6;
+const MOVE_ORDER = MOVES;
 const critter = (side) => `
 <svg viewBox="0 0 200 300" aria-hidden="true">
   <g class="fi-legs">
@@ -77,8 +66,15 @@ const SHIELD = {
   ice: `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6 L88 20 C88 56 74 80 50 94 C26 80 12 56 12 20 Z" fill="url(#fi-is)" stroke="#ffffff" stroke-width="5"/><g stroke="#ffffff" stroke-width="5" stroke-linecap="round"><path d="M50 30v40M33 40l34 20M33 60l34-20"/></g></svg>`,
 };
 const DEFS = `<svg class="fi-defs" width="0" height="0" aria-hidden="true"><defs><radialGradient id="fi-fb" cx="40%" cy="40%"><stop offset="0" stop-color="#fff6a8"/><stop offset=".45" stop-color="#ffb02e"/><stop offset="1" stop-color="#e8401c"/></radialGradient><radialGradient id="fi-ib" cx="38%" cy="36%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#9fe2ff"/><stop offset="1" stop-color="#2f86d6"/></radialGradient><linearGradient id="fi-fs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23a"/><stop offset="1" stop-color="#e5391b"/></linearGradient><linearGradient id="fi-is" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9fbff"/><stop offset="1" stop-color="#3a9be8"/></linearGradient></defs></svg>`;
+const RELOAD = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="#f3eeff"/><g fill="none" stroke="#6b55d6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M76 50a26 26 0 1 1-8-19"/><path d="M72 18v15h-15"/></g><circle cx="40" cy="52" r="9" fill="url(#fi-fb)"/><circle cx="60" cy="52" r="9" fill="url(#fi-ib)"/></svg>`;
 const picture = (move) =>
-  (move.action === "ball" ? BALL : SHIELD)[move.element];
+  move.action === "reload"
+    ? RELOAD
+    : (move.action === "ball" ? BALL : SHIELD)[move.element];
+const LABEL = (m) =>
+  m.action === "reload"
+    ? "Reload"
+    : `${m.element === "fire" ? "Fire" : "Ice"} ${m.action === "ball" ? "Ball" : "Shield"}`;
 const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>`;
 const BACK = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>`;
 const PAUSE = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1.5"/><rect x="14" y="4" width="4" height="16" rx="1.5"/></svg>`;
@@ -142,6 +138,10 @@ function sounds() {
         : [1200, 1600, 2000].forEach((f, i) =>
             tone(f, i * 0.04, 0.12, "triangle", 0.05),
           ),
+    reload: () =>
+      [440, 660, 880].forEach((f, i) =>
+        tone(f, i * 0.07, 0.12, "triangle", 0.06),
+      ),
     whoosh: () => noise(0.14, 0.45, 400, 2400),
     sizzle: () => noise(0.18, 0.45, 2500, 900, 0, "highpass"),
     crack: () => {
@@ -171,7 +171,7 @@ export function installFireIce() {
   entry.className = "choice";
   entry.dataset.game = "fireice";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Two little wizard critters in the snow: one throws a fire ball, the other holds up an ice shield" draggable="false"></span><strong>${TITLE}</strong><small>Throw fire balls and ice balls, or block with a fire or ice shield. Pick head, body or legs. The computer picks at the same time. First to five stars wins!</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Two little wizard critters in the snow: one throws a fire ball, the other holds up an ice shield" draggable="false"></span><strong>${TITLE}</strong><small>Throw fire balls and ice balls, reload, or block with a fire or ice shield. The computer picks at the same time. First to five stars wins!</small>`;
   games.append(entry);
   entry.onclick = () => open();
 }
@@ -193,7 +193,6 @@ function open() {
       <div class="fi-critter fi-you" data-critter="0">${critter(0)}<span class="fi-recharge" hidden>${RECHARGE}</span></div>
       <div class="fi-critter fi-cpu" data-critter="1">${critter(1)}<span class="fi-recharge" hidden>${RECHARGE}</span></div>
       <div class="fi-fx" data-fx aria-hidden="true"></div>
-      <div class="fi-zones" data-zones hidden></div>
     </div>
     <div class="fi-hud">
       <div class="fi-score fi-score-you" data-score="0" aria-label="Your stars">${stars(0)}</div>
@@ -203,19 +202,17 @@ function open() {
     <div class="fi-bar" data-bar hidden>
       ${MOVE_ORDER.map(
         (m, i) =>
-          `<button type="button" class="fi-move fi-${m.action} fi-${m.element}" data-move="${i}" aria-label="${m.element === "fire" ? "Fire" : "Ice"} ${m.action === "ball" ? "Ball" : "Shield"} (${i + 1})">${picture(m)}<span class="fi-lock">${RECHARGE}</span></button>`,
+          `<button type="button" class="fi-move fi-${m.action} fi-${m.element || "reload"}" data-move="${i}" aria-label="${LABEL(m)} (${i + 1})">${picture(m)}<span class="fi-lock">${RECHARGE}</span></button>`,
       ).join("")}
-    </div>
-    <div class="fi-bar fi-bar-back" data-backbar hidden>
-      <button type="button" class="fi-round-btn fi-back" data-back aria-label="Pick a different move">${BACK}</button>
     </div>
     <section class="fi-intro" data-intro>
       <h2>${TITLE}</h2>
       <div class="fi-rules" aria-hidden="true">
-        <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><i class="fi-ico fi-mini">${critter(1)}</i><b>=</b><i class="fi-ico fi-gold">${STAR}</i></div>
+        <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><i class="fi-ico">${RELOAD}</i><b>=</b><i class="fi-ico fi-gold">${STAR}</i></div>
         <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><i class="fi-ico">${SHIELD.fire}</i><b>=</b><i class="fi-ico fi-poof">✋</i></div>
         <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><i class="fi-ico">${SHIELD.ice}</i><b>=</b><i class="fi-ico fi-bounce">${BACK}</i><i class="fi-ico fi-gold">${STAR}</i></div>
         <div class="fi-rule"><i class="fi-ico">${BALL.fire}</i><b>➜</b><b>⬅</b><i class="fi-ico">${BALL.ice}</i><b>=</b><i class="fi-ico fi-poof">☁️</i></div>
+        <div class="fi-rule"><i class="fi-ico">${BALL.ice}</i><b>➜</b><i class="fi-ico">${RELOAD}</i><b>➜</b><i class="fi-ico">${BALL.fire}</i></div>
       </div>
       <button type="button" class="fi-play" data-begin aria-label="Play">${PLAY}</button>
       <details class="fi-grownups"><summary>For grown-ups</summary><p>${HOW_TO}</p></details>
@@ -226,17 +223,15 @@ function open() {
   const get = (key) => dialog.querySelector(`[data-${key}]`);
   const stage = dialog.querySelector(".fi-stage");
   const fx = get("fx");
-  const zonesEl = get("zones");
   const critters = [0, 1].map((i) => get(`critter="${i}"`));
   const moveButtons = [...dialog.querySelectorAll("[data-move]")];
   const sfx = sounds();
   const timers = new Set();
 
-  // ready | move | zone | resolving | done | paused
+  // ready | move | resolving | done | paused
   let phase = "ready";
   let resumeTo = "move";
   let duel = newDuel();
-  let picked = null; // chosen move while picking its zone
   let generation = 0;
 
   // The pad bridge moves focus between buttons and A presses them, so the
@@ -267,7 +262,7 @@ function open() {
         .querySelectorAll(".fi-star")
         .forEach((s, i) => s.classList.toggle("on", i < duel.score[side]));
       critters[side].querySelector(".fi-recharge").hidden =
-        !duel.recharging[side] || duel.winner !== null;
+        duel.loaded[side] || duel.winner !== null;
     }
     const ready = canThrow(duel, 0);
     moveButtons.forEach((b, i) => {
@@ -279,67 +274,18 @@ function open() {
 
   function showMoves() {
     phase = "move";
-    picked = null;
-    zonesEl.hidden = true;
-    zonesEl.replaceChildren();
-    get("backbar").hidden = true;
     get("bar").hidden = false;
-    critters.forEach((c) => c.classList.remove("fi-target"));
     hud();
     const first = moveButtons.find((b) => !b.disabled);
     first.focus({ preventScroll: true });
   }
 
-  // Three glowing bands over the critter the move is aimed at: the computer
-  // for a ball, yourself for a shield.
-  function pickMove(index) {
-    if (phase !== "move") return;
-    const move = MOVE_ORDER[index];
-    if (!move || (move.action === "ball" && !canThrow(duel, 0))) return;
-    sfx.resume();
-    sfx.tap();
-    picked = move;
-    phase = "zone";
-    const target = move.action === "ball" ? 1 : 0;
-    critters[target].classList.add("fi-target");
-    const box = critters[target].getBoundingClientRect();
-    const host = stage.getBoundingClientRect();
-    zonesEl.style.left = `${box.left - host.left}px`;
-    zonesEl.style.top = `${box.top - host.top}px`;
-    zonesEl.style.width = `${box.width}px`;
-    zonesEl.style.height = `${box.height}px`;
-    zonesEl.replaceChildren(
-      ...ZONE_ORDER.map((zone, i) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = `fi-zone fi-zone-${zone} fi-${move.element}`;
-        b.dataset.zone = zone;
-        b.setAttribute("aria-label", `${zone} (${i + 1})`);
-        b.style.top = `${ZONE[zone].top * 100}%`;
-        b.style.height = `${(ZONE[zone].bottom - ZONE[zone].top) * 100}%`;
-        b.innerHTML = `<span>${picture(move)}</span>`;
-        b.onclick = () => pickZone(zone);
-        return b;
-      }),
-    );
-    zonesEl.hidden = false;
-    get("bar").hidden = true;
-    get("backbar").hidden = false;
-    zonesEl.querySelector(".fi-zone-body").focus({ preventScroll: true });
-  }
-
-  function backToMoves() {
-    if (phase !== "zone") return;
-    sfx.tap();
-    showMoves();
-  }
-
   // Where things happen on screen, in stage pixels.
-  function spot(side, zone, where) {
+  function spot(side, where) {
     const host = stage.getBoundingClientRect();
     const r = critters[side].getBoundingClientRect();
     const facing = side === 0 ? 1 : -1;
-    const y = r.top - host.top + r.height * ZONE[zone].aim;
+    const y = r.top - host.top + r.height * AIM;
     const mid = r.left - host.left + r.width / 2;
     const x =
       where === "hand"
@@ -410,31 +356,26 @@ function open() {
     critters[side].classList.add("fi-cheer");
   }
 
-  function pickZone(zone) {
-    if (phase !== "zone") return;
-    const mine = { ...picked, zone };
+  function pickMove(index) {
+    if (phase !== "move") return;
+    const mine = MOVE_ORDER[index];
+    if (!mine || (mine.action === "ball" && !canThrow(duel, 0))) return;
+    sfx.resume();
+    sfx.tap();
     const theirs = computerMove(duel, 1);
     const result = playRound(duel, mine, theirs);
     phase = "resolving";
-    zonesEl.hidden = true;
-    zonesEl.replaceChildren();
-    get("backbar").hidden = true;
-    critters.forEach((c) => c.classList.remove("fi-target"));
+    get("bar").hidden = true;
     // Keep focus inside the dialog so the controller still has somewhere
     // to start; the pause button is the only control left during the show.
     get("pause").focus({ preventScroll: true });
-    hud();
-    // Stars and recharge marks update as the show plays.
-    get('score="0"')
-      .querySelectorAll(".fi-star")
-      .forEach((s, i) =>
-        s.classList.toggle("on", i < duel.score[0] - result.points[0]),
-      );
-    get('score="1"')
-      .querySelectorAll(".fi-star")
-      .forEach((s, i) =>
-        s.classList.toggle("on", i < duel.score[1] - result.points[1]),
-      );
+    // Stars show as they're won during the show.
+    for (const side of [0, 1])
+      get(`score="${side}"`)
+        .querySelectorAll(".fi-star")
+        .forEach((s, i) =>
+          s.classList.toggle("on", i < duel.score[side] - result.points[side]),
+        );
     show([mine, theirs], result);
   }
 
@@ -442,12 +383,19 @@ function open() {
   function show(moves, result) {
     const shields = [];
     moves.forEach((m, side) => {
+      if (m.action === "reload") {
+        const at = spot(side, "middle");
+        at.y -= at.size * 0.72;
+        sprite(RELOAD, "fi-reloading", at, 0.26);
+        critters[side].querySelector(".fi-recharge").hidden = true;
+        sfx.reload();
+      }
       if (m.action !== "shield") return;
       const el = sprite(
         SHIELD[m.element],
         `fi-shield fi-${m.element} fi-side-${side}`,
-        spot(side, m.zone, "shield"),
-        0.36,
+        spot(side, "shield"),
+        0.4,
       );
       shields[side] = el;
       sfx.shield(m.element);
@@ -462,12 +410,12 @@ function open() {
       sfx.whoosh();
       if (result.outcome === "steam") {
         const balls = moves.map((m, side) => {
-          const from = spot(side, m.zone, "hand");
+          const from = spot(side, "hand");
           const el = sprite(BALL[m.element], "fi-ball", from, 0.2);
           const host = stage.getBoundingClientRect();
           const meet = {
             x: host.width / 2,
-            y: (spot(0, moves[0].zone).y + spot(1, moves[1].zone).y) / 2,
+            y: (spot(0).y + spot(1).y) / 2,
             size: from.size,
           };
           fly(el, from, meet, FLY * 0.8);
@@ -482,11 +430,10 @@ function open() {
       }
       const by = result.by;
       const ball = moves[by];
-      const shield = moves[1 - by];
-      const from = spot(by, ball.zone, "hand");
+      const from = spot(by, "hand");
       const el = sprite(BALL[ball.element], "fi-ball", from, 0.2);
       if (result.outcome === "hit") {
-        const to = spot(1 - by, ball.zone, "middle");
+        const to = spot(1 - by, "middle");
         fly(el, from, to, FLY);
         later(() => {
           el.remove();
@@ -498,7 +445,7 @@ function open() {
         return;
       }
       // Blocked or bounced: the ball stops at the shield.
-      const at = spot(1 - by, shield.zone, "shield");
+      const at = spot(1 - by, "shield");
       fly(el, from, at, FLY * 0.85);
       later(() => {
         shields[1 - by]?.classList.add("fi-flash");
@@ -509,7 +456,7 @@ function open() {
           return;
         }
         sfx.boing();
-        const back = spot(by, ball.zone, "middle");
+        const back = spot(by, "middle");
         el.getAnimations().forEach((a) => a.cancel());
         el.style.left = `${at.x - from.size * 0.1}px`;
         el.style.top = `${at.y - from.size * 0.1}px`;
@@ -556,7 +503,7 @@ function open() {
     results.hide();
     fx.replaceChildren();
     critters.forEach((c) =>
-      c.classList.remove("fi-dance", "fi-ouch", "fi-cheer", "fi-target"),
+      c.classList.remove("fi-dance", "fi-ouch", "fi-cheer"),
     );
     duel = newDuel();
     get("intro").hidden = true;
@@ -566,7 +513,7 @@ function open() {
   }
 
   function pause() {
-    if (!["move", "zone", "resolving"].includes(phase)) return;
+    if (!["move", "resolving"].includes(phase)) return;
     resumeTo = phase;
     phase = "paused";
     dialog.getAnimations({ subtree: true }).forEach((a) => a.pause());
@@ -581,17 +528,12 @@ function open() {
     pending = [];
     due.forEach((fn) => fn());
     if (phase === "move") showMoves();
-    else if (phase === "zone")
-      (zonesEl.querySelector(".fi-zone-body") || get("back")).focus({
-        preventScroll: true,
-      });
     else get("pause").focus({ preventScroll: true });
   }
 
   const close = () => dialog.close();
   const results = gameResults(dialog, TITLE, start, close);
   moveButtons.forEach((b, i) => (b.onclick = () => pickMove(i)));
-  get("back").onclick = backToMoves;
   get("begin").onclick = start;
   get("exit").onclick = close;
   get("pause").onclick = pause;
@@ -600,7 +542,6 @@ function open() {
   get("pause-home").onclick = close;
   bindDialogEscape(dialog, () => {
     if (phase === "paused") resume();
-    else if (phase === "zone") backToMoves();
     else if (phase === "move" || phase === "resolving") pause();
     else close();
   });
@@ -638,12 +579,9 @@ function open() {
     }
     if (event.repeat) return;
     const n = Number(event.key);
-    if (phase === "move" && n >= 1 && n <= 4) {
+    if (phase === "move" && n >= 1 && n <= MOVE_ORDER.length) {
       event.preventDefault();
       pickMove(n - 1);
-    } else if (phase === "zone" && n >= 1 && n <= 3) {
-      event.preventDefault();
-      pickZone(ZONE_ORDER[n - 1]);
     }
   });
   dialog.addEventListener("keyup", (event) => event.stopPropagation());
@@ -652,21 +590,9 @@ function open() {
   const visibility = () => document.hidden && pause();
   window.addEventListener("blur", blur);
   document.addEventListener("visibilitychange", visibility);
-  // A resize moves the critters: re-place the zone bands.
-  const resize = () => {
-    if (phase === "zone" && picked) {
-      const move = MOVE_ORDER.findIndex(
-        (m) => m.action === picked.action && m.element === picked.element,
-      );
-      phase = "move";
-      pickMove(move);
-    }
-  };
-  window.addEventListener("resize", resize);
   dialog.addEventListener("close", () => {
     clearTimers();
     window.removeEventListener("blur", blur);
-    window.removeEventListener("resize", resize);
     document.removeEventListener("visibilitychange", visibility);
     sfx.audio?.close().catch(() => {});
     dialog.remove();

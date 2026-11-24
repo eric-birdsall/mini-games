@@ -1,6 +1,6 @@
 .fire-ice {
   --fi-critter: min(46vh, 34vw);
-  --fi-btn: clamp(64px, min(14vh, 19vw), 132px);
+  --fi-btn: clamp(52px, min(14vh, 16vw), 132px);
   position: fixed;
   inset: 0;
   width: 100%;
@@ -209,9 +209,6 @@
     transform: translateY(-8%) rotate(8deg);
   }
 }
-.fi-critter.fi-target {
-  filter: drop-shadow(0 0 18px #fff);
-}
 
 /* A spinning arrow over a critter that must shield this round. */
 .fi-recharge {
@@ -307,9 +304,6 @@
   height: 100%;
   fill: currentColor;
 }
-.fi-back svg {
-  fill: none;
-}
 
 /* The four moves along the bottom. */
 .fi-bar {
@@ -324,14 +318,6 @@
   border-radius: 28px;
   background: #1d183870;
   backdrop-filter: blur(6px);
-}
-.fi-bar-back {
-  padding: 8px;
-  border-radius: 999px;
-}
-.fi-bar-back .fi-round-btn {
-  width: var(--fi-btn);
-  padding: 22%;
 }
 .fi-move {
   position: relative;
@@ -355,6 +341,9 @@
 }
 .fi-move.fi-ice {
   background: radial-gradient(#e6f8ff, #6cb8ee);
+}
+.fi-move.fi-reload {
+  background: radial-gradient(#ffffff, #b9a8f5);
 }
 .fi-move.fi-shield {
   border-style: dashed;
@@ -387,72 +376,13 @@
   animation: fi-spin 1.6s linear infinite;
   filter: none;
 }
-/* Shields glow to say "pick me" while the balls recharge. */
-.fi-bar:has(.locked) .fi-shield {
+/* Reload glows to say "pick me" while the balls are locked. */
+.fi-bar:has(.locked) .fi-reload {
   animation: fi-pulse 1.2s ease-in-out infinite;
 }
 @keyframes fi-pulse {
   50% {
     box-shadow: 0 0 0 8px #ffffff60;
-  }
-}
-
-/* Head, body and legs bands laid over a critter. */
-.fi-zones {
-  position: absolute;
-  z-index: 3;
-}
-.fi-zone {
-  position: absolute;
-  left: -14%;
-  width: 128%;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 4px dashed #fff;
-  border-radius: 26px;
-  background: #ffffff30;
-  animation: fi-zone 1.3s ease-in-out infinite;
-}
-.fi-zone + .fi-zone {
-  margin-top: 0;
-}
-.fi-zone-head {
-  border-radius: 40% 40% 18px 18px;
-}
-.fi-zone.fi-fire {
-  background: #ff8a3a40;
-}
-.fi-zone.fi-ice {
-  background: #6cc8ff40;
-}
-.fi-zone span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  height: 40%;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  opacity: 0.85;
-}
-.fi-zone-legs span {
-  height: 75%;
-}
-.fi-zone span svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.fi-zone:hover,
-.fi-zone:focus-visible {
-  background: #ffffff70;
-  outline: none;
-  border-style: solid;
-  animation: none;
-}
-@keyframes fi-zone {
-  50% {
-    background-color: #ffffff55;
   }
 }
 
@@ -487,6 +417,24 @@
 }
 .fi-sprite.fi-shield.fi-ice svg {
   filter: drop-shadow(0 0 18px #8fdcff);
+}
+.fi-reloading {
+  animation: fi-reloading 1s ease-out forwards;
+}
+@keyframes fi-reloading {
+  from {
+    transform: scale(0) rotate(-1turn);
+  }
+  40% {
+    transform: scale(1.2) rotate(0turn);
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: scale(1) translateY(-20%);
+    opacity: 0;
+  }
 }
 @keyframes fi-shield-in {
   from {
@@ -719,7 +667,6 @@
 @media (prefers-reduced-motion: reduce) {
   .fi-critter,
   .fi-play,
-  .fi-zone,
   .fi-recharge svg,
   .fi-move.locked .fi-lock svg {
     animation: none;
