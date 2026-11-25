@@ -172,6 +172,11 @@ export default defineConfig(({ mode }) => {
           // answer them with the main menu (e.g. a page newer than this
           // offline copy); go to the network instead.
           navigateFallbackDenylist: [/\/play\//],
+          // Match saved pages whatever their query: the pages read it
+          // themselves (?grown from the menu's GROWN-UPS button, ?pick,
+          // ?game, ?all, ?refresh). Without this, play/?grown missed the
+          // offline copy of play/ and failed with no connection.
+          ignoreURLParametersMatching: [/.*/],
         },
       }),
     ],
