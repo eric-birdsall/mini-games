@@ -104,6 +104,7 @@ export const HOME_LINKS = [
     image: mode("river-crossing.jpg"),
   },
   { id: "roofcatch", name: "Roof Catch", image: mode("roof-catch.jpg") },
+  { id: "seasweeper", name: "Sea Sweeper", image: mode("sea-sweeper.svg") },
   {
     id: "shadowshop",
     name: "Shadow Shop",

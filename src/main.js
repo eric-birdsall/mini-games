@@ -62,6 +62,7 @@ import { installSkeeBall } from "./skeeBall.js";
 import { installReadyOrNot } from "./readyOrNot.js";
 import { installFoodFinder } from "./foodFinder.js";
 import { installFireIce } from "./fireIce.js";
+import { installSeaSweeper } from "./seaSweeper.js";
 import { PadBridge, activeGame } from "./padBridge.js";
 import { weaponBlockReason } from "../shared/combat.js";
 import { MUSIC_TRACKS } from "./menuMusic.js";
@@ -1384,6 +1385,7 @@ installSumo(selectedAvatar, () => input.padIndex, audio);
 installSinkOrFloat(selectedAvatar, audio);
 installKubb(() => botLevel);
 installFireIce(selectedAvatar);
+installSeaSweeper(() => botLevel, selectedAvatar);
 // Picking a standalone game selects it; Start opens it (see `launchers`).
 document.querySelectorAll("#home [data-game]").forEach((entry) => {
   if (GAMES[entry.dataset.game] || !entry.onclick) return;

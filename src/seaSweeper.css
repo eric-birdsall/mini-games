@@ -1,0 +1,357 @@
+.sea-sweeper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #0f4a5c;
+  color: #fffaf0;
+}
+
+.sea-sweeper[open] {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.sea-sweeper [hidden] {
+  display: none !important;
+}
+
+.sea-sweeper header,
+.sea-sweeper footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin: 0;
+  padding: 8px clamp(12px, 3vw, 30px);
+  background: #0f4a5ce8;
+}
+
+.sea-sweeper header strong {
+  font-size: 1.3rem;
+}
+
+.sea-sweeper button {
+  padding: 6px 12px;
+  border: 1px solid #8fe0ef;
+  border-radius: 8px;
+  color: #fffaf0;
+  background: #1b6f86;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sea-sweeper button.primary {
+  border-color: #ffe7a8;
+  background: #ff7f6e;
+  color: #fff;
+  font-weight: 800;
+}
+
+.sweep-field {
+  position: absolute;
+  inset: 0;
+}
+
+.sea-sweeper canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}
+
+.sweep-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  padding: 16px;
+  background: #0b3a48c4;
+  text-align: center;
+}
+
+.sweep-panel h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.sweep-panel p {
+  max-width: 42ch;
+  margin: 10px 0 16px;
+  line-height: 1.45;
+}
+
+.sweep-modes button {
+  min-width: 11em;
+  min-height: 3.2em;
+  padding: 10px 20px;
+  font-size: 1.1rem;
+}
+
+.sweep-keys {
+  margin-top: 14px;
+  opacity: 0.8;
+}
+
+.sea-sweeper footer {
+  grid-row: 3;
+  justify-content: flex-start;
+  background: transparent;
+  pointer-events: none;
+  min-height: 2.5em;
+  font-size: 0.95rem;
+}
+
+.sea-sweeper footer > span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #0f4a5ce8;
+}
+
+.sea-sweeper footer > span:empty {
+  display: none;
+}
+
+.sea-sweeper footer button {
+  pointer-events: auto;
+  margin-left: auto;
+}
+
+/* Compact HUD over the sea, top left, so the beach stays full screen. */
+.sweep-hud {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: calc(100% - 20px);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.sweep-hud > span {
+  padding: 6px 12px;
+  border: 1px solid #ffe7a8;
+  border-radius: 10px;
+  background: #fff8e4;
+  color: #1d3b44;
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  font-weight: 800;
+}
+
+.sweep-hud > span.trash {
+  border-color: #5bd17a;
+  background: #dcf7e3;
+}
+
+.sweep-hud > span.shells {
+  border-color: #ff9fc4;
+  background: #ffe3ee;
+}
+
+.sweep-hud > span.hurry {
+  border-color: #ff9b7a;
+  background: #ffd9cc;
+  color: #8a2312;
+  animation: sweep-hurry 1s ease-in-out infinite;
+}
+
+@keyframes sweep-hurry {
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* Time left this tide, as a bar: it shrinks from full to empty. */
+.sweep-timebar {
+  flex-basis: 100%;
+  max-width: min(520px, 100%);
+  height: clamp(18px, 3vw, 26px);
+  border: 3px solid #fff8e4;
+  border-radius: 99px;
+  background: #1d3b4499;
+  overflow: hidden;
+  box-shadow: 0 2px 0 #1d3b4466;
+}
+
+.sweep-timebar span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 99px;
+  background: #5bd17a;
+  transform: scaleX(var(--left, 1));
+  transform-origin: left center;
+  transition: background-color 0.4s;
+}
+
+.sweep-timebar[data-level="half"] span {
+  background: #ffd84d;
+}
+
+.sweep-timebar[data-level="low"] span {
+  background: #ff6f5e;
+}
+
+.sweep-timebar.hurry {
+  animation: sweep-hurry 1s ease-in-out infinite;
+}
+
+/* The word for each thing on the sand, and for the one being carried. */
+.sweep-word {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, 0);
+  padding: 1px 8px;
+  border: 2px solid #5bd17a;
+  border-radius: 99px;
+  background: #fffdf5;
+  color: #1d3b44;
+  font-weight: 800;
+  font-size: clamp(0.75rem, 1.6vw, 0.95rem);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.sweep-word.shell {
+  border-color: #ff8fb8;
+}
+
+.sweep-word.carried {
+  z-index: 2;
+  transform: translate(-50%, -100%);
+  font-size: clamp(0.9rem, 2vw, 1.15rem);
+  box-shadow: 0 2px 0 #1d3b4455;
+}
+
+/* "Trash" and "Shells" under the bin and the bucket. */
+.sweep-label {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, 0);
+  padding: 2px 10px;
+  border-radius: 99px;
+  color: #1d3b44;
+  font-weight: 800;
+  font-size: clamp(0.9rem, 2vw, 1.15rem);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.sweep-label.bin {
+  background: #8de6a4;
+}
+
+.sweep-label.bucket {
+  background: #ffbcd6;
+}
+
+.sweep-pop {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  font:
+    900 clamp(1.2rem, 3.5vw, 2rem) / 1 Fredoka,
+    system-ui,
+    sans-serif;
+  -webkit-text-stroke: 2px #1d3b44;
+  paint-order: stroke fill;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: sweep-rise 1s ease-out forwards;
+}
+
+.sweep-pop.trash {
+  color: #7bf09b;
+}
+
+.sweep-pop.shell {
+  color: #ffc2da;
+  font-size: clamp(1rem, 2.6vw, 1.5rem);
+}
+
+@keyframes sweep-rise {
+  to {
+    transform: translate(-50%, -150%);
+    opacity: 0;
+  }
+}
+
+.sweep-banner {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  max-width: 92vw;
+  padding: 10px 26px;
+  border-radius: 18px;
+  background: #0f4a5ce0;
+  color: #fffaf0;
+  font:
+    900 clamp(1.6rem, 5vw, 2.8rem) / 1.1 Fredoka,
+    system-ui,
+    sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+
+.sweep-banner:empty {
+  display: none;
+}
+
+.sweep-banner.good {
+  background: #2e9e57;
+  box-shadow: 0 0 0 4px #ffe7a8;
+}
+
+/* Touch: a floating stick wherever you press. */
+.sweep-touch {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.sweep-stick {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  margin: -55px 0 0 -55px;
+  border: 3px solid #fff8;
+  border-radius: 50%;
+  background: #0002;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.sweep-stick.on {
+  opacity: 1;
+}
+
+.sweep-stick span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: #fffaf0;
+}
