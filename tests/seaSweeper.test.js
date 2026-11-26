@@ -173,3 +173,79 @@ test("stars", () => {
   assert.equal(stars(12), 1);
   assert.equal(stars(5), 0);
 });
+
+test("all 30 pieces can be cleaned on every difficulty across 40 beaches", () => {
+  for (const level of ["easy", "normal", "hard"]) {
+    for (let seed = 1; seed <= 40; seed++) {
+      const game = newGame(level, seed);
+      let doneEvents = 0;
+      for (let frame = 0; frame < 30000 && game.phase !== "done"; frame++) {
+        const p = game.player;
+        // Shells are optional: prioritize the trash on the shortest clocks.
+        const candidates = game.items.filter((item) => item.type === "trash");
+        const goal = game.carrying
+          ? game.carrying.type === "trash"
+            ? BIN
+            : BUCKET
+          : candidates.reduce(
+              (a, b) =>
+                !a ||
+                Math.hypot(b.x - p.x, b.z - p.z) <
+                  Math.hypot(a.x - p.x, a.z - p.z)
+                  ? b
+                  : a,
+              null,
+            );
+        const dx = goal ? goal.x - p.x : 0;
+        const dz = goal ? goal.z - p.z : 0;
+        const d = Math.hypot(dx, dz);
+        const events = step(
+          game,
+          d > PICK_RADIUS / 3 ? { x: dx / d, z: dz / d } : still,
+          1 / 30,
+        );
+        doneEvents += events.filter((e) => e.type === "done").length;
+      }
+      assert.equal(game.phase, "done", `${level}, seed ${seed}`);
+      assert.equal(game.trash, TOTAL_TRASH, `${level}, seed ${seed}`);
+      assert.equal(game.washed, 0);
+      assert.equal(doneEvents, 1);
+      assert.deepEqual(step(game, { x: 1, z: 1 }, 1), []);
+    }
+  }
+});
+
+test("ignoring the beach ends after five tides and accounts for all trash", () => {
+  for (const level of ["easy", "normal", "hard"]) {
+    const game = newGame(level, 18);
+    let lands = 0,
+      ends = 0;
+    for (let n = 0; n < 10000 && game.phase !== "done"; n++) {
+      const events = step(game, still, 0.05);
+      lands += events.filter((e) => e.type === "land").length;
+      ends += events.filter((e) => e.type === "done").length;
+    }
+    assert.equal(lands, TIDES);
+    assert.equal(ends, 1);
+    assert.equal(game.trashSeen, TOTAL_TRASH);
+    assert.equal(game.washed, TOTAL_TRASH);
+    assert.equal(game.trash, 0);
+  }
+});
+
+test("the final clock ends once even while carrying, and finished games cannot score", () => {
+  const game = landed();
+  game.tide = TIDES - 1;
+  game.carrying = game.items.find((item) => item.type === "trash");
+  game.items = game.items.filter((item) => item !== game.carrying);
+  game.clock = 0.01;
+  Object.assign(game.player, { x: 0, z: 4.5 });
+  assert.equal(
+    step(game, still, 0.05).filter((e) => e.type === "done").length,
+    1,
+  );
+  assert.equal(game.phase, "done");
+  Object.assign(game.player, BIN);
+  assert.deepEqual(step(game, still, 1), []);
+  assert.equal(game.trash, 0);
+});

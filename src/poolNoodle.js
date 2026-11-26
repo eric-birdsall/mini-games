@@ -1,3 +1,4 @@
+import { TwoPlayerPads } from "./twoPlayerPads.js";
 import preview from "./assets/modes/pool-noodle-chop.jpg";
 import { gameResults } from "./gameResults.js";
 import {
@@ -195,8 +196,10 @@ function open(level, avatar) {
     </footer>
     ${pauseScreen("Pool Noodle Chop", HOW_TO)}`;
   document.body.append(dialog);
-  // Controller: A (Space) swings for player 1 (padBridge).
+  // Solo uses padBridge; two-player reads one controller per human.
   dialog.padPlaying = () => state === "playing";
+  dialog.padSeats = () => mode === "two" && state === "playing";
+  const pads = new TwoPlayerPads();
   const get = (key) => dialog.querySelector(`[data-${key}]`);
   const canvas = dialog.querySelector("canvas");
   canvas.tabIndex = -1;
@@ -401,6 +404,14 @@ function open(level, avatar) {
   function loop(now) {
     const dt = Math.min((now - previous) / 1000, 0.05);
     previous = now;
+    if (state === "playing" && mode === "two") {
+      const inputs = pads.read(navigator.getGamepads?.());
+      if (inputs.some((input) => input.pause)) pause();
+      if (state === "playing")
+        inputs.forEach((input, human) => {
+          if (input.action) swing(stations.findIndex((s) => s.human === human));
+        });
+    }
     if (state === "playing") step(dt);
     draw(state === "paused" ? 0 : dt);
     if (state !== "paused") frame = requestAnimationFrame(loop);
@@ -454,11 +465,12 @@ function open(level, avatar) {
       startRound(0);
       say(
         mode === "two"
-          ? "Player 1: A or Space · Player 2: L or Enter"
+          ? "Player 1: A or Space · Player 2: L or Enter · Or A on each controller"
           : "Press Space or tap to swing as the stripe passes!",
         3000,
       );
     }
+    pads.reset();
     sfx.resume();
     state = "playing";
     panel.hidden = true;
@@ -537,10 +549,13 @@ function open(level, avatar) {
     swing(stations.findIndex((s) => s.human === human));
   });
 
+  const visibility = () => document.hidden && pause();
+  document.addEventListener("visibilitychange", visibility);
   window.addEventListener("blur", pause);
   dialog.addEventListener("close", () => {
     cancelAnimationFrame(frame);
     clearTimeout(messageTimer);
+    document.removeEventListener("visibilitychange", visibility);
     window.removeEventListener("blur", pause);
     scene.dispose();
     sfx.audio?.close().catch(() => {});
@@ -562,6 +577,6 @@ function open(level, avatar) {
   get("details").textContent =
     `A rack drops a pool noodle with a stripe around it. Swing your foam sword as the stripe passes the blade. Right through the stripe scores ${PERFECT}; below it scores less the further off you are. Above the stripe costs ${-TOO_HIGH} and missing costs ${-MISS}. Most points after ${ROUNDS} rounds wins! You're up against ${rivals.slice(0, -1).join(", ")} and ${rivals.at(-1)}.${best !== null ? ` Your best: ${minus(best)}.` : ""}`;
   get("keys").textContent =
-    "Space or tap to swing · 2 players: A / Space and L / Enter, or tap your half of the screen";
+    "Space or tap to swing · 2 players: A / Space and L / Enter, tap your half of the screen, or A / RT on each controller";
   get("play").focus();
 }

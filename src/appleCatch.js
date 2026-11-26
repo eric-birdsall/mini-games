@@ -1,3 +1,4 @@
+import { TwoPlayerPads } from "./twoPlayerPads.js";
 import preview from "./assets/modes/backyard-apple-catch.jpg";
 import { gameResults } from "./gameResults.js";
 import {
@@ -169,8 +170,10 @@ function open(level, avatar) {
     </footer>
     ${pauseScreen("Backyard Apple Catch", HOW_TO)}`;
   document.body.append(dialog);
-  // Controller: the stick holds the basket left / right (padBridge).
+  // Solo uses padBridge; two-player reads one controller per human.
   dialog.padPlaying = () => state === "playing";
+  dialog.padSeats = () => mode === "two" && state === "playing";
+  const pads = new TwoPlayerPads();
   const get = (key) => dialog.querySelector(`[data-${key}]`);
   const canvas = dialog.querySelector("canvas");
   canvas.tabIndex = -1;
@@ -189,6 +192,8 @@ function open(level, avatar) {
   let previous = 0;
   let frame;
   let messageTimer;
+  let padInputs = [];
+  const heldKeys = new Set();
   const pointers = new Map(); // pointerId → { who, dir }
 
   // Which lane each human plays in: player 1 on the far left, player 2 on
@@ -282,8 +287,10 @@ function open(level, avatar) {
         if (spot !== null) lane.spot = spot;
         return;
       }
-      let left = lane.held.left;
-      let right = lane.held.right;
+      let left =
+        lane.held.left || (mode === "two" && padInputs[lane.human]?.left);
+      let right =
+        lane.held.right || (mode === "two" && padInputs[lane.human]?.right);
       for (const p of pointers.values())
         if (p.who === lane.human) {
           if (p.dir === "left") left = true;
@@ -332,6 +339,11 @@ function open(level, avatar) {
   function loop(now) {
     const dt = Math.min((now - previous) / 1000, 0.05);
     previous = now;
+    if (state === "playing" && mode === "two") {
+      const inputs = pads.read(navigator.getGamepads?.());
+      if (inputs.some((input) => input.pause)) pause();
+      padInputs = inputs;
+    }
     if (state === "playing") step(dt);
     draw(state === "paused" ? 0 : dt);
     if (state !== "paused") frame = requestAnimationFrame(loop);
@@ -341,6 +353,8 @@ function open(level, avatar) {
     state = "finished";
     get("pause").hidden = true;
     pointers.clear();
+    heldKeys.clear();
+    padInputs = [];
     const won = winners(lanes.map((l) => l.total));
     const me = lanes[0];
     let record = false;
@@ -388,13 +402,16 @@ function open(level, avatar) {
       get("pops").replaceChildren();
       say(
         mode === "two"
-          ? "Player 1: hold A / D · Player 2: hold ← / →"
+          ? "Player 1: A / D · Player 2: ← / → · Or use two controllers"
           : "Hold left or right to move your basket!",
         3000,
       );
     }
     for (const lane of lanes) lane.held.left = lane.held.right = false;
     pointers.clear();
+    heldKeys.clear();
+    padInputs = [];
+    pads.reset();
     sfx.resume();
     state = "playing";
     panel.hidden = true;
@@ -413,6 +430,8 @@ function open(level, avatar) {
     state = "paused";
     for (const lane of lanes) lane.held.left = lane.held.right = false;
     pointers.clear();
+    heldKeys.clear();
+    padInputs = [];
     setPauseScreen(dialog, true);
   }
 
@@ -461,12 +480,19 @@ function open(level, avatar) {
     const move = held(event);
     if (!move) return;
     event.preventDefault();
+    heldKeys.add(event.code || event.key);
     move.lane.held[move.dir] = true;
   });
   dialog.addEventListener("keyup", (event) => {
     event.stopPropagation();
     const move = held(event);
-    if (move) move.lane.held[move.dir] = false;
+    heldKeys.delete(event.code || event.key);
+    if (move)
+      move.lane.held[move.dir] = [...heldKeys].some((code) => {
+        const key = { KeyA: "a", KeyD: "d" }[code] || code;
+        const other = held({ key });
+        return other?.lane === move.lane && other.dir === move.dir;
+      });
   });
 
   // Press and hold: the left or right part of the screen holds that side;
@@ -499,11 +525,15 @@ function open(level, avatar) {
   const lift = (event) => pointers.delete(event.pointerId);
   canvas.addEventListener("pointerup", lift);
   canvas.addEventListener("pointercancel", lift);
+  canvas.addEventListener("lostpointercapture", lift);
 
+  const visibility = () => document.hidden && pause();
+  document.addEventListener("visibilitychange", visibility);
   window.addEventListener("blur", pause);
   dialog.addEventListener("close", () => {
     cancelAnimationFrame(frame);
     clearTimeout(messageTimer);
+    document.removeEventListener("visibilitychange", visibility);
     window.removeEventListener("blur", pause);
     scene.dispose();
     sfx.audio?.close().catch(() => {});
@@ -522,6 +552,6 @@ function open(level, avatar) {
   get("details").textContent =
     `Your basket stays in the middle. Hold left or right to move it to that side. Catch apples (+1) and keep away from pinecones (−${PINECONE_COST}). Sometimes two or three things fall at once! ${APPLES_PER_ROUND} apples fall, and the biggest total wins. Your neighbours are ${rivals.slice(0, -1).join(", ")} and ${rivals.at(-1)}.${best ? ` Your best: ${best}.` : ""}`;
   get("keys").textContent =
-    "Hold A / D or ← / →, or hold the left or right side of the screen · 2 players: A / D and ← / →";
+    "Hold A / D or ← / →, or hold the left or right side of the screen · 2 players: A / D and ← / →, or two controllers";
   get("play").focus();
 }

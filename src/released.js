@@ -49,15 +49,10 @@ export const WIP_GAMES = [
   "splash",
   "hotpotato",
   "livewire",
-  "toybox",
   "backyardairmail",
-  "poolnoodle",
-  "applecatch",
   "backyardfling",
   "paperplane",
   "pipecrane",
-  "fireice",
-  "seasweeper",
 ];
 
 // Games with no touch controls (arena games with WASD + mouse look,

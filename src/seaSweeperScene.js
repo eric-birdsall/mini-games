@@ -80,6 +80,22 @@ const FIT = [
   [BUCKET.x + 0.6, 2, BUCKET.z],
 ];
 
+// Models and their clones share GPU resources. Release each resource once,
+// including textures, even if the model never reached the visible scene.
+function disposeModels(roots, extras = []) {
+  const resources = new Set(extras);
+  for (const root of roots)
+    root.traverse((node) => {
+      if (node.geometry) resources.add(node.geometry);
+      for (const material of [node.material].flat().filter(Boolean)) {
+        resources.add(material);
+        for (const value of Object.values(material))
+          if (value?.isTexture) resources.add(value);
+      }
+    });
+  resources.forEach((resource) => resource.dispose());
+}
+
 export function createSeaSweeperScene(canvas, avatar) {
   const renderer = new T.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -172,6 +188,7 @@ export function createSeaSweeperScene(canvas, avatar) {
   scene.add(foam);
 
   // --- Models -------------------------------------------------------------
+  let disposed = false;
   const loader = new GLTFLoader();
   const models = {};
   const ready = Promise.all(
@@ -180,6 +197,10 @@ export function createSeaSweeperScene(canvas, avatar) {
         .loadAsync(modelUrl(name))
         .then((gltf) => {
           const root = gltf.scene;
+          if (disposed) {
+            disposeModels([root]);
+            return;
+          }
           root.traverse((node) => {
             if (node.isMesh) node.castShadow = node.receiveShadow = true;
           });
@@ -197,7 +218,25 @@ export function createSeaSweeperScene(canvas, avatar) {
           root.position.set(-mid.x, -box.min.y, -mid.z);
           models[name] = holder;
         })
-        .catch((error) => console.warn(`Could not load ${name}`, error)),
+        .catch((error) => {
+          if (disposed) return;
+          console.warn(`Could not load ${name}; using a beach token`, error);
+          // The word label still identifies a failed asset; its coloured
+          // token and destination remain visible and fully playable.
+          const color =
+            name === "bin" || name in TRASH_MODEL ? "#6fe08c" : "#ffbcd6";
+          const token = new T.Mesh(
+            new T.BoxGeometry(
+              SIZE[name] * 0.65,
+              SIZE[name] * 0.45,
+              SIZE[name] * 0.65,
+            ),
+            new T.MeshStandardMaterial({ color }),
+          );
+          token.position.y = SIZE[name] * 0.225;
+          models[name] = new T.Group();
+          models[name].add(token);
+        }),
     ),
   );
   const golden = new T.MeshStandardMaterial({
@@ -253,6 +292,7 @@ export function createSeaSweeperScene(canvas, avatar) {
   const bin = spot(BIN, "#5bd17a");
   const bucket = spot(BUCKET, "#ff9fc4");
   ready.then(() => {
+    if (disposed) return;
     bin.model = copyOf("bin");
     if (bin.model) {
       // A green bin, to match its ring and the trash spots.
@@ -307,6 +347,14 @@ export function createSeaSweeperScene(canvas, avatar) {
   const trashMark = markMaterial("#5bd17a");
   const shellMark = markMaterial("#ff8fb8");
 
+  const glowGeometry = new T.CircleGeometry(0.42, 24);
+  const glowMaterial = new T.MeshBasicMaterial({
+    color: "#fff3a0",
+    transparent: true,
+    opacity: 0.5,
+    depthWrite: false,
+  });
+
   function itemMesh(item) {
     const name = item.type === "trash" ? TRASH_MODEL[item.kind] : item.kind;
     const mesh = copyOf(name, item.kind === "golden");
@@ -327,15 +375,7 @@ export function createSeaSweeperScene(canvas, avatar) {
     mark.name = "mark";
     holder.add(mark);
     if (item.kind === "golden") {
-      const glow = new T.Mesh(
-        new T.CircleGeometry(0.42, 24),
-        new T.MeshBasicMaterial({
-          color: "#fff3a0",
-          transparent: true,
-          opacity: 0.5,
-          depthWrite: false,
-        }),
-      );
+      const glow = new T.Mesh(glowGeometry, glowMaterial);
       glow.rotation.x = -Math.PI / 2;
       glow.position.y = 0.01;
       glow.name = "glow";
@@ -464,19 +504,20 @@ export function createSeaSweeperScene(canvas, avatar) {
       renderer.render(scene, camera);
     },
     dispose() {
+      if (disposed) return;
+      disposed = true;
       releaseAvatar(walker);
-      scene.traverse((node) => {
-        node.geometry?.dispose();
-        node.material?.dispose?.();
-      });
-      for (const m of Object.values(models))
-        m.traverse((node) => {
-          node.geometry?.dispose();
-          node.material?.dispose?.();
-        });
-      markGeometry.dispose();
-      trashMark.dispose();
-      shellMark.dispose();
+      disposeModels(
+        [scene, ...Object.values(models)],
+        [
+          markGeometry,
+          trashMark,
+          shellMark,
+          golden,
+          glowGeometry,
+          glowMaterial,
+        ],
+      );
       sun.shadow.dispose();
       renderer.dispose();
     },

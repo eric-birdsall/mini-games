@@ -4413,7 +4413,6 @@ body.sprinklers #bearing {
 :is(
     #slipstream,
     #memory-game,
-    #toy-box-game,
     .roof-catch,
     .airmail,
     .animal-patrol,
@@ -4438,7 +4437,6 @@ body.sprinklers #bearing {
 :is(
     #slipstream,
     #memory-game,
-    #toy-box-game,
     .roof-catch,
     .airmail,
     .animal-patrol,
@@ -4479,9 +4477,7 @@ body.sprinklers #bearing {
 .game-pause-card details p {
   margin: 8px 0;
 }
-:is(#slipstream, #memory-game, #toy-box-game, .roof-catch)
-  .game-pause-card
-  button.primary {
+:is(#slipstream, #memory-game, .roof-catch) .game-pause-card button.primary {
   min-width: 0;
   padding: 17px 21px;
   border: 0;

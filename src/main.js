@@ -30,7 +30,6 @@ import { installBackyardAirMail } from "./backyardAirMail.js";
 import { installLanternTrail } from "./lanternTrail.js";
 import { installRoofCatch } from "./roofCatch.js";
 
-import { installToyBox } from "./toyBox.js";
 import { installPondFishing } from "./pondFishing.js";
 import { installTargetBlaster } from "./targetBlaster.js";
 import { installRiverCrossing } from "./riverCrossing.js";
@@ -1332,7 +1331,6 @@ function closeDropdowns(except) {
 // character screen: picking one opens it straight to its own How to Play.
 const NO_CHARACTER = new Set([
   "memory",
-  "toybox",
   "lanterntrail",
   "targetblaster",
   "racetrack",
@@ -1350,7 +1348,6 @@ const skipsCharacter = (id) => NO_CHARACTER.has(id) && !!launchers[id];
 // Register standalone games before capturing the popup options.
 installSlipstream(() => botLevel, selectedAvatar);
 installMemory(() => botLevel);
-installToyBox(() => botLevel);
 installRoofCatch(selectedAvatar);
 installLanternTrail();
 installBackyardAirMail(selectedAvatar);
@@ -1489,23 +1486,21 @@ for (const list of document.querySelectorAll("#home .choice-row")) {
       if (!option.querySelector(".map-thumb"))
         option.insertAdjacentHTML(
           "afterbegin",
-          option.dataset.game === "toybox"
-            ? `<span class="map-thumb toybox-preview" aria-hidden="true"><span>🧸 🚀 🦆</span><b>✥</b><span>🚗 🦕 ⚽</span></span>`
-            : option.dataset.game === "sprinklers"
-              ? `<span class="map-thumb"><img src="${sprinklerDodgePreview}" alt="Sprinkler Dodge live gameplay: a penguin in a sunny green backyard surrounded by hedges and white fences" draggable="false"></span>`
-              : option.dataset.game === "memory"
-                ? `<span class="map-thumb"><img src="${fireflyRecallPreview}" alt="Firefly Recall live gameplay: colored fireflies around a backyard campfire beside a tent" draggable="false"></span>`
-                : option.dataset.game === "slipstream"
-                  ? `<span class="map-thumb"><img src="${slipstreamPreview}" alt="Slipstream live gameplay: a fox and three chicks lined up on a grassy hill with slip n slides and mudpiles ahead" draggable="false"></span>`
-                  : option.dataset.game === "livewire"
-                    ? `<span class="map-thumb"><img src="${beachBallDodgePreview}" alt="Beach Ball Dodge live gameplay: a red panda on an inflatable float in a backyard pool, a beach ball flying across the water" draggable="false"></span>`
-                    : option.dataset.game === "breakout"
-                      ? `<span class="map-thumb"><img src="${breakoutPreview}" alt="Breakout gameplay: a baby running a three-lane orchard course with log hurdles" draggable="false"></span>`
-                      : option.dataset.game === "boulders"
-                        ? `<span class="map-thumb"><img src="${boulderDashPreview}" alt="Boulder Dash live gameplay: a giraffe facing a watermelon rolling down the channel" draggable="false"></span>`
-                        : MAP_THUMBS[ground]
-                          ? mapThumb(ground)
-                          : `<span class="map-thumb game-arena">${icon("flag", 36)}<b>DEDICATED ARENA</b></span>`,
+          option.dataset.game === "sprinklers"
+            ? `<span class="map-thumb"><img src="${sprinklerDodgePreview}" alt="Sprinkler Dodge live gameplay: a penguin in a sunny green backyard surrounded by hedges and white fences" draggable="false"></span>`
+            : option.dataset.game === "memory"
+              ? `<span class="map-thumb"><img src="${fireflyRecallPreview}" alt="Firefly Recall live gameplay: colored fireflies around a backyard campfire beside a tent" draggable="false"></span>`
+              : option.dataset.game === "slipstream"
+                ? `<span class="map-thumb"><img src="${slipstreamPreview}" alt="Slipstream live gameplay: a fox and three chicks lined up on a grassy hill with slip n slides and mudpiles ahead" draggable="false"></span>`
+                : option.dataset.game === "livewire"
+                  ? `<span class="map-thumb"><img src="${beachBallDodgePreview}" alt="Beach Ball Dodge live gameplay: a red panda on an inflatable float in a backyard pool, a beach ball flying across the water" draggable="false"></span>`
+                  : option.dataset.game === "breakout"
+                    ? `<span class="map-thumb"><img src="${breakoutPreview}" alt="Breakout gameplay: a baby running a three-lane orchard course with log hurdles" draggable="false"></span>`
+                    : option.dataset.game === "boulders"
+                      ? `<span class="map-thumb"><img src="${boulderDashPreview}" alt="Boulder Dash live gameplay: a giraffe facing a watermelon rolling down the channel" draggable="false"></span>`
+                      : MAP_THUMBS[ground]
+                        ? mapThumb(ground)
+                        : `<span class="map-thumb game-arena">${icon("flag", 36)}<b>DEDICATED ARENA</b></span>`,
         );
       // The tile: the game's square Home Screen icon (public-pages/icons),
       // with its rules as the tooltip.

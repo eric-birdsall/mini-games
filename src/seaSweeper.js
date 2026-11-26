@@ -1,3 +1,4 @@
+import { GameTimers } from "./gameTimers.js";
 import preview from "./assets/modes/sea-sweeper.svg";
 import { gameResults } from "./gameResults.js";
 import {
@@ -165,9 +166,12 @@ function open(level, avatar) {
   let game = newGame(level, 1);
   let previous = 0;
   let frame;
-  let messageTimer;
-  let bannerTimer;
-  let endTimer;
+  let pausedFrom = "playing";
+  let closed = false;
+  const messages = new GameTimers();
+  const banners = new GameTimers();
+  const endings = new GameTimers();
+  const timers = [messages, banners, endings];
   const keys = new Set();
   const touch = { id: null, x: 0, z: 0, x0: 0, y0: 0 };
 
@@ -203,17 +207,16 @@ function open(level, avatar) {
 
   function say(text, hold = 2600) {
     get("message").textContent = text;
-    clearTimeout(messageTimer);
-    if (text)
-      messageTimer = setTimeout(() => (get("message").textContent = ""), hold);
+    messages.clear();
+    if (text) messages.later(() => (get("message").textContent = ""), hold);
   }
 
   function banner(text, kind = "", hold = 1600) {
     const el = get("banner");
     el.textContent = text;
     el.className = `sweep-banner ${kind}`;
-    clearTimeout(bannerTimer);
-    if (text) bannerTimer = setTimeout(() => (el.textContent = ""), hold);
+    banners.clear();
+    if (text) banners.later(() => (el.textContent = ""), hold);
   }
 
   function pop(at, text, kind) {
@@ -268,7 +271,7 @@ function open(level, avatar) {
         if (e.tide < TIDES - 1) say("Time's up! Here comes the next wave.");
       } else if (e.type === "done") {
         state = "ending";
-        endTimer = setTimeout(finish, 900);
+        endings.later(finish, 900);
       }
     }
   }
@@ -280,6 +283,7 @@ function open(level, avatar) {
   function words() {
     const box = get("words");
     const live = new Set();
+    const placements = [];
     const show = (item, x, y, z, carried) => {
       live.add(item);
       let tag = wordTags.get(item);
@@ -287,13 +291,14 @@ function open(level, avatar) {
         tag = document.createElement("span");
         tag.className = `sweep-word ${item.type}`;
         tag.textContent = itemName(item);
-        box.append(tag);
+        tag.leader = document.createElement("i");
+        tag.leader.className = "sweep-leader";
+        box.append(tag.leader, tag);
         wordTags.set(item, tag);
       }
       const at = scene.toScreen(x, y, z);
-      tag.style.left = `${at.x}px`;
-      tag.style.top = `${at.y}px`;
       tag.classList.toggle("carried", carried);
+      placements.push({ tag, at, carried });
     };
     if (state !== "finished") {
       for (const item of game.items)
@@ -303,9 +308,53 @@ function open(level, avatar) {
     }
     for (const [item, tag] of wordTags)
       if (!live.has(item)) {
+        tag.leader.remove();
         tag.remove();
         wordTags.delete(item);
       }
+
+    // Keep words readable on narrow screens. Measure together before writing
+    // positions; displaced labels get a leader back to their item.
+    const labels = placements.map((p) => ({
+      ...p,
+      width: p.tag.offsetWidth,
+      height: p.tag.offsetHeight,
+    }));
+    labels.sort(
+      (a, b) => Number(b.carried) - Number(a.carried) || a.at.y - b.at.y,
+    );
+    const placed = [];
+    for (const label of labels) {
+      const { tag, at, width, height, carried } = label;
+      const x = Math.max(
+        width / 2 + 4,
+        Math.min(canvas.clientWidth - width / 2 - 4, at.x),
+      );
+      let top = Math.max(4, at.y - (carried ? height : 0));
+      const left = x - width / 2;
+      for (let tries = 0; tries < labels.length; tries++) {
+        const hit = placed.find(
+          (r) =>
+            left < r.right + 4 &&
+            left + width + 4 > r.left &&
+            top < r.bottom + 4 &&
+            top + height + 4 > r.top,
+        );
+        if (!hit) break;
+        top = hit.bottom + 4;
+      }
+      placed.push({ left, right: left + width, top, bottom: top + height });
+      tag.style.left = `${x}px`;
+      tag.style.top = `${top + (carried ? height : 0)}px`;
+      const dx = x - at.x,
+        dy = top + height / 2 - at.y;
+      const leader = tag.leader;
+      leader.hidden = carried || Math.hypot(dx, top - at.y) < 6;
+      leader.style.left = `${at.x}px`;
+      leader.style.top = `${at.y}px`;
+      leader.style.width = `${Math.hypot(dx, dy)}px`;
+      leader.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+    }
   }
 
   function loop(now) {
@@ -368,7 +417,8 @@ function open(level, avatar) {
   function start(reset) {
     results.hide();
     if (reset) {
-      clearTimeout(endTimer);
+      timers.forEach((timer) => timer.clear());
+      banner("");
       game = newGame(level, (Math.random() * 2 ** 32) >>> 0);
       get("pops").replaceChildren();
       say("Walk up to trash or shells to pick them up!", 3500);
@@ -376,7 +426,9 @@ function open(level, avatar) {
     keys.clear();
     lift();
     sfx.resume();
-    state = "playing";
+    state = reset ? "playing" : pausedFrom;
+    timers.forEach((timer) => timer.resume());
+    delete dialog.dataset.paused;
     panel.hidden = true;
     dialog.querySelector("header").hidden = true;
     get("hud").hidden = false;
@@ -390,8 +442,11 @@ function open(level, avatar) {
   }
 
   function pause() {
-    if (state !== "playing") return;
+    if (!["playing", "ending"].includes(state)) return;
+    pausedFrom = state;
     state = "paused";
+    timers.forEach((timer) => timer.pause());
+    dialog.dataset.paused = "true";
     keys.clear();
     lift();
     setPauseScreen(dialog, true);
@@ -411,8 +466,8 @@ function open(level, avatar) {
   get("exit").onclick = () => dialog.close();
   bindDialogEscape(dialog, () => {
     if (state === "paused") start(false);
-    else if (state === "playing") pause();
-    else if (state !== "ending") dialog.close();
+    else if (["playing", "ending"].includes(state)) pause();
+    else dialog.close();
   });
 
   const GAME_KEYS = new Set([
@@ -445,7 +500,7 @@ function open(level, avatar) {
   const knob = stick.querySelector("span");
   const stickRange = 46;
   canvas.addEventListener("pointerdown", (event) => {
-    if (state !== "playing") return;
+    if (state !== "playing" || touch.id !== null) return;
     event.preventDefault();
     canvas.focus({ preventScroll: true });
     canvas.setPointerCapture(event.pointerId);
@@ -481,13 +536,18 @@ function open(level, avatar) {
   }
   canvas.addEventListener("pointerup", lift);
   canvas.addEventListener("pointercancel", lift);
+  canvas.addEventListener("lostpointercapture", lift);
 
+  const visibility = () => document.hidden && pause();
+  document.addEventListener("visibilitychange", visibility);
   window.addEventListener("blur", pause);
   dialog.addEventListener("close", () => {
+    closed = true;
     cancelAnimationFrame(frame);
-    clearTimeout(messageTimer);
-    clearTimeout(bannerTimer);
-    clearTimeout(endTimer);
+    messages.clear();
+    banners.clear();
+    endings.clear();
+    document.removeEventListener("visibilitychange", visibility);
     window.removeEventListener("blur", pause);
     scene.dispose();
     sfx.audio?.close().catch(() => {});
@@ -496,6 +556,14 @@ function open(level, avatar) {
   });
 
   const scene = createSeaSweeperScene(canvas, avatar);
+  get("play").disabled = true;
+  get("play").textContent = "Loading beach…";
+  scene.ready.then(() => {
+    if (closed) return;
+    get("play").disabled = false;
+    get("play").textContent = "Play";
+    if (state === "ready") get("play").focus();
+  });
   dialog.showModal();
   previous = performance.now();
   frame = requestAnimationFrame(loop);

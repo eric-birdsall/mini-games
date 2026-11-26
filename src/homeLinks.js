@@ -131,5 +131,4 @@ export const HOME_LINKS = [
     name: "Target Blaster",
     image: mode("target-blaster.jpg"),
   },
-  { id: "toybox", name: "Toy Box Rescue", image: null },
 ];

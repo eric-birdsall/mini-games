@@ -1,5 +1,5 @@
 // Xbox controller support for the standalone games (Slipstream, Firefly
-// Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing,
+// Recall, Roof Catch, Loop & Glide, Pond Fishing,
 // Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch,
 // Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop,
 // Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad

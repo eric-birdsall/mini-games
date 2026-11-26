@@ -92,7 +92,7 @@ The home menu is two screens over a live flyover of the map. **← Back** at the
 
 **Direct link:** `?game=<id or name>` skips the menu and opens that game, as if picked and Start pressed, e.g. [`?game=bigbadburger`](https://eric-birdsall.github.io/mini-games/?game=bigbadburger). Names match ignoring case, spaces and punctuation (`?game=big-bad-burger` works too). Leaving the game lands on the character screen.
 
-**Games without a character** (Firefly Recall, Toy Box Rescue, Lantern Trail, Target Blaster, Racetrack Builder, Look & Find, Paper Plane Pitch, Big Bad Burger, Animal Patrol, Shadow Shop, Bocce Ball, Shuffleboard, Kubb, Puck Clash) skip the character screen: picking one opens it straight to its own How to Play, and leaving it returns to the game list. The list is `NO_CHARACTER` in `src/main.js`.
+**Games without a character** (Firefly Recall, Lantern Trail, Target Blaster, Racetrack Builder, Look & Find, Paper Plane Pitch, Big Bad Burger, Animal Patrol, Shadow Shop, Bocce Ball, Shuffleboard, Kubb, Puck Clash) skip the character screen: picking one opens it straight to its own How to Play, and leaving it returns to the game list. The list is `NO_CHARACTER` in `src/main.js`.
 
 **Kids view:** the menu shows only the games released on this device (see _Releasing games to kids_ above; `DEFAULT_RELEASED` in `src/released.js` until one is picked), with no search and no Work in Progress button, on the dev server too. Open it with `?all` (e.g. `localhost:3000/?all`) to show every game. On the kids' game screen, typing **all** on the keyboard reloads showing every game until the app or tab closes, keeping how you're playing.
 
@@ -316,7 +316,7 @@ Input handling was checked with synthetic standard Xbox button/axis samples and 
 
 ### Controller in the standalone games
 
-Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail, Puck Clash, Sink or Float, Look & Find, Fire & Ice and Sea Sweeper run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
+Slipstream, Firefly Recall, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail, Puck Clash, Sink or Float, Look & Find, Fire & Ice and Sea Sweeper run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
 
 | Xbox               | During play                                                                                                                                                                                                                                                                      | On a start, pause or results screen               |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
@@ -328,6 +328,8 @@ Slipstream, Firefly Recall, Toy Box Rescue, Roof Catch, Loop & Glide, Pond Fishi
 | Menu (Start)       | Pause                                                                                                                                                                                                                                                                            | Press the main button (Start, Resume, Play again) |
 
 A game opens with its main button highlighted, not "Back to games". In Firefly Recall, Y X B A (or the D-pad) pick the firefly of the same colour in that spot of the diamond, and Menu pauses (B is the red firefly there, not pause). A game marks its root with `padPlaying()` (true while the controller should steer), optionally `padFaces()` (Y X B A press ↑ ← → ↓ instead of their usual keys) and optionally `padTargets()` (limit navigation to certain buttons). These games use fixed controller buttons; the Controls remapping applies to the arena games. Slipstream's local 2-player mode still needs the keyboard for player two. Leaf Piles' 4-player mode is the exception to one-controller-for-everything: it marks its dialog with `padSeats()` and reads every controller itself, one per corner.
+
+**Apple Catch and Pool Noodle Chop:** choose **2 players** to use two controllers, one per player (leftmost and rightmost stations). Apple Catch uses each stick / D-pad; Pool Noodle uses A / RT. Either controller can pause with B / Menu. Keyboard and split-screen touch remain available. A disconnected controller keeps its seat when it reconnects.
 
 **Sumo Wrestling** uses the menu bridge for start, pause and results. During play each controller drives its own character.
 
@@ -778,10 +780,6 @@ Difficulty for Slipstream adjusts rival pace and steering anticipation. Firefly 
 
 Choose **Sprinkler Dodge** for a third-person survival round in a 40 m backyard, with no gadgets. Random sprinkler heads rise inside yellow warning circles, spray a 3.2 m radius for 2.8 seconds, then retract. Every 15 seconds adds another simultaneous sprinkler (up to 18). Any spray eliminates a player; the last dry player wins. Simultaneous eliminations tie, and players still dry at the three-minute limit share a draw. Supports friends, AI, and solo practice. Quick start: `?type=solo&objective=sprinklers`.
 
-### Toy Box Rescue
-
-Open **Game → Toy Box Rescue** for a solo carnival claw game. Move the claw on two axes using **arrow keys / WASD**, the on-screen directional buttons, or tap and drag inside the box. Align the ground ring over the requested toy and press **Space** or **Drop Claw**. The claw lowers, grabs, and lifts; the next mission appears after a successful rescue. Wrong toys return to the box, and misses let you try again without a time limit. Rescue all six toys to finish, with total drops shown as your score. Difficulty adjusts grab precision. **Start over** reshuffles the box; **Escape** returns to the game picker.
-
 ### Lantern Trail
 
 Open **Game → Lantern Trail** for a solo side-scrolling platformer with three short levels. Reach the lantern at the end of each level. Collect optional sparks, stomp beetles from above, and light the trail marker to checkpoint your progress. Falls and side hits send you back to the latest marker, and you keep the sparks you picked up.
@@ -873,7 +871,7 @@ Open **Game → Backyard Apple Catch** to catch falling apples in a basket. Four
 
 - **Playing:** you don't walk. Your basket is in the middle; hold left to move it to the left spot and right for the right spot, and let go to bring it back. Use A / D or the arrow keys, the controller stick, or press and hold the left or right side of the screen. A branch shakes just before something lets go.
 - **Scoring:** each apple is +1. A pinecone costs 5 apples (never below zero) and spills them out of the basket. Two or three things often fall at once, so pick the spot with an apple and keep away from the pinecones; when two apples fall together you can only catch one. 100 apples fall over the round, faster and busier as it goes. The highest total wins.
-- **Players:** **Play** puts you against three computer neighbours (different critters). **2 players** is player 1 on the far left (A / D, or the left half of a touch screen) and player 2 on the far right (← / →, or the right half) with two neighbours in between.
+- **Players:** **Play** puts you against three computer neighbours (different critters). **2 players** is player 1 on the far left (A / D, or the left half of a touch screen) and player 2 on the far right (← / →, or the right half) with two neighbours in between. Two controllers also work, one stick / D-pad per player.
 - **Difficulty:** Easy has fewer pinecones, slower falls, fewer things at once and neighbours who pick the right spot about 60% of the time. Medium is about 78%. Hard has the most pinecones, the fastest falls and neighbours who are right about 90% of the time. Your best total against the computer is saved per difficulty.
 
 The rules and the neighbours' choices are in `shared/appleCatch.js` (tested in `tests/appleCatch.test.js`), the game in `src/appleCatch.js`, and the 3D yard in `src/appleCatchScene.js`.
@@ -884,7 +882,7 @@ Open **Game → Pool Noodle Chop** for a backyard timing contest. Four players s
 
 - **Playing:** press Space (or A, or tap the screen) to swing. The blade sweeps flat at the height of the coloured tab on the rack's post, and the coloured sweep on the grass shows its path. You get one swing per noodle; pressing before the rack lets go does nothing.
 - **Scoring:** cutting through the stripe is a perfect 20. Below the stripe (a touch early) scores 19, one less for every 5 cm further down, never below 1. Above the stripe (late) is −5, and missing the noodle altogether (too early, too late or no swing) is −10. Highest total after five rounds wins.
-- **Players:** **Play** puts you against three computer neighbours. **2 players** is player 1 on the far left (A / Space, or the left half of a touch screen) and player 2 on the far right (L / Enter, or the right half).
+- **Players:** **Play** puts you against three computer neighbours. **2 players** is player 1 on the far left (A / Space, or the left half of a touch screen) and player 2 on the far right (L / Enter, or the right half). With two controllers, each player swings with A / RT.
 - **Difficulty:** sets how fast the noodles fall, how wide the stripe is, and how close the neighbours' swings land. Your best total against the computer is saved per difficulty.
 
 The rules, timing and the neighbours' swings are in `shared/poolNoodle.js` (tested in `tests/poolNoodle.test.js`), the game in `src/poolNoodle.js`, and the 3D yard in `src/poolNoodleScene.js`.
@@ -967,13 +965,13 @@ First to five stars wins; Play again goes back to How to Play to pick a side. Ke
 
 ### Sea Sweeper
 
-Open **Game → Sea Sweeper** to clean up a beach, seen from above, with the sea along the top. It's tagged WIP until it's released.
+Open **Game → Sea Sweeper** to clean up a beach, seen from above, with the sea along the top.
 
 - **Playing:** walk with WASD or the arrow keys (a controller's stick or D-pad). On a touch screen (or with the mouse), press anywhere on the beach for a floating stick. Walk up to a piece of trash or a seashell to pick it up; you carry one thing at a time, held over your head. Every piece has its word under it on the sand (Bottle, Can, Trash bag, Cup, Flip-flop, Styrofoam box; Clam, Mussel, Spiral shell, Starfish, Sand dollar, Golden shell), and the word of the one you're carrying floats over your head, so players get used to reading them. Each sits on a soft spot in the colour of where it goes: green for the bin, pink for the bucket. Trash goes in the big green bin (bottom left), shells in the big pink bucket (bottom right). The right one glows while you carry something, and walking past the wrong one does nothing.
 - **Tides:** five tides. Each wave rolls up the sand and leaves 4 to 8 pieces of trash (30 in all) and 2 to 4 shells. Each tide has a clock (60 seconds on Easy, 45 on Medium, 34 on Hard), shown as a countdown and as a bar under it that shrinks from full to empty, turning yellow at half time and red in the last quarter, so a child who can't read numbers can see how long is left. The bar fills back up while the next wave rolls in. When it runs out, the next wave washes away whatever is still on the sand. Clear the beach before then (everything picked up and the last piece in the bin or bucket) and the next tide comes in straight away. Whatever you're holding stays in your hands through a wave.
 - **Scoring:** your score is the trash you put in the bin, out of 30, with up to three stars (all 30 for three, 21 for two, 12 for one). Your best per difficulty is saved. Shells are a bonus collection: clams, mussels, spiral shells, starfish, sand dollars and the rare golden shell. The results list what's in your bucket.
 
-The tides, pickups, drop-offs and clock are in `shared/seaSweeper.js` (tested in `tests/seaSweeper.test.js`, which also sweeps a whole game to check every tide can be cleared in time on Medium). The game is in `src/seaSweeper.js`, and the 3D beach in `src/seaSweeperScene.js`.
+The tides, pickups, drop-offs and clock are in `shared/seaSweeper.js` (tested in `tests/seaSweeper.test.js`, which checks full collection on Medium, all 30 pieces of trash across 40 beaches on every difficulty, and all five tides ending without input). The game is in `src/seaSweeper.js`, and the 3D beach in `src/seaSweeperScene.js`.
 
 **Models** (`src/assets/sea-sweeper/`, from [Poly Pizza](https://poly.pizza)). CC0: Mussel Open, Soda Can Crushed, Styrofoam (Kenney); Trash Bag, Bucket, Shovel (Quaternius); Trash Bin (CreativeTrio). [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/): Clam, Nautilus shell, Starfish, Sand dollar (Poly by Google); seashell (Dario Demi, used for the golden shell); Bottle (Plastic) (Zoe XR); Plastic Cup (Zsky); flip flops (Tiff Eidmann). The starfish's textures were shrunk to 256 px; the bin and bucket are recoloured and the golden shell repainted in the game. Each model is laid on the sand in the pose that reads best from the game's camera (`POSE` in `src/seaSweeperScene.js`), and things seen from one side only wobble a little instead of spinning all the way round.
 

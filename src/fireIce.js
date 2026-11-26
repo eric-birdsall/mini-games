@@ -1,4 +1,5 @@
 import preview from "./assets/modes/fire-and-ice.svg";
+import { GameTimers } from "./gameTimers.js";
 import { gameResults } from "./gameResults.js";
 import {
   bindDialogEscape,
@@ -240,42 +241,36 @@ function open(character) {
   const fx = get("fx");
   const critters = [0, 1].map((i) => get(`critter="${i}"`));
   const moveButtons = [...dialog.querySelectorAll("[data-move]")];
+  // Keep controller focus visible when the instructions scroll on short screens.
+  get("intro").addEventListener("focusin", (event) => {
+    if (event.target.matches("button"))
+      event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
   // Your character, and a random different one for the computer.
   const yours = AVATARS.includes(character) ? character : AVATARS[0];
   const pool = AVATARS.filter((id) => id !== yours);
   portrait(critters[0], yours);
   portrait(critters[1], pool[Math.floor(Math.random() * pool.length)]);
   const sfx = sounds();
-  const timers = new Set();
+  const timers = new GameTimers();
 
-  // ready | move | resolving | done | paused
+  // ready | move | resolving | done (celebration) | finished | paused
   let phase = "ready";
   let resumeTo = "move";
+  let pausedAnimations = [];
+  const resumeAnimations = () => {
+    pausedAnimations.forEach((animation) => animation.play());
+    pausedAnimations = [];
+  };
   let duel = newDuel();
   let elements = ["fire", "ice"]; // [yours, the computer's]
-  let generation = 0;
 
   // The pad bridge moves focus between buttons and A presses them, so the
   // game never takes the stick directly.
   dialog.padPlaying = () => false;
 
-  const later = (fn, ms) => {
-    const id = generation;
-    const t = setTimeout(() => {
-      timers.delete(t);
-      if (id === generation && phase !== "paused") fn();
-      else if (id === generation) pending.push(fn);
-    }, ms);
-    timers.add(t);
-  };
-  // Steps due while paused run on resume.
-  let pending = [];
-  const clearTimers = () => {
-    generation++;
-    timers.forEach(clearTimeout);
-    timers.clear();
-    pending = [];
-  };
+  const later = (fn, ms) => timers.later(fn, ms);
+  const clearTimers = () => timers.clear();
 
   function hud() {
     for (const side of [0, 1]) {
@@ -498,6 +493,7 @@ function open(character) {
     if (won) sfx.cheer();
     else sfx.friendly();
     later(() => {
+      phase = "finished";
       results.show(
         won ? "You win! ⭐" : "So close! ⭐",
         won ? "Five stars! What a duel." : "Want another go?",
@@ -526,6 +522,7 @@ function open(character) {
 
   // Back to the start card to pick an element.
   function showIntro() {
+    resumeAnimations();
     clearTimers();
     results.hide();
     fx.replaceChildren();
@@ -542,6 +539,7 @@ function open(character) {
   }
 
   function start(element) {
+    resumeAnimations();
     if (element) setElement(element);
     clearTimers();
     results.hide();
@@ -557,20 +555,22 @@ function open(character) {
   }
 
   function pause() {
-    if (!["move", "resolving"].includes(phase)) return;
+    if (!["move", "resolving", "done"].includes(phase)) return;
     resumeTo = phase;
     phase = "paused";
-    dialog.getAnimations({ subtree: true }).forEach((a) => a.pause());
+    timers.pause();
+    pausedAnimations = dialog
+      .getAnimations({ subtree: true })
+      .filter((a) => a.playState === "running");
+    pausedAnimations.forEach((a) => a.pause());
     setPauseScreen(dialog, true);
   }
   function resume() {
     if (phase !== "paused") return;
     phase = resumeTo;
     setPauseScreen(dialog, false);
-    dialog.getAnimations({ subtree: true }).forEach((a) => a.play());
-    const due = pending;
-    pending = [];
-    due.forEach((fn) => fn());
+    resumeAnimations();
+    timers.resume();
     if (phase === "move") showMoves();
     else get("pause").focus({ preventScroll: true });
   }
@@ -588,7 +588,7 @@ function open(character) {
   get("pause-home").onclick = close;
   bindDialogEscape(dialog, () => {
     if (phase === "paused") resume();
-    else if (phase === "move" || phase === "resolving") pause();
+    else if (["move", "resolving", "done"].includes(phase)) pause();
     else close();
   });
 
