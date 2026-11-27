@@ -4410,18 +4410,9 @@ body.sprinklers #bearing {
   display: flex;
   gap: 4px;
 }
-:is(
-    #slipstream,
-    #memory-game,
-    .roof-catch,
-    .airmail,
-    .animal-patrol,
-    .fire-ice,
-    #lock-overlay,
-    #results
-  )
-  .pause-actions
-  button {
+/* Every game's pause bar buttons look the same. The unused #id in :is()
+   lifts the specificity above the games' own button rules. */
+:is(.game-pause-bar, #pause-bar-specificity) .pause-actions button {
   display: grid;
   place-items: center;
   min-width: 0;
@@ -4434,16 +4425,7 @@ body.sprinklers #bearing {
   background: transparent;
   box-shadow: none;
 }
-:is(
-    #slipstream,
-    #memory-game,
-    .roof-catch,
-    .airmail,
-    .animal-patrol,
-    .fire-ice,
-    #lock-overlay,
-    #results
-  )
+:is(.game-pause-bar, #pause-bar-specificity)
   .pause-actions
   button:hover:not(:disabled) {
   background: #ffffff22;

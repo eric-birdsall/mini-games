@@ -2,7 +2,10 @@ import preview from "./assets/modes/pop-patrol.jpg";
 import { gameResults } from "./gameResults.js";
 import {
   bindDialogEscape,
+  musicMuted,
+  onMusicChange,
   pauseScreen,
+  setMusicMuted,
   setPauseScreen,
 } from "./pauseActions.js";
 import { createPopPatrolScene } from "./popPatrolScene.js";
@@ -205,12 +208,11 @@ function open(level, avatar) {
   document.exitPointerLock?.();
   const settings = levelSettings(level);
   const bestKey = `pop-patrol-best-${level}`;
-  const musicKey = "pop-patrol-music";
   let best = 0;
-  let musicOn = true;
+  // The same music switch as the pause bar's and the menu's.
+  let musicOn = !musicMuted();
   try {
     best = Math.max(0, Number(localStorage.getItem(bestKey)) || 0);
-    musicOn = localStorage.getItem(musicKey) !== "off";
   } catch {}
 
   const dialog = document.createElement("dialog");
@@ -684,13 +686,13 @@ function open(level, avatar) {
     canvas.focus({ preventScroll: true });
   };
   get("music").onclick = () => {
-    musicOn = !musicOn;
-    try {
-      localStorage.setItem(musicKey, musicOn ? "on" : "off");
-    } catch {}
-    music();
+    setMusicMuted(musicOn);
     canvas.focus({ preventScroll: true });
   };
+  const stopMusicSync = onMusicChange((muted) => {
+    musicOn = !muted;
+    music();
+  });
   for (const b of shop.querySelectorAll("[data-buy]")) {
     b.addEventListener("pointerdown", (e) => e.stopPropagation());
     b.onclick = () => {
@@ -824,6 +826,7 @@ function open(level, avatar) {
   const touchy = window.matchMedia?.("(pointer: coarse)").matches ?? false;
   window.addEventListener("blur", pause);
   dialog.addEventListener("close", () => {
+    stopMusicSync();
     cancelAnimationFrame(frame);
     clearTimeout(messageTimer);
     clearTimeout(bannerTimer);

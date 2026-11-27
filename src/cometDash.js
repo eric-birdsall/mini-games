@@ -2,7 +2,10 @@ import preview from "./assets/modes/comet-dash.jpg";
 import { gameResults } from "./gameResults.js";
 import {
   bindDialogEscape,
+  musicMuted,
+  onMusicChange,
   pauseScreen,
+  setMusicMuted,
   setPauseScreen,
 } from "./pauseActions.js";
 import { createCometDashScene } from "./cometDashScene.js";
@@ -171,12 +174,11 @@ function open(level, avatar) {
   document.exitPointerLock?.();
   const settings = dashLevel(level);
   const bestKey = `comet-dash-best-${level}`;
-  const musicKey = "comet-dash-music";
   let best = 0;
-  let musicOn = true;
+  // The same music switch as the pause bar's and the menu's.
+  let musicOn = !musicMuted();
   try {
     best = Math.max(0, Number(localStorage.getItem(bestKey)) || 0);
-    musicOn = localStorage.getItem(musicKey) !== "off";
   } catch {}
 
   const dialog = document.createElement("dialog");
@@ -491,13 +493,13 @@ function open(level, avatar) {
   get("pause").onclick = pause;
   get("exit").onclick = () => dialog.close();
   get("music").onclick = () => {
-    musicOn = !musicOn;
-    try {
-      localStorage.setItem(musicKey, musicOn ? "on" : "off");
-    } catch {}
-    music();
+    setMusicMuted(musicOn);
     canvas.focus({ preventScroll: true });
   };
+  const stopMusicSync = onMusicChange((muted) => {
+    musicOn = !muted;
+    music();
+  });
   bindDialogEscape(dialog, () => {
     if (state === "paused") start(false);
     else if (state === "playing") pause();
@@ -551,6 +553,7 @@ function open(level, avatar) {
   const touchy = window.matchMedia?.("(pointer: coarse)").matches ?? false;
   window.addEventListener("blur", pause);
   dialog.addEventListener("close", () => {
+    stopMusicSync();
     cancelAnimationFrame(frame);
     clearTimeout(messageTimer);
     clearTimeout(bannerTimer);
