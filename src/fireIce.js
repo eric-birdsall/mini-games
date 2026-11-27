@@ -28,8 +28,12 @@ const TITLE = "Fire & Ice";
 const HOW_TO =
   "Pick fire or ice to start; the computer gets the other. Each round, tap Attack to throw your ball, Reload, or Shield. The computer picks at the same time. An attack hits someone who is reloading, and a shield blocks it. Two attacks meet in a puff of steam. You start loaded, and after an attack you must reload before attacking again. Fire and ice work the same. First to five stars wins. Keys: 1–3 pick a move, arrows move between buttons, Esc pauses. Controller: stick or D-pad to move, A to pick, B to pause.";
 
-// Where on a critter balls fly and shields sit (fraction of its height).
+// Where on a critter streams start and shields are held: `aim` is the
+// height (fraction of the box, from the top) and `reach` how far the body
+// sticks out sideways from the middle (fraction of the box width). These
+// fit the drawn critter's arm; portraits measure their own (bodyEdge).
 const AIM = 0.6;
+const REACH = 0.36;
 const critter = (side) => `
 <svg viewBox="0 0 200 300" aria-hidden="true">
   <g class="fi-legs">
@@ -64,14 +68,69 @@ const BALL = {
   fire: `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 8 C62 24 78 22 76 44 C88 40 86 58 82 66 A34 34 0 1 1 18 62 C14 50 20 40 28 38 C26 26 40 22 50 8 Z" fill="url(#fi-fb)"/><circle cx="50" cy="62" r="18" fill="#fff6a8" opacity=".8"/></svg>`,
   ice: `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="52" r="36" fill="url(#fi-ib)"/><g stroke="#ffffff" stroke-width="5" stroke-linecap="round"><path d="M50 30v44M31 41l38 22M31 63l38-22"/></g><circle cx="38" cy="38" r="6" fill="#fff" opacity=".9"/></svg>`,
 };
+// A flame tongue standing on (x, y), h tall and 2w wide.
+const tongue = (x, y, h, w) =>
+  `M${x - w} ${y}C${x - w} ${y - h * 0.45} ${x - w * 0.15} ${y - h * 0.55} ${x} ${y - h}C${x + w * 0.25} ${y - h * 0.5} ${x + w} ${y - h * 0.45} ${x + w} ${y}Q${x} ${y + w * 0.6} ${x - w} ${y}Z`;
+// The classic heater-shield outline: a peak in the middle of the top,
+// a corner each side, and sides sweeping down to a point. INSET is the
+// same outline shrunk a little, for the wood inside the iron rim.
+const SHAPE =
+  "M14 32Q34 31 50 18Q66 31 86 32C86 62 72 82 50 97C28 82 14 62 14 32Z";
+const INSET = 'transform="translate(50 57) scale(.86) translate(-50 -57)"';
+// Points along the top edge of the wooden shield, where it burns.
+const RIM = [
+  [18, 32],
+  [33, 28],
+  [50, 19],
+  [67, 28],
+  [82, 32],
+];
+const flames = (heights, width, cls) =>
+  `<g class="fi-flames ${cls}">${RIM.map(
+    ([x, y], i) =>
+      `<g class="fi-flame"><path d="${tongue(x, y, heights[i], width)}" fill="url(#fi-fl)"/><path d="${tongue(x, y + 1, heights[i] * 0.55, width * 0.55)}" fill="#fff3a0"/></g>`,
+  ).join("")}</g>`;
+const RIVETS = [
+  [19, 35],
+  [33, 31.5],
+  [50, 23],
+  [67, 31.5],
+  [81, 35],
+  [21, 52],
+  [79, 52],
+  [31, 74],
+  [69, 74],
+  [50, 91],
+]
+  .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2"/>`)
+  .join("");
 const SHIELD = {
-  fire: `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6 L88 20 C88 56 74 80 50 94 C26 80 12 56 12 20 Z" fill="url(#fi-fs)" stroke="#fff3c0" stroke-width="5"/><path d="M50 26 C58 38 66 40 64 56 C64 66 58 72 50 72 C42 72 36 66 36 56 C36 48 42 46 44 38 C48 44 50 40 50 26 Z" fill="#fff3c0"/></svg>`,
-  ice: `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6 L88 20 C88 56 74 80 50 94 C26 80 12 56 12 20 Z" fill="url(#fi-is)" stroke="#ffffff" stroke-width="5"/><g stroke="#ffffff" stroke-width="5" stroke-linecap="round"><path d="M50 30v40M33 40l34 20M33 60l34-20"/></g></svg>`,
+  // A wooden heater shield with an iron rim, burning along the top.
+  fire: `<svg viewBox="0 0 100 100" aria-hidden="true" class="fi-wood">${flames([16, 22, 27, 22, 16], 8, "fi-back")}<path d="${SHAPE}" fill="#5a2f14"/><path d="${SHAPE}" ${INSET} fill="url(#fi-wd)"/><g clip-path="url(#fi-wclip)" fill="none" stroke="#6e3a18" stroke-linecap="round"><path d="M29 10v90M43 10v90M57 10v90M71 10v90" stroke-width="2.4"/><path d="M36 40q3 6 0 12M50 70q3 6 0 12M64 42q-3 6 0 12M22 50q3 5 0 10M78 52q-3 5 0 10M36 70q3 4 0 8" stroke-width="1.6" opacity=".7"/><ellipse cx="50" cy="26" rx="34" ry="14" fill="#2a1408" stroke="none" opacity=".45"/></g><path d="${SHAPE}" fill="none" stroke="#9aa3ad" stroke-width="4.5" stroke-linejoin="round"/><g fill="#e3e8ee">${RIVETS}</g><circle cx="50" cy="55" r="9" fill="#cfd6de" stroke="#6d7682" stroke-width="3"/><circle cx="47" cy="52" r="2.8" fill="#fff" opacity=".8"/>${flames([9, 12, 14, 12, 9], 5.5, "fi-front")}</svg>`,
+  // A thick heater shield carved from ice, with snow along the top.
+  ice: `<svg viewBox="0 0 100 100" aria-hidden="true" class="fi-block"><path d="${SHAPE}" fill="url(#fi-iblk)"/><path d="${SHAPE}" ${INSET} fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2.2"/><g clip-path="url(#fi-iclip)"><path class="fi-glint" d="M8 100 L18 100 L34 10 L24 10 Z" fill="#fff" opacity=".55"/><g fill="#fff"><path d="M18 36 L32 34 L20 62 Z" opacity=".75"/><path d="M37 34 L43 33 L24 78 L21 72 Z" opacity=".45"/></g></g><path d="M62 40 L55 52 L63 59 L57 74 M55 52 L46 57 M63 59 L70 63" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".85"/><g fill="#fff" opacity=".6"><circle cx="60" cy="82" r="2.6"/><circle cx="54" cy="88" r="1.6"/><circle cx="38" cy="80" r="2"/><circle cx="44" cy="66" r="1.4"/></g><path d="M11 33Q34 32 50 16Q66 32 89 33L87 37Q81 34 76 38Q70 33 64 36Q58 30 54 31Q50 26 46 31Q42 30 36 36Q30 33 24 38Q19 34 13 37Z" fill="#fff"/><g fill="#fff" opacity=".9"><path d="M24 37 L27 46 L30 36Z"/><path d="M62 35 L64 42 L67 35Z"/><path d="M78 36 L80 44 L83 35Z"/></g></svg>`,
 };
-const DEFS = `<svg class="fi-defs" width="0" height="0" aria-hidden="true"><defs><radialGradient id="fi-fb" cx="40%" cy="40%"><stop offset="0" stop-color="#fff6a8"/><stop offset=".45" stop-color="#ffb02e"/><stop offset="1" stop-color="#e8401c"/></radialGradient><radialGradient id="fi-ib" cx="38%" cy="36%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#9fe2ff"/><stop offset="1" stop-color="#2f86d6"/></radialGradient><linearGradient id="fi-fs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23a"/><stop offset="1" stop-color="#e5391b"/></linearGradient><linearGradient id="fi-is" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9fbff"/><stop offset="1" stop-color="#3a9be8"/></linearGradient></defs></svg>`;
+// Shields in the yard are turned in 3D to face the opponent. These plain
+// silhouettes stack behind the face to give them thickness: wood with an
+// iron edge, or solid ice.
+const EDGE = {
+  fire: `<svg viewBox="0 0 100 100" class="fi-edge"><path d="${SHAPE}" fill="#4a2510" stroke="#6d7682" stroke-width="3" stroke-linejoin="round"/></svg>`,
+  ice: `<svg viewBox="0 0 100 100" class="fi-edge"><path d="${SHAPE}" fill="#5fb3e6"/></svg>`,
+};
+const turned = (element) =>
+  `<div class="fi-turn">${EDGE[element].repeat(5)}${SHIELD[element]}</div>`;
+const DEFS = `<svg class="fi-defs" width="0" height="0" aria-hidden="true"><defs><radialGradient id="fi-fb" cx="40%" cy="40%"><stop offset="0" stop-color="#fff6a8"/><stop offset=".45" stop-color="#ffb02e"/><stop offset="1" stop-color="#e8401c"/></radialGradient><radialGradient id="fi-ib" cx="38%" cy="36%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#9fe2ff"/><stop offset="1" stop-color="#2f86d6"/></radialGradient><linearGradient id="fi-fl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e5391b"/><stop offset=".5" stop-color="#ff8a1f"/><stop offset="1" stop-color="#ffd23a"/></linearGradient><radialGradient id="fi-wd" cx="45%" cy="55%"><stop offset="0" stop-color="#d39552"/><stop offset=".7" stop-color="#b06e35"/><stop offset="1" stop-color="#874c22"/></radialGradient><clipPath id="fi-wclip"><path d="${SHAPE}" ${INSET}/></clipPath><linearGradient id="fi-iblk" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#e6f9ff"/><stop offset=".55" stop-color="#8fd3f6"/><stop offset="1" stop-color="#3f93dc"/></linearGradient><clipPath id="fi-iclip"><path d="${SHAPE}"/></clipPath></defs></svg>`;
 const RELOAD = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="#f3eeff"/><g fill="none" stroke="#6b55d6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M76 50a26 26 0 1 1-8-19"/><path d="M72 18v15h-15"/></g><circle cx="40" cy="52" r="9" fill="url(#fi-fb)"/><circle cx="60" cy="52" r="9" fill="url(#fi-ib)"/></svg>`;
 const picture = (action, element) =>
   action === "reload" ? RELOAD : (action === "ball" ? BALL : SHIELD)[element];
+// Classes a round's show puts on the critters, cleared after it.
+const FX_CLASSES = [
+  "fi-ouch",
+  "fi-cheer",
+  "fi-blast",
+  "fi-frozen",
+  "fi-singed",
+];
 const LABEL = { ball: "Attack", reload: "Reload", shield: "Shield" };
 const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>`;
 const BACK = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>`;
@@ -139,7 +198,18 @@ function sounds() {
       [440, 660, 880].forEach((f, i) =>
         tone(f, i * 0.07, 0.12, "triangle", 0.06),
       ),
-    whoosh: () => noise(0.14, 0.45, 400, 2400),
+    // A roaring flamethrower, or the hiss of a frost blast.
+    blast: (element) => {
+      if (element === "fire") {
+        noise(0.2, 1, 220, 700, 0, "lowpass");
+        noise(0.07, 0.9, 1400, 500);
+      } else {
+        noise(0.1, 1, 5500, 2600, 0, "highpass");
+        [2349, 2794, 3136].forEach((f, i) =>
+          tone(f, 0.1 + i * 0.12, 0.25, "triangle", 0.025),
+        );
+      }
+    },
     sizzle: () => noise(0.18, 0.45, 2500, 900, 0, "highpass"),
     crack: () => {
       noise(0.2, 0.12, 4000, 2000);
@@ -182,7 +252,40 @@ function portrait(box, id) {
     img.alt = "";
     img.src = url;
     box.querySelector("svg").replaceWith(img);
+    img.decode().then(
+      () => bodyEdge(box, img),
+      () => {},
+    );
   });
+}
+
+// Portraits have big heads over smaller bodies, so find the body's side
+// edge (where the arms are) from the picture's opaque pixels. Characters
+// face right in their portraits; the computer's is mirrored, so its facing
+// side is the picture's right too.
+const BODY = [0.6, 0.85]; // rows of the picture that are the body
+function bodyEdge(box, img) {
+  const n = 96;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = n;
+  const g = canvas.getContext("2d", { willReadFrequently: true });
+  g.drawImage(img, 0, 0, n, n);
+  let data;
+  try {
+    data = g.getImageData(0, 0, n, n).data;
+  } catch {
+    return;
+  }
+  let edge = -1;
+  for (let y = Math.floor(n * BODY[0]); y < n * BODY[1]; y++)
+    for (let x = n - 1; x > edge; x--)
+      if (data[(y * n + x) * 4 + 3] > 60) {
+        edge = x;
+        break;
+      }
+  if (edge < n / 2) return;
+  box.dataset.reach = String((edge + 1) / n - 0.5);
+  box.dataset.aim = String((BODY[0] + BODY[1]) / 2 - 0.04);
 }
 
 function open(character) {
@@ -299,15 +402,19 @@ function open(character) {
   // Where things happen on screen, in stage pixels.
   function spot(side, where) {
     const host = stage.getBoundingClientRect();
-    const r = critters[side].getBoundingClientRect();
+    const c = critters[side];
+    const r = c.getBoundingClientRect();
     const facing = side === 0 ? 1 : -1;
-    const y = r.top - host.top + r.height * AIM;
+    const y = r.top - host.top + r.height * Number(c.dataset.aim || AIM);
     const mid = r.left - host.left + r.width / 2;
+    const edge = r.width * Number(c.dataset.reach || REACH);
+    // The stream leaves just off the body; the shield's near half overlaps
+    // the body, as if held up in front.
     const x =
       where === "hand"
-        ? mid + facing * r.width * 0.42
+        ? mid + facing * (edge + r.height * 0.02)
         : where === "shield"
-          ? mid + facing * r.width * 0.55
+          ? mid + facing * (edge + r.height * 0.07)
           : mid;
     return { x, y, size: r.height };
   }
@@ -324,30 +431,299 @@ function open(character) {
     return el;
   }
 
-  const fly = (el, from, to, ms, arc = 0.12) =>
-    el.animate(
+  // One loose bit of fire, frost, smoke or steam, animated by keyframes and
+  // gone when done. They are Web Animations, so pause() catches them too.
+  function particle(cls, at, size, frames, timing) {
+    const el = document.createElement("i");
+    el.className = `fi-bit ${cls}`;
+    el.style.width = el.style.height = `${size}px`;
+    el.style.left = `${at.x - size / 2}px`;
+    el.style.top = `${at.y - size / 2}px`;
+    fx.append(el);
+    el.animate(frames, { easing: "ease-out", ...timing }).onfinish = () =>
+      el.remove();
+    return el;
+  }
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const move = (x, y, scale, turn = 0) =>
+    `translate(${x}px, ${y}px) scale(${scale}) rotate(${turn}turn)`;
+
+  // Colours a flare passes through as it flies: white-hot to smoke for fire,
+  // white to deep blue to mist for frost.
+  const FLARE = {
+    fire: ["#fffbe6", "#ffe066", "#ff9a1f", "#ef4a1a", "#6b4048"],
+    ice: ["#ffffff", "#e9fbff", "#a8e6ff", "#4aa8f0", "#e3f6ff"],
+  };
+
+  // A flamethrower (or frost-thrower) stream from `from` toward `to`:
+  // flares pour out for `emit` ms and each takes about `travel` ms to arrive.
+  // end: "pass" flows on through the target, "splash" spreads along a
+  // shield's face, "up" billows upward where two streams meet.
+  function stream(from, to, element, end = "pass", emit = 720, travel = 430) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const [ux, uy] = [dx / len, dy / len];
+    const [px, py] = [-uy, ux];
+    const size = from.size;
+    const colors = FLARE[element];
+    const sink = element === "fire" ? -0.14 : 0.08; // flames rise, frost sinks
+    // Flares are stretched along the stream, so it reads as a jet.
+    const jet = (x, y, scale, stretch = 1.7) =>
+      `translate(${x}px, ${y}px) rotate(${Math.atan2(dy, dx)}rad) scale(${scale * stretch}, ${scale})`;
+    const count = Math.round(emit / 11);
+    // A glow at the hand while the stream pours.
+    particle(
+      `fi-nozzle fi-${element}`,
+      from,
+      size * 0.22,
       [
-        { transform: "translate(0,0) rotate(0turn)" },
-        {
-          transform: `translate(${(to.x - from.x) / 2}px, ${(to.y - from.y) / 2 - from.size * arc}px) rotate(.5turn)`,
-        },
-        {
-          transform: `translate(${to.x - from.x}px, ${to.y - from.y}px) rotate(1turn)`,
-        },
+        { transform: "scale(.3)", opacity: 0 },
+        { transform: "scale(1.1)", opacity: 1, offset: 0.12 },
+        { transform: "scale(.9)", opacity: 1, offset: 0.5 },
+        { transform: "scale(1.05)", opacity: 1, offset: 0.85 },
+        { transform: "scale(.2)", opacity: 0 },
       ],
-      { duration: ms, easing: "ease-in", fill: "forwards" },
+      { duration: emit + 120, easing: "linear" },
     );
+    for (let i = 0; i < count; i++) {
+      const life = travel * rand(0.85, 1.2);
+      const spread = rand(-1, 1) * len * 0.1;
+      const drift = size * sink * Math.random();
+      const s = size * rand(0.12, 0.2);
+      const mid = [dx * 0.5 + px * spread * 0.4, dy * 0.5 + py * spread * 0.4];
+      let last;
+      if (end === "pass") {
+        last = [dx * 1.08 + px * spread, dy * 1.08 + py * spread + drift];
+      } else {
+        // Hit the face, then fan out along it (or up, for steam).
+        const side = end === "up" ? -1 : Math.random() < 0.5 ? -1 : 1;
+        const fan = size * rand(0.15, 0.42);
+        last = [
+          dx - ux * size * rand(0.02, 0.14),
+          dy + (end === "up" ? -fan * 1.2 : side * fan),
+        ];
+        mid[0] = dx * 0.85 + px * spread * 0.3;
+        mid[1] = dy * 0.85 + py * spread * 0.3;
+      }
+      particle(
+        `fi-flare fi-${element}`,
+        from,
+        s,
+        [
+          { transform: jet(0, 0, 0.35), opacity: 0.95, color: colors[0] },
+          { color: colors[1], offset: 0.2 },
+          {
+            transform: jet(...mid, end === "pass" ? 1 : 1.3),
+            color: colors[2],
+            offset: end === "pass" ? 0.5 : 0.6,
+          },
+          { color: colors[3], opacity: 0.85, offset: 0.8 },
+          {
+            transform: jet(...last, end === "pass" ? 2 : 1.7, 1.2),
+            opacity: 0,
+            color: colors[4],
+          },
+        ],
+        { duration: life, delay: (i / count) * emit, easing: "linear" },
+      );
+      // Sparks: embers for fire, glittering snowflakes for frost.
+      if (i % 4 === 0) {
+        const far = rand(0.8, 1.15);
+        particle(
+          `fi-spark fi-${element}`,
+          from,
+          size * rand(0.03, 0.05),
+          [
+            { transform: move(0, 0, 1), opacity: 1 },
+            {
+              transform: move(
+                last[0] * far + px * spread * 0.6,
+                last[1] * far + drift * 2.5 + py * spread * 0.6,
+                0.5,
+                rand(-1, 1),
+              ),
+              opacity: 0,
+            },
+          ],
+          { duration: life * 1.2, delay: (i / count) * emit + 20 },
+        );
+      }
+      // Fire leaves curls of smoke rising off the stream.
+      if (element === "fire" && i % 6 === 3) {
+        const t = rand(0.3, 0.8);
+        particle(
+          "fi-smoke",
+          { x: from.x + dx * t, y: from.y + dy * t },
+          size * rand(0.08, 0.12),
+          [
+            { transform: move(0, 0, 0.4), opacity: 0 },
+            { opacity: 0.45, offset: 0.25 },
+            {
+              transform: move(rand(-0.05, 0.05) * size, -size * 0.35, 2),
+              opacity: 0,
+            },
+          ],
+          { duration: 900, delay: (i / count) * emit + life * t },
+        );
+      }
+    }
+  }
+
+  // Bits flying out from a hit: embers or ice shards.
+  function shards(at, element, count = 10, reach = 0.35) {
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + rand(-0.3, 0.3);
+      const r = at.size * reach * rand(0.6, 1);
+      const fall = element === "ice" ? at.size * 0.18 : -at.size * 0.08;
+      particle(
+        `fi-shard fi-${element}`,
+        at,
+        at.size * rand(0.04, 0.07),
+        [
+          { transform: move(0, 0, 1), opacity: 1 },
+          {
+            transform: move(Math.cos(a) * r, Math.sin(a) * r * 0.8, 0.9, 0.5),
+            opacity: 1,
+            offset: 0.6,
+          },
+          {
+            transform: move(
+              Math.cos(a) * r * 1.2,
+              Math.sin(a) * r + fall,
+              0.4,
+              1,
+            ),
+            opacity: 0,
+          },
+        ],
+        { duration: rand(550, 800), easing: "cubic-bezier(.2,.7,.4,1)" },
+      );
+    }
+  }
 
   function burst(at, element, big = 1) {
     const el = sprite("", `fi-burst fi-${element}`, at, 0.4 * big);
     el.addEventListener("animationend", () => el.remove());
+    shards(at, element, Math.round(10 * big), 0.35 * big);
     if (element === "fire") sfx.sizzle();
     else sfx.crack();
   }
+
+  // Two streams meet: a billowing cloud of steam.
   function puff(at) {
-    const el = sprite("☁️", "fi-steam", at, 0.9);
-    el.addEventListener("animationend", () => el.remove());
+    for (let i = 0; i < 16; i++) {
+      const a = rand(0, Math.PI * 2);
+      const r = at.size * rand(0, 0.12);
+      particle(
+        "fi-cloud",
+        { x: at.x + Math.cos(a) * r, y: at.y + Math.sin(a) * r * 0.6 },
+        at.size * rand(0.16, 0.26),
+        [
+          { transform: move(0, 0, 0.3), opacity: 0 },
+          { opacity: 0.95, offset: 0.15 },
+          {
+            transform: move(
+              Math.cos(a) * at.size * 0.22,
+              -at.size * rand(0.35, 0.6),
+              rand(1.8, 2.6),
+            ),
+            opacity: 0,
+          },
+        ],
+        { duration: rand(1000, 1400), delay: rand(0, 300) },
+      );
+    }
     sfx.steam();
+  }
+
+  // Fire on the ice block: it slumps, drips and leaves a puddle.
+  function melt(shield, at) {
+    shield?.classList.add("fi-melting");
+    const w = at.size * 0.44;
+    const base = { x: at.x, y: at.y + w * 0.46, size: at.size };
+    particle(
+      "fi-puddle",
+      base,
+      w * 0.5,
+      [
+        { transform: "scale(.2, .06)", opacity: 0 },
+        { transform: "scale(1.2, .2)", opacity: 0.85, offset: 0.3 },
+        { transform: "scale(2.1, .3)", opacity: 0.85 },
+      ],
+      { duration: 1400, fill: "forwards" },
+    );
+    for (let i = 0; i < 9; i++) {
+      const x = base.x + rand(-0.32, 0.32) * w;
+      particle(
+        "fi-drip",
+        { x, y: base.y - w * rand(0.05, 0.3) },
+        w * rand(0.06, 0.09),
+        [
+          { transform: "translateY(0) scale(.4, .6)", opacity: 0 },
+          { transform: "translateY(0) scale(1, 1.2)", opacity: 1, offset: 0.3 },
+          {
+            transform: `translateY(${w * rand(0.2, 0.32)}px) scale(.8, 1.4)`,
+            opacity: 0,
+          },
+        ],
+        { duration: rand(500, 700), delay: 150 + i * 110, easing: "ease-in" },
+      );
+    }
+    sfx.sizzle();
+  }
+  // Ice on the burning shield: the flames die in a hiss of steam and the
+  // wood is left frosty.
+  function douse(shield, at) {
+    shield?.classList.add("fi-doused");
+    const w = at.size * 0.44;
+    for (let i = 0; i < 8; i++)
+      particle(
+        "fi-cloud",
+        { x: at.x + rand(-0.3, 0.3) * w, y: at.y - w * rand(0.1, 0.3) },
+        w * rand(0.16, 0.24),
+        [
+          { transform: move(0, 0, 0.3), opacity: 0 },
+          { opacity: 0.8, offset: 0.2 },
+          {
+            transform: move(rand(-0.1, 0.1) * w, -w * rand(0.5, 0.8), 2),
+            opacity: 0,
+          },
+        ],
+        { duration: rand(900, 1200), delay: 100 + i * 70 },
+      );
+    sfx.steam();
+  }
+
+  // The thrower leans into it while the stream pours.
+  function blast(side, element) {
+    const c = critters[side];
+    c.classList.remove("fi-blast");
+    void c.offsetWidth;
+    c.classList.add("fi-blast");
+    sfx.blast(element);
+  }
+  // A hit leaves the target frosted over or a bit singed and smoking.
+  function zap(side, element) {
+    critters[side].classList.add(element === "ice" ? "fi-frozen" : "fi-singed");
+    if (element !== "fire") return;
+    const at = spot(side, "middle");
+    at.y -= at.size * 0.35;
+    for (let i = 0; i < 6; i++)
+      particle(
+        "fi-smoke",
+        { x: at.x + rand(-0.15, 0.15) * at.size, y: at.y },
+        at.size * 0.1,
+        [
+          { transform: move(0, 0, 0.5), opacity: 0 },
+          { opacity: 0.5, offset: 0.2 },
+          {
+            transform: move(rand(-0.1, 0.1) * at.size, -at.size * 0.3, 2.2),
+            opacity: 0,
+          },
+        ],
+        { duration: 1100, delay: i * 120 },
+      );
   }
   function ouch(side) {
     const c = critters[side];
@@ -413,74 +789,85 @@ function open(character) {
         sfx.reload();
       }
       if (m.action !== "shield") return;
+      const at = spot(side, "shield");
       const el = sprite(
-        SHIELD[m.element],
+        turned(m.element),
         `fi-shield fi-${m.element} fi-side-${side}`,
-        spot(side, "shield"),
-        0.4,
+        at,
+        0.44,
       );
+      el.style.setProperty(
+        "--fi-depth",
+        `${at.size * 0.44 * (m.element === "ice" ? 0.06 : 0.02)}px`,
+      );
+      el.style.perspective = `${at.size * 2}px`;
       shields[side] = el;
+      // Frost crystals as the block freezes; embers as the wood catches.
+      shards(at, m.element, 6, 0.28);
       sfx.shield(m.element);
     });
-    const FLY = 650;
+    // The head of a stream reaches its target partway through its travel.
+    const TRAVEL = 430;
+    const ARRIVE = TRAVEL * 0.62;
     later(() => {
       if (result.outcome === "calm") {
         shields.forEach((s) => s?.classList.add("fi-shimmer"));
         later(finishRound, 900);
         return;
       }
-      sfx.whoosh();
       if (result.outcome === "steam") {
-        const balls = moves.map((m, side) => {
-          const from = spot(side, "hand");
-          const el = sprite(BALL[m.element], "fi-ball", from, 0.2);
-          const host = stage.getBoundingClientRect();
-          const meet = {
-            x: host.width / 2,
-            y: (spot(0).y + spot(1).y) / 2,
-            size: from.size,
-          };
-          fly(el, from, meet, FLY * 0.8);
-          return [el, meet];
+        const host = stage.getBoundingClientRect();
+        const meet = {
+          x: host.width / 2,
+          y: (spot(0).y + spot(1).y) / 2,
+          size: spot(0).size,
+        };
+        moves.forEach((m, side) => {
+          blast(side, m.element);
+          stream(spot(side, "hand"), meet, m.element, "up");
         });
         later(() => {
-          balls.forEach(([el]) => el.remove());
-          puff(balls[0][1]);
-          later(finishRound, 1100);
-        }, FLY * 0.8);
+          puff(meet);
+          later(finishRound, 1400);
+        }, ARRIVE);
         return;
       }
       const by = result.by;
-      const ball = moves[by];
+      const element = moves[by].element;
       const from = spot(by, "hand");
-      const el = sprite(BALL[ball.element], "fi-ball", from, 0.2);
+      blast(by, element);
       if (result.outcome === "hit") {
         const to = spot(1 - by, "middle");
-        fly(el, from, to, FLY);
+        stream(from, to, element, "pass");
         later(() => {
-          el.remove();
-          burst(to, ball.element);
+          burst(to, element);
           ouch(1 - by);
+          zap(1 - by, element);
           later(() => award(by), 350);
-          later(finishRound, 1300);
-        }, FLY);
+          later(finishRound, 1400);
+        }, ARRIVE);
         return;
       }
-      // Blocked: the ball stops at the shield.
+      // Blocked: the stream splashes off the shield's face.
       const at = spot(1 - by, "shield");
-      fly(el, from, at, FLY * 0.85);
+      const face = {
+        ...at,
+        x: at.x + (by === 0 ? -1 : 1) * at.size * 0.12,
+      };
+      stream(from, face, element, "splash");
       later(() => {
-        shields[1 - by]?.classList.add("fi-flash");
-        el.remove();
-        burst(at, ball.element, 0.8);
-        later(finishRound, 1000);
-      }, FLY * 0.85);
+        burst(face, element, 0.6);
+        // Fire melts the ice block; ice puts out the burning shield.
+        if (element === "fire") melt(shields[1 - by], at);
+        else douse(shields[1 - by], at);
+        later(finishRound, 1500);
+      }, ARRIVE);
     }, 380);
   }
 
   function finishRound() {
     fx.replaceChildren();
-    critters.forEach((c) => c.classList.remove("fi-ouch", "fi-cheer"));
+    critters.forEach((c) => c.classList.remove(...FX_CLASSES));
     hud();
     if (duel.winner === null) {
       showMoves();
@@ -526,9 +913,7 @@ function open(character) {
     clearTimers();
     results.hide();
     fx.replaceChildren();
-    critters.forEach((c) =>
-      c.classList.remove("fi-dance", "fi-ouch", "fi-cheer"),
-    );
+    critters.forEach((c) => c.classList.remove("fi-dance", ...FX_CLASSES));
     phase = "ready";
     duel = newDuel();
     hud();
@@ -544,9 +929,7 @@ function open(character) {
     clearTimers();
     results.hide();
     fx.replaceChildren();
-    critters.forEach((c) =>
-      c.classList.remove("fi-dance", "fi-ouch", "fi-cheer"),
-    );
+    critters.forEach((c) => c.classList.remove("fi-dance", ...FX_CLASSES));
     duel = newDuel();
     get("intro").hidden = true;
     sfx.resume();

@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   WIN_SCORE,
   computerMove,
+  ACTIONS,
   isLegal,
   legalActions,
   newDuel,
@@ -69,6 +70,48 @@ test("the computer only picks legal actions", () => {
       computerMove(duel, 1, () => 0.999999),
     ),
   );
+});
+
+// How often the computer picks each action, over an even spread of rolls.
+function picks(duel, smarts) {
+  const counts = Object.fromEntries(ACTIONS.map((a) => [a, 0]));
+  for (let i = 0; i < 1000; i++)
+    counts[computerMove(duel, 1, () => (i + 0.5) / 1000, smarts)]++;
+  return counts;
+}
+
+test("the computer leans toward sensible moves", () => {
+  const duel = newDuel();
+  // You can't attack: it attacks more than it shields.
+  duel.loaded = [false, true];
+  let c = picks(duel);
+  assert.ok(c.ball > c.shield, JSON.stringify(c));
+  // Neither can attack: it reloads more than it shields.
+  duel.loaded = [false, false];
+  c = picks(duel);
+  assert.ok(c.reload > c.shield, JSON.stringify(c));
+  assert.equal(c.ball, 0);
+  // Both loaded: reloading wastes a turn, so it's the rarest pick.
+  duel.loaded = [true, true];
+  c = picks(duel);
+  assert.ok(c.reload < c.ball && c.reload < c.shield, JSON.stringify(c));
+});
+
+test("the computer still mixes it up", () => {
+  const duel = newDuel();
+  for (const loaded of [
+    [true, true],
+    [false, true],
+  ]) {
+    duel.loaded = loaded;
+    const c = picks(duel);
+    for (const a of ACTIONS)
+      if (a !== "ball" || loaded[1]) assert.ok(c[a] > 100, JSON.stringify(c));
+  }
+  // With no smarts it's an even random pick.
+  duel.loaded = [true, true];
+  for (const n of Object.values(picks(duel, 0)))
+    assert.ok(Math.abs(n - 333) <= 1, String(n));
 });
 
 test("first to the winning score wins", () => {
