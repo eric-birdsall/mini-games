@@ -184,10 +184,15 @@ export class InputManager {
     } catch {}
     this.move = { forward: 0, side: 0 };
     this.look = { x: 0, y: 0 };
+    // The on-screen drag stick (overhead games on a touch screen).
+    this.touch = { forward: 0, side: 0 };
   }
   save() {
     try {
-      localStorage.setItem("minigames.controls.v1", JSON.stringify(this.config));
+      localStorage.setItem(
+        "minigames.controls.v1",
+        JSON.stringify(this.config),
+      );
     } catch {}
   }
   deviceUsed(device) {
@@ -237,6 +242,7 @@ export class InputManager {
     this.padHeld.clear();
     this.move = { forward: 0, side: 0 };
     this.look = { x: 0, y: 0 };
+    this.touch = { forward: 0, side: 0 };
     // Buttons still held after a clear (e.g. the A press that opened a menu)
     // must not register as fresh presses on the next poll.
     this.blockUntilRelease = true;
@@ -328,14 +334,18 @@ export class InputManager {
         -1,
         Math.min(
           1,
-          this.move.forward + (+this.held("forward") - +this.held("back")),
+          this.move.forward +
+            this.touch.forward +
+            (+this.held("forward") - +this.held("back")),
         ),
       ),
       side: Math.max(
         -1,
         Math.min(
           1,
-          this.move.side + (+this.held("right") - +this.held("left")),
+          this.move.side +
+            this.touch.side +
+            (+this.held("right") - +this.held("left")),
         ),
       ),
     };

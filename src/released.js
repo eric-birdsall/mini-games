@@ -57,14 +57,13 @@ export const WIP_GAMES = [
 
 // Games with no touch controls (arena games with WASD + mouse look,
 // Slipstream, Loop & Glide): greyed out on a phone or tablet, and tagged
-// "Not for mobile" on the Home Screen links page.
+// "Not for mobile" on the Home Screen links page. Sprinkler Dodge and Beach
+// Ball Dodge are seen from above and have a drag stick, so they're not here.
 export const NEEDS_KEYS = [
   "splash",
   "hotpotato",
   "breakout",
   "boulders",
-  "sprinklers",
-  "livewire",
   "slipstream",
   "backyardairmail",
 ];

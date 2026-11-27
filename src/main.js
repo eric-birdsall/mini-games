@@ -184,6 +184,7 @@ const STANCES = {
 const icon = (name, size = 20) => {
   const paths = {
     arrow: "M4 12h15m-6-6 6 6-6 6",
+    pause: "M8 5v14m8-14v14",
     flag: "M5 21V3m0 1h14l-3 5 3 5H5",
     eye: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zm7 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0",
     grid: "M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z",
@@ -246,7 +247,7 @@ $("#app").innerHTML = `
   )}</div></div></div><div class="menu-step game-step"><div class="choice-row two" data-nav-row data-nav-choice role="group" aria-label="Game"><button class="choice" data-game="splash" aria-pressed="false"><strong>Splash</strong><small>Kid-friendly: water balloons. ${CONFIG.splashHits} splashes and you're soaked.</small></button><button class="choice" data-game="hotpotato" aria-pressed="false"><strong>Hot Potato</strong><small>One silly potato! Toss it across before it sneezes confetti. First to 2 rounds.</small></button><button class="choice" data-game="breakout" aria-pressed="false"><strong>Breakout</strong><small>Auto run down three lanes, faster as you go. Jump logs and dodge hay bales. How far can you go?</small></button><button class="choice" data-game="boulders" aria-pressed="false"><strong>Boulder Dash</strong><small>Party: race up a steep channel as boulders roll down. Duck into the recesses, dash for the next. First to the top.</small></button><button class="choice" data-game="sprinklers" aria-pressed="false"><strong>Sprinkler Dodge</strong><small>Dodge pop-up sprinklers in a compact yard. More spray each wave. Last one dry wins!</small></button><button class="choice" data-game="livewire" aria-pressed="false"><strong>Beach Ball Dodge</strong><small>Bots throw beach balls straight across the pool. Step out of their path to stay on the float. Last one dry wins.</small></button></div></div><div class="menu-go"><div class="step-label">START</div><div id="menu-summary"></div><button class="primary" id="deploy">START PRACTICE ${icon("arrow")}</button><div id="join-row" data-nav-row hidden><span>OR JOIN A FRIEND'S MATCH</span><input id="room-code" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="join" class="secondary">JOIN ${icon("arrow", 16)}</button></div><div id="home-error" class="error"></div></div><div class="menu-links" data-nav-row><button class="text-button" id="menu-controls">CONTROLS &amp; SETTINGS</button><button class="text-button" id="menu-manual">FIELD MANUAL</button><button class="text-button" id="menu-builder">MAP BUILDER</button><span class="micro"><span class="status-dot"></span><span id="pad-status">CONTROLLER: PRESS ANY BUTTON</span></span></div></section></main>
 
 <section id="purchase" class="panel-screen" hidden><div class="purchase-heading"><div><div class="eyebrow" id="loadout-label">GAME / BACKPACK</div><h2 id="purchase-title">Pack your bag</h2><div class="role-chip" id="role-chip"></div><p id="purchase-description"></p></div></div><div class="purchase-body"><aside class="loadout-side"><div class="section-label">YOUR BACKPACK</div><div class="credits" id="credits-block"><div><span id="credits">1,000</span><span class="credit-unit">CR LEFT</span></div><div class="credit-bar"><i id="credit-spent"></i></div><small id="credit-note"></small></div><ul id="loadout-list" data-nav-row></ul><div class="room-label" id="room-label">SESSION CODE <strong id="session-code"></strong><button id="copy-code" class="text-button">COPY ↗</button></div></aside><div class="shop"><div class="shop-top"><span>MISSION EQUIPMENT</span><span id="shop-privacy">YOUR PURCHASES ARE PRIVATE ${icon("shield", 15)}</span><span id="training-fill" hidden><button data-fill="all" class="text-button">TAKE ALL</button><button data-fill="none" class="text-button">CLEAR ALL</button></span></div><div id="gadget-grid"></div><div id="bot-loadout" hidden></div><div class="shop-note">${icon("eye", 17)} Pack a Smoke Puff, Glitter Popper, Peek-a-Boo Ball or Door Stopper.</div></div><aside id="gadget-detail" class="gadget-detail" aria-live="polite"></aside></div><footer class="purchase-footer"><div><span class="status-dot"></span><span id="footer-credits"></span><span id="ready-status">RESET CREDITS EACH ROUND · NO PERSISTENT PROGRESSION</span></div><button id="walk-around" class="secondary">WALK AROUND ↗</button><button id="ready" class="primary">PACK BACKPACK ${icon("arrow")}</button></footer></section>
-<div id="hud" hidden><div id="flash-veil"></div><div id="splash-veil"></div><div id="chase-veil"></div><div id="climb" hidden><div class="climb-track"><i id="climb-them"></i><i id="climb-you"></i></div><div class="climb-label"><strong id="climb-height">0 M</strong><span id="climb-of">OF 130</span><span id="climb-hits">0 HITS</span></div></div><div id="livewire" hidden><div class="lw-wave"><span>WAVE</span><strong id="lw-wave">1</strong><time id="lw-time">00:00</time></div><div class="lw-row" id="lw-you"><i></i><span>YOU</span><b>0 BUMPS</b></div><div class="lw-row" id="lw-them"><i></i><span>BOT</span><b>0 BUMPS</b></div></div><div id="boulder-warn" hidden><b id="boulder-lane"><i></i><i></i></b><span id="boulder-text">BOULDER</span></div><div id="chase" hidden><div class="chase-label"><span id="chase-who">BREAKOUT</span><strong id="chase-gap">JUMP LOGS · DODGE HAY</strong><span id="chase-run">0 M</span></div></div><div id="soaked-card" hidden>Soaked!<small>You're out. Great try!</small></div><div class="hud-top"><div class="objective"><span id="phase-tag">INFILTRATION</span><div id="objective-text">RAISE THE FLAG</div><small id="round-info">TRAINING GROUND 09</small></div><div class="timer"><span class="status-dot"></span><strong id="timer">04:00</strong><span id="team-tag">INFILTRATOR</span></div></div><div id="crosshair"><span></span><span></span><span></span><span></span></div><div id="compass" aria-hidden="true"><div class="compass-strip"></div><div class="compass-marks"></div><i class="compass-caret"></i></div><div id="bearing">000°</div><div id="camera-banner" hidden>LIVE / CAM 01 <span>KEEP AN INTRUDER IN FRAME TO TAG THEM</span></div><div id="center-feedback"><div id="alert" hidden></div><div id="progress-area" hidden><span id="progress-label"></span><div class="progress-track"><i id="progress-bar"></i></div></div><div id="interaction"></div></div><canvas id="minimap" width="200" height="200"></canvas><div class="map-caption" id="map-caption">THE COMPOUND</div><div id="equipment-bar"></div><div id="stance" data-stance="stand"><div class="stance-icons">${Object.entries(
+<div id="hud" hidden><div id="touch-stick" aria-hidden="true"><span></span></div><button id="touch-pause" aria-label="Pause">${icon("pause", 22)}</button><div id="flash-veil"></div><div id="splash-veil"></div><div id="chase-veil"></div><div id="climb" hidden><div class="climb-track"><i id="climb-them"></i><i id="climb-you"></i></div><div class="climb-label"><strong id="climb-height">0 M</strong><span id="climb-of">OF 130</span><span id="climb-hits">0 HITS</span></div></div><div id="livewire" hidden><div class="lw-wave"><span>WAVE</span><strong id="lw-wave">1</strong><time id="lw-time">00:00</time></div><div class="lw-row" id="lw-you"><i></i><span>YOU</span><b>0 BUMPS</b></div><div class="lw-row" id="lw-them"><i></i><span>BOT</span><b>0 BUMPS</b></div></div><div id="boulder-warn" hidden><b id="boulder-lane"><i></i><i></i></b><span id="boulder-text">BOULDER</span></div><div id="chase" hidden><div class="chase-label"><span id="chase-who">BREAKOUT</span><strong id="chase-gap">JUMP LOGS · DODGE HAY</strong><span id="chase-run">0 M</span></div></div><div id="soaked-card" hidden>Soaked!<small>You're out. Great try!</small></div><div class="hud-top"><div class="objective"><span id="phase-tag">INFILTRATION</span><div id="objective-text">RAISE THE FLAG</div><small id="round-info">TRAINING GROUND 09</small></div><div class="timer"><span class="status-dot"></span><strong id="timer">04:00</strong><span id="team-tag">INFILTRATOR</span></div></div><div id="crosshair"><span></span><span></span><span></span><span></span></div><div id="compass" aria-hidden="true"><div class="compass-strip"></div><div class="compass-marks"></div><i class="compass-caret"></i></div><div id="bearing">000°</div><div id="camera-banner" hidden>LIVE / CAM 01 <span>KEEP AN INTRUDER IN FRAME TO TAG THEM</span></div><div id="center-feedback"><div id="alert" hidden></div><div id="progress-area" hidden><span id="progress-label"></span><div class="progress-track"><i id="progress-bar"></i></div></div><div id="interaction"></div></div><canvas id="minimap" width="200" height="200"></canvas><div class="map-caption" id="map-caption">THE COMPOUND</div><div id="equipment-bar"></div><div id="stance" data-stance="stand"><div class="stance-icons">${Object.entries(
   STANCES,
 )
   .map(
@@ -1433,7 +1434,8 @@ if (kidView) {
 }
 if (launchers[savedGame]) pickGame(savedGame);
 // On a touch device (phone or tablet), the games with no touch controls are
-// greyed out and can't be picked: the arena games (WASD + mouse look),
+// greyed out and can't be picked: the arena games (WASD + mouse look; not
+// the overhead dodge games, which have a drag stick),
 // Slipstream and Loop & Glide.
 if (window.matchMedia?.("(pointer: coarse)").matches) {
   const entries = [...document.querySelectorAll("#home [data-game]")];
@@ -2742,7 +2744,7 @@ function updateUI() {
     ? state.party.kind === "sprinklers"
       ? `<b>STAY DRY</b><span>SPRINKLER DODGE · LAST DRY PLAYER WINS</span><small>Run around the yard in third person. Yellow circles mark where sprinkler heads are rising. Leave the circle before it turns blue and sprays! Heads retract after each burst. Every 15 seconds more pop up together. Any spray soaks you, even while jumping. WASD / left stick to move, the camera stays fixed above the yard. Move fast by default. No gadgets.</small>`
       : state.party.kind === "livewire"
-        ? `${icon("flag", 15)}<b>${partyRole()}</b><span>${state.party.name.toUpperCase()} · ONE RUN · LAST ONE STANDING</span><small>Welcome to Beach Ball Dodge! Bots around the pool throw beach balls straight across it, up and down or side to side. When a bot lifts a ball, its path lights up on the float: step out of it. A hit bumps you along, and off the float is a splash-out! Every ${PARTY.livewire.waveSeconds} s brings a new wave. Last one dry wins; splash together and fewer bumps wins. Use WASD or the left stick to move. Practice lets you play on your own.</small>`
+        ? `${icon("flag", 15)}<b>${partyRole()}</b><span>${state.party.name.toUpperCase()} · ONE RUN · LAST ONE STANDING</span><small>Welcome to Beach Ball Dodge! Bots around the pool throw beach balls straight across it, up and down or side to side. When a bot lifts a ball, its path lights up on the float: step out of it. A hit bumps you along, and off the float is a splash-out! Every ${PARTY.livewire.waveSeconds} s brings a new wave. Last one dry wins; splash together and fewer bumps wins. Use WASD, the left stick, or drag on a touch screen to move. Practice lets you play on your own.</small>`
         : state.party.kind === "boulders"
           ? `${icon("flag", 15)}<b>${partyRole()}</b><span>${state.party.name.toUpperCase()} · ONE RACE · ${PARTY.boulders.raceSeconds} S</span><small>You both climb the same steep channel at once, and boulders keep rolling down it. A pumpkin fills the channel: get into one of the recesses in the walls before it reaches you, then dash for the next. A watermelon rolls down one side only: step to the other. A hit flattens you and puts you back in the last recess you reached. First to the top wins; if nobody makes it in ${PARTY.boulders.raceSeconds} s, the higher climb does.</small>`
           : state.party.kind === "breakout"
@@ -3525,6 +3527,7 @@ function markRow(el) {
 }
 document.addEventListener("focusin", (e) => markRow(e.target));
 function pauseGame() {
+  liftStick();
   sprintLatched = false;
   controlsEnabled = false;
   input.clear();
@@ -3858,13 +3861,17 @@ function refreshPrompts() {
   // Row highlights for menu navigation only show while using a controller.
   document.body.classList.toggle("pad-nav", input.device === "controller");
   const pad = input.device === "controller",
+    touch = input.device === "touch",
     l = (a) => `<kbd>${input.label(a)}</kbd>`;
+  document.body.classList.toggle("touch-input", touch);
   $(".hud-bottom").innerHTML =
-    state?.party?.kind === "livewire"
-      ? `<span>${pad ? "<kbd>LS</kbd>" : `${l("forward")}${l("left")}${l("back")}${l("right")}`} MOVE &nbsp; ${l("pause")} PAUSE</span>`
-      : ["sprinklers", "boulders"].includes(state?.party?.kind)
-        ? `<span>${pad ? "<kbd>LS</kbd>" : `${l("forward")}${l("left")}${l("back")}${l("right")}`} MOVE &nbsp; ${l("jump")} JUMP &nbsp; ${l("pause")} PAUSE</span>`
-        : `<span>${pad ? "<kbd>LS</kbd> MOVE" : `${l("forward")}${l("left")}${l("back")}${l("right")} MOVE`} &nbsp; ${pad ? "<kbd>RS</kbd>" : `${l("lookUp")}${l("lookLeft")}${l("lookDown")}${l("lookRight")}`} LOOK &nbsp; ${l("sprint")} SPRINT &nbsp; ${l("stance")} CROUCH / HOLD PRONE</span><span>${l("jump")} JUMP / HOLD CLAMBER &nbsp; ${l("interact")} INTERACT &nbsp; ${l("use")} USE &nbsp; ${input.label("ping") === "—" ? "" : `${l("ping")} PING &nbsp; `}${input.label("settings") === "—" ? "" : `${l("settings")} CONTROLS &nbsp; `}${l("pause")} PAUSE &nbsp; ${l("developer")} DEV</span>`;
+    touch && overheadGame()
+      ? `<span>DRAG ANYWHERE TO MOVE &nbsp; <kbd>❚❚</kbd> PAUSE</span>`
+      : state?.party?.kind === "livewire"
+        ? `<span>${pad ? "<kbd>LS</kbd>" : `${l("forward")}${l("left")}${l("back")}${l("right")}`} MOVE &nbsp; ${l("pause")} PAUSE</span>`
+        : ["sprinklers", "boulders"].includes(state?.party?.kind)
+          ? `<span>${pad ? "<kbd>LS</kbd>" : `${l("forward")}${l("left")}${l("back")}${l("right")}`} MOVE &nbsp; ${l("jump")} JUMP &nbsp; ${l("pause")} PAUSE</span>`
+          : `<span>${pad ? "<kbd>LS</kbd> MOVE" : `${l("forward")}${l("left")}${l("back")}${l("right")} MOVE`} &nbsp; ${pad ? "<kbd>RS</kbd>" : `${l("lookUp")}${l("lookLeft")}${l("lookDown")}${l("lookRight")}`} LOOK &nbsp; ${l("sprint")} SPRINT &nbsp; ${l("stance")} CROUCH / HOLD PRONE</span><span>${l("jump")} JUMP / HOLD CLAMBER &nbsp; ${l("interact")} INTERACT &nbsp; ${l("use")} USE &nbsp; ${input.label("ping") === "—" ? "" : `${l("ping")} PING &nbsp; `}${input.label("settings") === "—" ? "" : `${l("settings")} CONTROLS &nbsp; `}${l("pause")} PAUSE &nbsp; ${l("developer")} DEV</span>`;
   $("#resume").innerHTML =
     `${pad ? input.label("pause") + " / " + input.label("jump") + " · " : ""}GO PLAY ${icon("arrow")}`;
   $("#manual-controls").innerHTML =
@@ -3873,9 +3880,9 @@ function refreshPrompts() {
       : `${pad ? "<kbd>LS</kbd> move · <kbd>RS</kbd> look" : `${l("forward")}${l("left")}${l("back")}${l("right")} move · ${l("lookUp")}${l("lookLeft")}${l("lookDown")}${l("lookRight")} look`}<br>${l("jump")} jump / hold near a wall to clamber · ${l("sprint")} sprint · ${l("stance")} crouch / hold prone<br>${l("interact")} interact · ${l("use")} use gadget (hold to aim a throw, ${l("cancelThrow")} cancels) · ${l("focus")} aim down sights (zoom; shows a throw's arc)<br>${l("previous")}/${l("next")} cycle gadgets · ${l("camera")} camera · ${l("exitCamera")} leave feed<br>${input.label("settings") === "—" ? "Control settings from the pause menu" : `${l("settings")} customize controls`} · ${l("pause")} pause · ${l("developer")} developer panel`;
   $("#lock-overlay p").textContent =
     state?.party?.kind === "sprinklers"
-      ? "Dodge the spray! Move with WASD or the left stick. The camera stays fixed above the yard."
+      ? `Dodge the spray! ${touch ? "Drag anywhere on the yard to move." : "Move with WASD or the left stick."} The camera stays fixed above the yard.`
       : state?.party?.kind === "livewire"
-        ? "Dodge the beach balls! Move with WASD or the left stick to step out of their path."
+        ? `Dodge the beach balls! ${touch ? "Drag anywhere on the pool to step out of their path." : "Move with WASD or the left stick to step out of their path."}`
         : pad
           ? "Use LS to move and RS to look. Menu resumes; A selects."
           : "Click to enter the yard. Use your configured mouse or look keys.";
@@ -3887,8 +3894,86 @@ function refreshPrompts() {
     .querySelectorAll("[data-equip] kbd")
     .forEach((el, i) => (el.textContent = input.label("slot" + (i + 1))));
 }
+// Touch: the overhead games (Beach Ball Dodge, Sprinkler Dodge) get a
+// floating drag stick wherever a finger presses on the field. A tap also
+// fires compatibility mouse events, so the pointer type decides the device.
+function overheadGame() {
+  return ["livewire", "sprinklers"].includes(state?.party?.kind);
+}
+let lastPointer = window.matchMedia?.("(pointer: coarse)").matches
+  ? "touch"
+  : "mouse";
+if (lastPointer === "touch") input.deviceUsed("touch");
+document.addEventListener(
+  "pointerdown",
+  (e) => {
+    lastPointer = e.pointerType === "mouse" ? "mouse" : "touch";
+    if (lastPointer === "touch") input.deviceUsed("touch");
+  },
+  true,
+);
+document.addEventListener("pointermove", (e) => {
+  if (e.pointerType === "mouse") lastPointer = "mouse";
+});
+const touchStick = $("#touch-stick"),
+  touchKnob = touchStick.querySelector("span"),
+  STICK_RANGE = 46;
+var stickTouch = null; // var: pauseGame() may run before this line does
+function liftStick(e) {
+  if (!stickTouch || (e && e.pointerId !== stickTouch.id)) return;
+  stickTouch = null;
+  input.touch = { forward: 0, side: 0 };
+  touchStick.classList.remove("on");
+}
+{
+  const canvas = world.renderer.domElement;
+  canvas.addEventListener("pointerdown", (e) => {
+    if (
+      e.pointerType === "mouse" ||
+      stickTouch ||
+      !controlsEnabled ||
+      !overheadGame()
+    )
+      return;
+    e.preventDefault();
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {}
+    stickTouch = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    touchStick.style.left = `${e.clientX}px`;
+    touchStick.style.top = `${e.clientY}px`;
+    touchKnob.style.transform = "";
+    touchStick.classList.add("on");
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!stickTouch || e.pointerId !== stickTouch.id) return;
+    if (!controlsEnabled) return liftStick();
+    let dx = e.clientX - stickTouch.x,
+      dy = e.clientY - stickTouch.y;
+    const d = Math.hypot(dx, dy);
+    if (d > STICK_RANGE) {
+      dx *= STICK_RANGE / d;
+      dy *= STICK_RANGE / d;
+    }
+    touchKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+    const live = d < 8 ? 0 : 1;
+    input.touch = {
+      side: (dx / STICK_RANGE) * live,
+      forward: (-dy / STICK_RANGE) * live,
+    };
+  });
+  for (const type of ["pointerup", "pointercancel", "lostpointercapture"])
+    canvas.addEventListener(type, liftStick);
+}
+$("#touch-pause").onclick = () => {
+  liftStick();
+  pauseGame();
+};
 document.addEventListener("mousemove", (e) => {
-  if (Math.abs(e.movementX) + Math.abs(e.movementY) > 1)
+  if (
+    lastPointer === "mouse" &&
+    Math.abs(e.movementX) + Math.abs(e.movementY) > 1
+  )
     input.deviceUsed("keyboard");
   if (
     controlsEnabled &&
@@ -3918,7 +4003,7 @@ document.addEventListener(
       input.key("Mouse" + e.button, true);
       return;
     }
-    input.deviceUsed("keyboard");
+    if (lastPointer === "mouse") input.deviceUsed("keyboard");
     if (
       controlsEnabled &&
       (e.target === world.renderer.domElement ||

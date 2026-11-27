@@ -5139,3 +5139,62 @@ nav .text-button,
 #home .game-options .choice .game-wip-badge {
   margin: 0;
 }
+
+/* Touch play for the overhead games (Beach Ball Dodge, Sprinkler Dodge):
+   a floating stick wherever a finger presses, and a pause button, since a
+   phone has no Escape key. */
+body:is(.livewire, .sprinklers) #viewport canvas {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+#touch-stick {
+  position: fixed;
+  z-index: 4;
+  width: 110px;
+  height: 110px;
+  margin: -55px 0 0 -55px;
+  border: 3px solid #fff8;
+  border-radius: 50%;
+  background: #0003;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+#touch-stick.on {
+  opacity: 1;
+}
+#touch-stick span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: #fffaf0;
+  box-shadow: 0 2px 8px #0005;
+}
+#touch-pause {
+  display: none;
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: 64px;
+  z-index: 4;
+  width: 60px;
+  height: 60px;
+  place-items: center;
+  padding: 0;
+  border: 2px solid #baf3df;
+  border-radius: 50%;
+  background: #174e57e8;
+  color: #faf8fb;
+  pointer-events: auto;
+}
+body.playing.touch-input:is(.livewire, .sprinklers) #touch-pause {
+  display: grid;
+}
+body.touch-input:is(.livewire, .sprinklers) .hud-bottom > span:first-child {
+  display: inline;
+}

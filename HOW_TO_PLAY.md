@@ -44,13 +44,13 @@ First-person and third-person games played in the 3D backyard. Choose Practice, 
 - **Goal:** Race up a steep channel while boulders roll down. Big grey boulders fill the channel, so duck into a lit recess; orange ones roll down one side, so step to the other. First to the top wins.
 - **Controls:** WASD to move, Shift to sprint.
 
-### Sprinkler Dodge (keyboard only)
+### Sprinkler Dodge
 - **Goal:** Sprinklers pop up inside yellow warning circles. Get out of the circle before they spray. More sprinklers each wave. Last one dry wins.
-- **Controls:** WASD to move.
+- **Controls:** WASD or left stick to move. On a touch screen, drag anywhere to move; the round button bottom left pauses.
 
-### Beach Ball Dodge (keyboard only, WIP)
+### Beach Ball Dodge (WIP)
 - **Goal:** Stay on the pool float while bots throw beach balls across it. A pink line shows a ball's path just before the throw, so step out of it. First one knocked into the pool loses.
-- **Controls:** WASD or left stick to move.
+- **Controls:** WASD or left stick to move. On a touch screen, drag anywhere to move; the round button bottom left pauses.
 
 ---
 
