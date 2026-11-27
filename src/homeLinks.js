@@ -55,6 +55,7 @@ export const HOME_LINKS = [
   { id: "memory", name: "Firefly Recall", image: mode("firefly-recall.jpg") },
   { id: "hotpotato", name: "Hot Potato", image: null },
   { id: "kickabout", name: "Kickabout", image: mode("kickabout.jpg") },
+  { id: "kiteday", name: "Kite Day", image: mode("kite-day.svg") },
   { id: "kubb", name: "Kubb · Viking Chess", image: mode("kubb.jpg") },
   {
     id: "lanterntrail",

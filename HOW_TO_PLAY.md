@@ -100,6 +100,10 @@ First-person and third-person games played in the 3D backyard. Choose Practice, 
 - **Goal:** 3 v 3 backyard soccer. Most goals in 3 minutes wins; a tie goes to golden goal.
 - **Controls:** WASD or arrows to run. With the ball: hold Space to power up a shot and let go to shoot (hold ↑ / ↓ to aim high or low), R or E to pass. Without it: run into them, Space to lunge, R to switch player. Controller: stick runs, A shoots or lunges, X passes or switches. Touch: drag on the left side, buttons on the right.
 
+### Kite Day (WIP)
+- **Goal:** Fly your kite through the floating ribbons on a windy afternoon. Hold to reel in and climb, let go to let string out and drift farther. Watch the windsock for gusts and stay clear of the oak, the power line, the hedges and the crow. Gold ribbons are worth three. Two players: crossed strings tangle!
+- **Controls:** A / D or ← / → steer, hold Space (or W / ↑) to reel in, R for a quick tug. Touch: ◀ ▶ steer, hold Reel (double-tap to tug). Controller: stick steers, hold A to reel, X tugs. Two players: player one A / D and Space, player two ← / → and ↑, or one controller each.
+
 ### Kubb · Viking Chess
 - **Goal:** Knock down your rival's kubbs (wooden blocks), then topple the king to win. Hit the king too early and you lose.
 - **Controls:** Aim with WASD, arrows, either stick, or drag the field. Hold Space (A / RT, or the Throw button), then release to throw.

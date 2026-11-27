@@ -53,6 +53,7 @@ export const WIP_GAMES = [
   "backyardfling",
   "paperplane",
   "pipecrane",
+  "kiteday",
 ];
 
 // Games with no touch controls (arena games with WASD + mouse look,
