@@ -1,4 +1,4 @@
-import preview from "./assets/modes/fire-and-ice.svg";
+import preview from "./assets/modes/fire-and-ice.jpg";
 import { GameTimers } from "./gameTimers.js";
 import { gameResults } from "./gameResults.js";
 import {
@@ -237,7 +237,7 @@ export function installFireIce(getAvatar = () => ({})) {
   entry.className = "choice";
   entry.dataset.game = "fireice";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Two little wizard critters in the snow: one throws a fire ball, the other holds up an ice shield" draggable="false"></span><strong>${TITLE}</strong><small>Pick fire or ice, then attack, reload or shield. The computer picks at the same time. First to five stars wins!</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="Two critters in the snow: one sprays a stream of fire, the other holds up an ice shield" draggable="false"></span><strong>${TITLE}</strong><small>Pick fire or ice, then attack, reload or shield. The computer picks at the same time. First to five stars wins!</small>`;
   games.append(entry);
   entry.onclick = () => open(getAvatar().character);
 }

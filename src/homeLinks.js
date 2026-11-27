@@ -47,7 +47,11 @@ export const HOME_LINKS = [
   { id: "boulders", name: "Boulder Dash", image: mode("boulder-dash.jpg") },
   { id: "breakout", name: "Breakout", image: mode("breakout.png") },
   { id: "cometdash", name: "Comet Dash", image: mode("comet-dash.jpg") },
-  { id: "fireice", name: "Fire & Ice", image: mode("fire-and-ice.svg") },
+  {
+    id: "fireice",
+    name: "Fire & Ice",
+    image: "tools/home-icon-sources/fireice.png",
+  },
   { id: "memory", name: "Firefly Recall", image: mode("firefly-recall.jpg") },
   { id: "hotpotato", name: "Hot Potato", image: null },
   { id: "kickabout", name: "Kickabout", image: mode("kickabout.jpg") },
