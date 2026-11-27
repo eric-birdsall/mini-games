@@ -52,7 +52,6 @@ export const WIP_GAMES = [
   "backyardairmail",
   "backyardfling",
   "paperplane",
-  "pipecrane",
   "kiteday",
 ];
 

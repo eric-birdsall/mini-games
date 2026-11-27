@@ -901,6 +901,10 @@ The flight, the course and the crashes are in `shared/backyardFlier.js` (tested 
 
 ### Pipe Crane
 
+**Little Builders** is the default, designed for preschoolers: four or five pipes, one destination, no timer or dead ends. Tap the glowing spot or the big **Place Pipe** button; the crane chooses the right shape and turns it to fit. Filled circles show progress. When the path is ready, press **Water!** and watch it flow, then **Build another**. A / RT on a controller (Space on a keyboard) places the next pipe and starts the water once ready. Wrong taps and early water presses are harmless. The first site is straight, then bends appear; later sites stay just as relaxed. Little Builders keeps its own best score.
+
+Choose **Puzzle Mode** on the start screen for the original game described below, using the menu's selected difficulty.
+
 Open **Game → Pipe Crane** to lay water pipe on a building site. The trenches are already dug. Pipe A (the water main, with a red valve) comes in from the left, and outlet pipe B pokes in from another edge. A crawler crane at the back, with your critter in the cab, swings its boom to wherever the hook goes.
 
 - **Laying pipe:** tap a stack in the pipe yard (straights, corners and T's, plus crosses on Hard) to put one on the hook, turn it with the big ⟳ button (R / E, Q the other way, the mouse wheel or a right-click), then tap a trench to lower it in. Tap a laid pipe to turn it, or drag it to another trench (or back to the yard). Pipes only go in trenches; some trenches are dead ends. Keyboard and controller: the arrows / WASD / stick move the hook over the site and the yard, and Space / A grabs, lowers and lifts.
@@ -908,7 +912,7 @@ Open **Game → Pipe Crane** to lay water pipe on a building site. The trenches 
 - **Winning and losing:** fill every outlet and the job's done; the next site comes on a little sooner and flows a little faster. From a few sites in, there are two outlets (B and C), so you'll need a T. If water reaches an open end, an empty trench or a pipe that doesn't line up, it spills and the game ends. You score one per site finished, and your best is saved per difficulty.
 - **Difficulty:** sets the site size, the countdown, how fast water flows, how many dead-end trenches there are, when two-outlet sites start, and whether crosses are in the yard.
 
-The sites, pipe pieces and water are in `shared/pipeCrane.js` (tested in `tests/pipeCrane.test.js`), the game in `src/pipeCrane.js`, and the 3D site and crane in `src/pipeCraneScene.js`.
+The sites, pipe pieces and water are in `shared/pipeCrane.js` (tested in `tests/pipeCrane.test.js`, including 200 Little Builders sites, unlimited thinking time and harmless wrong taps), the game in `src/pipeCrane.js`, and the 3D site and crane in `src/pipeCraneScene.js`.
 
 ### Look & Find
 

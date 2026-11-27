@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   HURRY,
+  makeLittleSite,
+  nextBuildCell,
+  buildLittlePipe,
   PIPE_LEVELS,
   joinedUp,
   lift,
@@ -165,4 +168,113 @@ test("water hurries once everything is joined up", () => {
   assert.equal(slow.hurry, false);
   assert.equal(quick.water.get(site.source.cell).t, 1);
   assert.ok(slow.water.get(site.source.cell).t < 0.5);
+});
+
+test("Little Builders waits indefinitely and ignores an early water press", () => {
+  const job = newJob(makeLittleSite());
+  for (let i = 0; i < 100; i++) stepJob(job, 60);
+  openValve(job);
+  assert.equal(job.flowing, false);
+  assert.equal(job.spill, null);
+  assert.equal(job.clock, null);
+  assert.equal(job.pipes.size, 0);
+});
+
+test("every Little Builders site is short, unbranched and winnable without choosing or turning", () => {
+  for (let seed = 0; seed < 40; seed++)
+    for (const index of [0, 1, 2, 10, 100]) {
+      const site = makeLittleSite(index, seed);
+      assert.equal(site.outlets.length, 1);
+      assert.equal(site.trench.size, site.solution.size);
+      assert.ok(site.solution.size >= 4 && site.solution.size <= 5);
+      assert.equal(site.countdown, null);
+      assert.equal(site.flow, 0.9);
+      assert.deepEqual(site, makeLittleSite(index, seed));
+      assert.ok(
+        [...site.solution.values()].every((p) =>
+          ["straight", "corner"].includes(p.type),
+        ),
+      );
+      const job = newJob(site);
+      for (let n = 0; n < site.solution.size; n++) {
+        stepJob(job, 120); // Small hands can take two minutes per piece.
+        assert.ok(buildLittlePipe(job, nextBuildCell(job)));
+        assert.equal(job.flowing, false);
+      }
+      assert.equal(nextBuildCell(job), null);
+      assert.ok(joinedUp(job));
+      openValve(job);
+      assert.equal(job.flowing, true);
+      assert.equal(buildLittlePipe(job, site.source.cell), false);
+      const events = run(job, 10);
+      assert.equal(job.done, true);
+      assert.equal(job.spill, null);
+      assert.equal(events.filter((e) => e === "done").length, 1);
+    }
+});
+
+test("wrong and repeated taps preserve a Little Builders path", () => {
+  const job = newJob(makeLittleSite());
+  const first = nextBuildCell(job);
+  assert.equal(buildLittlePipe(job, 0), false);
+  assert.equal(nextBuildCell(job), first);
+  assert.ok(buildLittlePipe(job, first));
+  const second = nextBuildCell(job);
+  assert.equal(buildLittlePipe(job, first), false);
+  assert.equal(job.pipes.size, 1);
+  assert.equal(nextBuildCell(job), second);
+  openValve(job);
+  assert.equal(job.flowing, false);
+  assert.equal(job.spill, null);
+});
+
+test("Little Builders begins straight and adds bends without adding a timer", () => {
+  const first = makeLittleSite(0);
+  assert.ok([...first.solution.values()].every((p) => p.type === "straight"));
+  assert.ok(
+    [...makeLittleSite(1).solution.values()].some((p) => p.type === "corner"),
+  );
+});
+
+test("Xbox A places one preschool pipe per press and then starts the water", async () => {
+  const { PadBridge, PAD } = await import("../src/padBridge.js");
+  const job = newJob(makeLittleSite());
+  globalThis.KeyboardEvent ??= class {
+    constructor(type, init) {
+      Object.assign(this, init, { type });
+    }
+  };
+  const root = {
+    padPlaying: () => true,
+    ownerDocument: { activeElement: null },
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    contains: () => false,
+    dispatchEvent(event) {
+      if (event.type !== "keydown" || event.code !== "Space") return;
+      const cell = nextBuildCell(job);
+      if (cell === null) openValve(job);
+      else buildLittlePipe(job, cell);
+    },
+  };
+  const pad = (held) => ({
+    axes: [],
+    buttons: Array.from({ length: 17 }, (_, i) => ({
+      pressed: held && i === PAD.A,
+    })),
+  });
+  const bridge = new PadBridge();
+  bridge.update(root, pad(false), DT);
+  for (let count = 1; count <= 4; count++) {
+    bridge.update(root, pad(true), DT);
+    for (let frame = 0; frame < 120; frame++)
+      bridge.update(root, pad(true), DT);
+    assert.equal(job.pipes.size, count);
+    assert.equal(job.flowing, false);
+    bridge.update(root, pad(false), DT);
+  }
+  bridge.update(root, pad(true), DT);
+  assert.equal(job.flowing, true);
+  run(job, 10);
+  assert.equal(job.done, true);
 });

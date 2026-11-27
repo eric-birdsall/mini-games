@@ -321,6 +321,56 @@ export function makeSite(level, index = 0, seed = 1) {
   throw new Error(`No site for ${level} #${index} seed ${seed}`);
 }
 
+// Preschool sites: a short, single route, no decoys, branches or timer.
+// Start with a straight line, then introduce one bend and finally two bends.
+export function makeLittleSite(index = 0, seed = 1) {
+  const rand = seeded(seed + index * 7919);
+  const stage = index === 0 ? 0 : index === 1 ? 1 : 1 + Math.floor(rand() * 2);
+  const paths = [
+    [4, 5, 6, 7],
+    [4, 5, 6, 2],
+    [4, 5, 9, 10, 11],
+  ];
+  const path = paths[stage];
+  const site = {
+    level: "little",
+    guided: true,
+    index,
+    cols: 4,
+    rows: 3,
+    countdown: null,
+    flow: 0.9,
+    source: { cell: path[0], dir: 3 },
+    outlets: [{ cell: path.at(-1), dir: stage === 1 ? 0 : 1 }],
+    trench: new Set(path),
+    solution: new Map(),
+  };
+  for (let i = 0; i < path.length; i++) {
+    const from =
+      i === 0
+        ? 3
+        : DIRS.findIndex((_, d) => neighbour(site, path[i], d) === path[i - 1]);
+    const to =
+      i === path.length - 1
+        ? site.outlets[0].dir
+        : DIRS.findIndex((_, d) => neighbour(site, path[i], d) === path[i + 1]);
+    site.solution.set(path[i], pieceFor([from, to]));
+  }
+  return site;
+}
+
+export const nextBuildCell = (job) =>
+  job.site.guided && !job.flowing && !job.done
+    ? ([...job.site.solution.keys()].find((cell) => !job.pipes.has(cell)) ??
+      null)
+    : null;
+
+// Follow the glowing spot; the crane chooses and turns the fitting piece.
+export function buildLittlePipe(job, cell) {
+  if (cell === null || cell !== nextBuildCell(job)) return false;
+  return place(job, cell, job.site.solution.get(cell));
+}
+
 // --- A job in progress -------------------------------------------------
 
 // `pipes` maps cell → { type, rot }. `water` maps each wet cell to
@@ -409,6 +459,7 @@ export function joinedUp(job) {
 // Open the valve now instead of waiting out the countdown.
 export function openValve(job) {
   if (job.flowing || job.done || job.spill) return;
+  if (job.site.guided && !joinedUp(job)) return;
   job.clock = 0;
   startFlow(job);
 }
@@ -438,6 +489,7 @@ export function stepJob(job, dt) {
   const events = [];
   if (job.done || job.spill) return events;
   if (!job.flowing) {
+    if (job.site.guided) return events;
     job.clock -= dt;
     if (job.clock > 0) return events;
     job.clock = 0;
@@ -449,7 +501,7 @@ export function stepJob(job, dt) {
     }
   }
   job.hurry = joinedUp(job);
-  const rate = (job.hurry ? HURRY : 1) / job.site.flow;
+  const rate = (job.hurry && !job.site.guided ? HURRY : 1) / job.site.flow;
   const next = [];
   for (const cell of job.fronts) {
     const w = job.water.get(cell);
