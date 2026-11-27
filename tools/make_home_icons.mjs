@@ -3,7 +3,8 @@
 // touch icon) and 192 / 512 px (manifest), in public-pages/icons/games/.
 // A game with no image gets the Mini Games icon.
 //
-//   node tools/make_home_icons.mjs
+//   node tools/make_home_icons.mjs            (every game)
+//   node tools/make_home_icons.mjs fireice    (just the games named)
 //
 // Uses macOS `sips` (and Quick Look's `qlmanage` to draw SVGs).
 import { execFileSync } from "node:child_process";
@@ -19,7 +20,9 @@ mkdirSync(out, { recursive: true });
 const sips = (...args) =>
   execFileSync("sips", args, { encoding: "utf8" }).toString();
 
+const only = process.argv.slice(2);
 for (const { id, image } of HOME_LINKS) {
+  if (only.length && !only.includes(id)) continue;
   if (!image) {
     for (const size of [180, 192, 512])
       copyFileSync(

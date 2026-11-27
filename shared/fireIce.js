@@ -29,12 +29,43 @@ export const legalActions = (duel, side) =>
 export const isLegal = (duel, side, action) =>
   legalActions(duel, side).includes(action);
 
-// The computer picks at random from its legal actions.
-export function computerMove(duel, side = 1, random = Math.random) {
+// The computer leans toward sensible moves, using what's shown on screen:
+// whether it and its opponent are loaded.
+// - If you can't attack, it mostly attacks or reloads, and rarely shields.
+// - If you can attack, it mostly attacks or shields when it's loaded, and
+//   mixes reloading with shielding when it isn't.
+const SENSIBLE = {
+  // [computer loaded, opponent loaded]: { action: weight }
+  "true,false": { ball: 0.6, reload: 0.2, shield: 0.2 },
+  "false,false": { reload: 0.8, shield: 0.2 },
+  "true,true": { ball: 0.45, reload: 0.1, shield: 0.45 },
+  "false,true": { reload: 0.5, shield: 0.5 },
+};
+// How far it leans from a random pick toward the sensible weights. Wins
+// add up over a first-to-five game, so a little goes a long way: at 0.25 a
+// player tapping at random wins about 35% of games (50% against pure
+// random); at 1 they'd win about 6%.
+export const SMARTS = 0.25;
+
+// The computer's pick: a legal action, weighted by the situation.
+export function computerMove(
+  duel,
+  side = 1,
+  random = Math.random,
+  smarts = SMARTS,
+) {
   const actions = legalActions(duel, side);
-  return actions[
-    Math.min(actions.length - 1, Math.floor(random() * actions.length))
-  ];
+  const sensible =
+    SENSIBLE[[duel.loaded[side], duel.loaded[1 - side]].join()] ?? {};
+  const weights = actions.map(
+    (a) => smarts * (sensible[a] ?? 0) + (1 - smarts) / actions.length,
+  );
+  let roll = random() * weights.reduce((sum, w) => sum + w, 0);
+  for (let i = 0; i < actions.length; i++) {
+    roll -= weights[i];
+    if (roll < 0) return actions[i];
+  }
+  return actions[actions.length - 1];
 }
 
 // What happens when action `a` (side 0) meets action `b` (side 1).

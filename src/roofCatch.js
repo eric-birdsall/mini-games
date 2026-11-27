@@ -269,6 +269,13 @@ export function installRoofCatch(getAvatar) {
       if (state === "playing" && canvas.hasPointerCapture(event.pointerId))
         aim(event);
     });
+    // Steer only while the finger is down: lifting it stops the runner.
+    const release = () => {
+      target = undefined;
+    };
+    canvas.addEventListener("pointerup", release);
+    canvas.addEventListener("pointercancel", release);
+    canvas.addEventListener("lostpointercapture", release);
     const resize = () => draw();
     window.addEventListener("blur", pause);
     window.addEventListener("resize", resize);

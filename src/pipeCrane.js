@@ -1,3 +1,4 @@
+import { GameTimers } from "./gameTimers.js";
 import preview from "./assets/modes/pipe-crane.jpg";
 import { gameResults } from "./gameResults.js";
 import {
@@ -7,6 +8,10 @@ import {
 } from "./pauseActions.js";
 import { createPipeCraneScene } from "./pipeCraneScene.js";
 import {
+  buildLittlePipe,
+  makeLittleSite,
+  nextBuildCell,
+  joinedUp,
   canPlace,
   isWet,
   lift,
@@ -134,20 +139,28 @@ export function installPipeCrane(getLevel, getAvatar) {
   entry.className = "choice";
   entry.dataset.game = "pipecrane";
   entry.setAttribute("aria-pressed", "false");
-  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A crane lowering pipe into trenches on a building site" draggable="false"></span><strong>Pipe Crane</strong><small>Lay pipe in the trenches with your crane and join pipe A to the others before the water arrives!</small>`;
+  entry.innerHTML = `<span class="map-thumb"><img src="${preview}" alt="A crane lowering pipe into trenches on a building site" draggable="false"></span><strong>Pipe Crane</strong><small>Lay pipe in the trenches with your crane and join pipe A to the others at your own pace. Little Builders fits the pipes for you!</small>`;
   games.append(entry);
   entry.onclick = () => open(getLevel(), avatarChoice(getAvatar()));
 }
 
-function open(level, avatar) {
+function open(challengeLevel, avatar) {
+  let level = "little";
+  const guided = () => level === "little";
+  const createSite = (index, seed) =>
+    guided() ? makeLittleSite(index, seed) : makeSite(level, index, seed);
   document.exitPointerLock?.();
-  const bestKey = `pipe-crane-best-${level}`;
-  let best = 0;
-  try {
-    const saved = Number(localStorage.getItem(bestKey));
-    if (Number.isFinite(saved) && saved > 0) best = saved;
-  } catch {}
-  const types = yardPieces(level);
+  let bestKey, best;
+  function loadBest() {
+    bestKey = `pipe-crane-best-${level}`;
+    best = 0;
+    try {
+      const saved = Number(localStorage.getItem(bestKey));
+      if (Number.isFinite(saved) && saved > 0) best = saved;
+    } catch {}
+  }
+  loadBest();
+  let types = [];
 
   const dialog = document.createElement("dialog");
   dialog.className = "pipe-crane";
@@ -160,14 +173,16 @@ function open(level, avatar) {
         <span class="pipe-site" data-site></span>
         <span class="pipe-timer" data-timer><span class="pipe-drop" aria-hidden="true"></span><b data-clock></b></span>
         <span class="pipe-best" data-best></span>
+        <span class="pipe-progress" data-progress aria-label="Pipes placed"></span>
       </div>
       <div class="pipe-tools" data-tools hidden>
+        <button class="pipe-build primary" data-build>↓ PLACE PIPE</button>
         <button class="pipe-turn" data-turn aria-label="Turn the pipe" title="Turn (R)">⟳</button>
         <button class="pipe-valve" data-valve title="Turn the water on now (G)">Water on!</button>
       </div>
       <section class="pipe-panel" data-panel>
         <h2 data-heading></h2><p data-details></p>
-        <div class="pipe-modes"><button class="primary" data-play>Play</button></div>
+        <div class="pipe-modes"><button class="primary" data-play>Little Builders</button><button data-puzzle>Puzzle Mode</button></div>
         <small class="pipe-keys" data-keys></small>
       </section>
     </div>
@@ -175,7 +190,7 @@ function open(level, avatar) {
       <span data-message role="status"></span>
       <button data-pause hidden>Pause / Esc</button>
     </footer>
-    ${pauseScreen("Pipe Crane", HOW_TO)}`;
+    ${pauseScreen("Pipe Crane", "Little Builders: tap the glowing spot or Place Pipe. The crane picks and turns the right pipe. When the path is ready, press Water! No timer. Puzzle Mode: " + HOW_TO)}`;
   document.body.append(dialog);
   const get = (key) => dialog.querySelector(`[data-${key}]`);
   const canvas = dialog.querySelector("canvas");
@@ -191,7 +206,7 @@ function open(level, avatar) {
   let seed = 1;
   let index = 0;
   let done = 0;
-  let site = makeSite(level, 0, seed);
+  let site = createSite(0, seed);
   let job = newJob(site);
   // The pipe on the hook, and where it came from ("yard" or a cell).
   let held = null;
@@ -206,22 +221,25 @@ function open(level, avatar) {
   let toldHurry = false;
   let previous = 0;
   let frame;
-  let messageTimer;
+  const messages = new GameTimers();
   // Controller: stick moves the hook, A grabs / drops, X turns (padBridge).
   dialog.padPlaying = () => state === "playing";
 
   function say(text, hold = 2600) {
     get("message").textContent = text;
-    clearTimeout(messageTimer);
-    if (text)
-      messageTimer = setTimeout(() => (get("message").textContent = ""), hold);
+    messages.clear();
+    if (text) messages.later(() => (get("message").textContent = ""), hold);
   }
 
   function hud() {
+    dialog.dataset.mode = guided() ? "little" : "puzzle";
     get("site").textContent = `Site ${index + 1}`;
     get("best").textContent = `Best ${best}`;
     const timer = get("timer");
-    if (!job.flowing) {
+    if (guided() && !job.flowing) {
+      get("clock").textContent = "Take your time";
+      timer.classList.remove("soon", "on");
+    } else if (!job.flowing) {
       const s = Math.ceil(job.clock);
       get("clock").textContent = `Water in ${s}`;
       timer.classList.toggle("soon", s <= 5);
@@ -231,12 +249,29 @@ function open(level, avatar) {
       timer.classList.remove("soon");
       timer.classList.add("on");
     }
-    get("valve").hidden = job.flowing || state !== "playing";
-    get("turn").hidden = state !== "playing";
+    get("progress").hidden = !guided();
+    get("progress").textContent = [...site.solution.keys()]
+      .map((cell) => (job.pipes.has(cell) ? "●" : "○"))
+      .join(" ");
+    get("progress").setAttribute(
+      "aria-label",
+      `${job.pipes.size} of ${site.solution.size} pipes placed`,
+    );
+    get("build").hidden = !guided() || state !== "playing";
+    get("build").disabled = job.flowing;
+    get("build").textContent = job.flowing
+      ? "💧 WATCH THE WATER"
+      : nextBuildCell(job) === null
+        ? "💧 WATER!"
+        : "↓ PLACE PIPE";
+    get("valve").hidden = guided() || job.flowing || state !== "playing";
+    get("turn").hidden = guided() || state !== "playing";
     get("turn").classList.toggle("holding", !!held);
   }
 
   function hookTarget() {
+    if (guided())
+      return scene.cellPoint(nextBuildCell(job) ?? site.outlets[0].cell);
     if (dragPoint) return dragPoint;
     if (aim.slot !== undefined) return scene.slotPoint(aim.slot);
     return scene.cellPoint(aim.cell);
@@ -301,6 +336,7 @@ function open(level, avatar) {
   }
 
   function spin(by = 1, cell = aim.cell) {
+    if (guided()) return;
     if (held) {
       held = { ...held, rot: (held.rot + by + 4) % 4 };
       sfx.turn();
@@ -315,7 +351,34 @@ function open(level, avatar) {
   }
 
   // Space / A: grab, put back, drop or lift, depending on where the hook is.
+  function buildGuided(cell = nextBuildCell(job)) {
+    if (state !== "playing" || job.flowing) return;
+    if (nextBuildCell(job) === null) {
+      valve();
+      return;
+    }
+    if (!buildLittlePipe(job, cell)) {
+      aim = { cell: nextBuildCell(job) };
+      say("Follow the glowing spot!", 2000);
+      return;
+    }
+    scene.dropped(cell);
+    sfx.clunk();
+    aim = { cell: nextBuildCell(job) ?? cell };
+    say(
+      nextBuildCell(job) === null
+        ? "Ready! Press Water!"
+        : "Great! Let's add another pipe.",
+      2400,
+    );
+    hud();
+  }
+
   function act() {
+    if (guided()) {
+      buildGuided(aim.cell);
+      return;
+    }
     if (aim.slot !== undefined) {
       if (held && held.type === types[aim.slot]) putBack();
       else grab(aim.slot);
@@ -327,6 +390,10 @@ function open(level, avatar) {
 
   function valve() {
     if (state !== "playing" || job.flowing) return;
+    if (guided() && !joinedUp(job)) {
+      say("Let’s finish the path first.");
+      return;
+    }
     openValve(job);
     onEvents(["valve", ...(job.spill ? ["spill"] : [])]);
   }
@@ -334,6 +401,15 @@ function open(level, avatar) {
   // Keyboard / controller: move the cursor over the grid and the yard row.
   function move(dx, dy) {
     const { cols, rows } = job.site;
+    if (guided()) {
+      const [x, y] = xyOf(site, aim.cell ?? site.source.cell);
+      aim = {
+        cell:
+          Math.max(0, Math.min(rows - 1, y + dy)) * cols +
+          Math.max(0, Math.min(cols - 1, x + dx)),
+      };
+      return;
+    }
     if (aim.slot !== undefined) {
       if (dy < 0) {
         const p = scene.slotPoint(aim.slot);
@@ -371,7 +447,12 @@ function open(level, avatar) {
     for (const e of events) {
       if (e === "valve") {
         sfx.valve();
-        say("The water's on! Keep laying pipe ahead of it.", 3000);
+        say(
+          guided()
+            ? "You did it! Watch the water go!"
+            : "The water's on! Keep laying pipe ahead of it.",
+          3000,
+        );
       } else if (e === "fill") sfx.gurgle();
       else if (e === "outlet") sfx.outlet();
       else if (e === "spill") spilled();
@@ -415,10 +496,12 @@ function open(level, avatar) {
     }
     hud();
     const outlets = job.site.outlets.length === 2 ? "B and C" : "B";
-    get("heading").textContent = "Job done!";
-    get("details").textContent =
-      `The water made it all the way to pipe ${outlets}. ${done === 1 ? "One site" : `${done} sites`} finished${record && done > 1 ? ", a new best" : ""}! The next site's water comes on a little sooner.`;
-    get("play").textContent = "Next site →";
+    get("heading").textContent = guided() ? "You built it! ⭐" : "Job done!";
+    get("details").textContent = guided()
+      ? "The water made it all the way! Let’s build another one."
+      : `The water made it all the way to pipe ${outlets}. ${done === 1 ? "One site" : `${done} sites`} finished${record && done > 1 ? ", a new best" : ""}! The next site's water comes on a little sooner.`;
+    get("play").textContent = guided() ? "Build another →" : "Next site →";
+    get("puzzle").hidden = true;
     get("keys").textContent = "";
     panel.hidden = false;
     get("tools").hidden = true;
@@ -478,8 +561,12 @@ function open(level, avatar) {
     scene.draw(dt, {
       job,
       hook: hookTarget(),
-      held,
-      cursor: state === "playing" ? aim : null,
+      held:
+        guided() && state === "playing" && nextBuildCell(job) !== null
+          ? site.solution.get(nextBuildCell(job))
+          : held,
+      guide: guided() && state === "playing" ? nextBuildCell(job) : null,
+      cursor: state === "playing" && !guided() ? aim : null,
       cursorOk: cursorOk(),
       valve: valveTurn,
     });
@@ -494,7 +581,7 @@ function open(level, avatar) {
   }
 
   function newSite() {
-    site = makeSite(level, index, seed);
+    site = createSite(index, seed);
     job = newJob(site);
     scene.setSite(site, types);
     held = null;
@@ -509,14 +596,17 @@ function open(level, avatar) {
 
   function start(reset) {
     results.hide();
+    messages.resume();
     if (state === "between") {
       index++;
       newSite();
       state = "playing";
       say(
-        site.outlets.length === 2
-          ? "Two pipes to reach this time: B and C. You'll need a T!"
-          : "",
+        guided()
+          ? "Tap the glowing spot or Place Pipe!"
+          : site.outlets.length === 2
+            ? "Two pipes to reach this time: B and C. You'll need a T!"
+            : "",
         3600,
       );
     } else if (reset) {
@@ -525,7 +615,12 @@ function open(level, avatar) {
       done = 0;
       newSite();
       state = "playing";
-      say("Tap a pipe stack to grab one.", 3000);
+      say(
+        guided()
+          ? "Tap the glowing spot or Place Pipe!"
+          : "Tap a pipe stack to grab one.",
+        3000,
+      );
     } else {
       state = pausedFrom || "playing";
     }
@@ -545,7 +640,8 @@ function open(level, avatar) {
   }
 
   function pause() {
-    if (state !== "playing") return;
+    if (!["playing", "spilled"].includes(state)) return;
+    messages.pause();
     pausedFrom = state;
     state = "paused";
     drag = dragPoint = null;
@@ -562,6 +658,16 @@ function open(level, avatar) {
     () => dialog.close(),
   );
   get("play").onclick = () => start(state !== "between");
+  get("puzzle").onclick = () => {
+    level = challengeLevel;
+    types = yardPieces(level);
+    loadBest();
+    start(true);
+  };
+  get("build").onclick = () => {
+    buildGuided();
+    canvas.focus({ preventScroll: true });
+  };
   get("pause-resume").onclick = () => start(false);
   get("pause-restart").onclick = () => {
     state = "finished";
@@ -580,7 +686,7 @@ function open(level, avatar) {
   };
   bindDialogEscape(dialog, () => {
     if (state === "paused") start(false);
-    else if (state === "playing") pause();
+    else if (["playing", "spilled"].includes(state)) pause();
     else if (state === "ready" || state === "finished") dialog.close();
   });
 
@@ -637,6 +743,19 @@ function open(level, avatar) {
     canvas.focus({ preventScroll: true });
     const hit = where(event);
     if (!hit) return;
+    if (guided()) {
+      const next = nextBuildCell(job);
+      if (
+        event.button === 0 &&
+        next !== null &&
+        scene.nearCell(next, event.clientX, event.clientY)
+      )
+        buildGuided(next);
+      else if (event.button === 0 && hit.cell !== undefined)
+        buildGuided(hit.cell);
+      return;
+    }
+    if (drag) return;
     if (event.button === 2) {
       setAim(hit);
       spin(1, hit.cell);
@@ -646,6 +765,7 @@ function open(level, avatar) {
     canvas.setPointerCapture?.(event.pointerId);
     setAim(hit);
     drag = {
+      pointerId: event.pointerId,
       x: event.clientX,
       y: event.clientY,
       hit,
@@ -671,6 +791,7 @@ function open(level, avatar) {
       if (event.pointerType === "mouse" && hit) setAim(hit);
       return;
     }
+    if (event.pointerId !== drag.pointerId) return;
     if (
       !drag.moved &&
       Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > DRAG_PX
@@ -691,6 +812,7 @@ function open(level, avatar) {
       drag = dragPoint = null;
       return;
     }
+    if (event.pointerId !== drag.pointerId) return;
     const hit = where(event);
     const d = drag;
     drag = dragPoint = null;
@@ -706,10 +828,13 @@ function open(level, avatar) {
     hud();
   };
   canvas.addEventListener("pointerup", release);
-  canvas.addEventListener("pointercancel", () => {
-    if (drag && heldFrom !== "yard" && heldFrom !== null) lower(heldFrom);
+  const cancelDrag = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (heldFrom !== "yard" && heldFrom !== null) lower(heldFrom);
     drag = dragPoint = null;
-  });
+  };
+  canvas.addEventListener("pointercancel", cancelDrag);
+  canvas.addEventListener("lostpointercapture", cancelDrag);
   canvas.addEventListener(
     "wheel",
     (event) => {
@@ -721,10 +846,13 @@ function open(level, avatar) {
     { passive: false },
   );
 
+  const visibility = () => document.hidden && pause();
+  document.addEventListener("visibilitychange", visibility);
   window.addEventListener("blur", pause);
   dialog.addEventListener("close", () => {
     cancelAnimationFrame(frame);
-    clearTimeout(messageTimer);
+    messages.clear();
+    document.removeEventListener("visibilitychange", visibility);
     window.removeEventListener("blur", pause);
     scene.dispose();
     sfx.audio?.close().catch(() => {});
@@ -739,10 +867,10 @@ function open(level, avatar) {
   hud();
   previous = performance.now();
   frame = requestAnimationFrame(loop);
-  get("heading").textContent = "Lay the pipe!";
+  get("heading").textContent = "Let’s build a water pipe!";
   get("details").textContent =
-    `The trenches are dug. Grab pipes from the yard with your crane, turn them to fit and lower them in to join pipe A to the other end. When the valve opens the water flows, so stay ahead of it and leave no open ends!${best ? ` Your best: ${best} sites.` : ""}`;
+    "Tap the glowing spot and your crane puts the right pipe in. Finish the path, then press Water! Take as long as you like. Puzzle Mode lets bigger builders choose and turn their own pipes.";
   get("keys").textContent =
-    "Tap a stack to grab · ⟳ or R to turn · tap a trench to lower";
+    "Touch: tap the glow · Controller: A to place, A for water · Keyboard: Space";
   get("play").focus();
 }

@@ -109,6 +109,7 @@
   display: block;
 }
 .fi-you {
+  --fi-face: 1;
   left: 12%;
   --fur: #42c59a;
   --belly: #c8f5df;
@@ -116,6 +117,7 @@
   --band: #ffd23a;
 }
 .fi-cpu {
+  --fi-face: -1;
   right: 12%;
   --fur: #8b6be8;
   --belly: #e2d8ff;
@@ -230,6 +232,34 @@
   75% {
     transform: translateY(-8%) rotate(8deg);
   }
+}
+
+/* Leaning into a flamethrower blast. */
+.fi-critter.fi-blast {
+  animation: fi-blast 1.15s ease-out;
+}
+@keyframes fi-blast {
+  12%,
+  70% {
+    transform: translateX(calc(var(--fi-face) * -3%))
+      rotate(calc(var(--fi-face) * -4deg)) scaleY(0.97);
+  }
+  30%,
+  50% {
+    transform: translateX(calc(var(--fi-face) * -4%))
+      rotate(calc(var(--fi-face) * -5deg)) scaleY(0.98);
+  }
+}
+/* After a hit: frosted over, or singed. */
+.fi-critter > :is(svg, img) {
+  transition: filter 0.25s;
+}
+.fi-critter.fi-frozen > :is(svg, img) {
+  filter: saturate(0.35) brightness(1.25) sepia(0.2) hue-rotate(160deg)
+    drop-shadow(0 0 14px #bdeeff);
+}
+.fi-critter.fi-singed > :is(svg, img) {
+  filter: brightness(0.7) sepia(0.45) drop-shadow(0 0 14px #ff7a1a);
 }
 
 /* A spinning arrow over a critter that must shield this round. */
@@ -431,9 +461,6 @@
   height: 100%;
   display: block;
 }
-.fi-sprite.fi-ball svg {
-  filter: drop-shadow(0 0 10px #fff8);
-}
 .fi-sprite.fi-shield {
   animation: fi-shield-in 0.3s ease-out;
 }
@@ -504,24 +531,240 @@
     opacity: 0;
   }
 }
-.fi-steam {
-  font-size: calc(var(--fi-critter) * 0.6);
-  line-height: 1;
-  animation: fi-steam 1.1s ease-out forwards;
+/* Shields: a burning wooden shield and a block of ice. */
+.fire-ice .fi-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: fi-flicker 0.42s ease-in-out infinite alternate;
 }
-@keyframes fi-steam {
+.fire-ice .fi-flame:nth-child(2) {
+  animation-duration: 0.36s;
+  animation-delay: -0.12s;
+}
+.fire-ice .fi-flame:nth-child(3) {
+  animation-duration: 0.47s;
+  animation-delay: -0.3s;
+}
+.fire-ice .fi-flame:nth-child(4) {
+  animation-duration: 0.39s;
+  animation-delay: -0.2s;
+}
+.fire-ice .fi-flame:nth-child(5) {
+  animation-duration: 0.44s;
+  animation-delay: -0.05s;
+}
+.fire-ice .fi-front .fi-flame {
+  animation-direction: alternate-reverse;
+}
+@keyframes fi-flicker {
   from {
-    transform: scale(0.3);
-    opacity: 1;
+    transform: scale(0.92, 0.85) skewX(-5deg);
+  }
+  50% {
+    transform: scale(1.05, 1.08) skewX(3deg);
+  }
+  to {
+    transform: scale(0.97, 1.18) skewX(-2deg);
+  }
+}
+.fire-ice .fi-glint {
+  animation: fi-glint 2.2s ease-in-out infinite;
+}
+@keyframes fi-glint {
+  from,
+  55% {
+    transform: translateX(-30px);
+  }
+  to {
+    transform: translateX(90px);
+  }
+}
+/* In the yard a shield turns to face the opponent, with thickness from
+   stacked edge silhouettes behind its face. */
+.fi-turn {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(52deg);
+}
+.fi-side-1 .fi-turn {
+  transform: rotateY(-52deg);
+}
+.fi-turn > svg {
+  position: absolute;
+  inset: 0;
+}
+.fi-side-1 .fi-turn > svg {
+  scale: -1 1;
+}
+.fi-turn > .fi-edge {
+  filter: none !important;
+}
+.fi-turn > .fi-edge:nth-child(1) {
+  transform: translateZ(calc(var(--fi-depth) * -5));
+}
+.fi-turn > .fi-edge:nth-child(2) {
+  transform: translateZ(calc(var(--fi-depth) * -4));
+}
+.fi-turn > .fi-edge:nth-child(3) {
+  transform: translateZ(calc(var(--fi-depth) * -3));
+}
+.fi-turn > .fi-edge:nth-child(4) {
+  transform: translateZ(calc(var(--fi-depth) * -2));
+}
+.fi-turn > .fi-edge:nth-child(5) {
+  transform: translateZ(calc(var(--fi-depth) * -1));
+}
+.fi-sprite.fi-shield.fi-ice .fi-edge {
+  opacity: 0.85;
+}
+.fi-sprite.fi-shield.fi-ice {
+  transform-origin: 50% 96%;
+  animation: fi-freeze 0.45s ease-out;
+}
+@keyframes fi-freeze {
+  from {
+    transform: scale(0.6, 0);
+    filter: brightness(2.5);
   }
   60% {
-    transform: scale(1.4) translateY(-10%);
+    transform: scale(1.06, 1.1);
+    filter: brightness(1.6);
+  }
+}
+.fi-sprite.fi-shield.fi-fire .fi-flames {
+  animation: fi-ignite 0.5s ease-out;
+}
+@keyframes fi-ignite {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scaleY(0.2);
+  }
+}
+
+/* Fire melts an ice block: it slumps, glistens and shrinks into a puddle. */
+.fi-sprite.fi-shield.fi-ice.fi-melting {
+  animation: fi-melt 1.3s ease-in forwards;
+}
+@keyframes fi-melt {
+  from {
+    transform: none;
+    filter: none;
+  }
+  15% {
+    transform: scale(1.04, 0.97);
+    filter: brightness(1.3) saturate(1.2);
+  }
+  to {
+    transform: scale(1.2, 0.18);
+    filter: brightness(1.2) saturate(1.3);
+    opacity: 0.55;
+  }
+}
+.fi-sprite.fi-shield.fi-ice.fi-melting .fi-glint {
+  animation-duration: 0.5s;
+}
+.fi-puddle {
+  background: radial-gradient(#cdefff, #7cc6f2 55%, #7cc6f200 72%);
+}
+.fi-drip {
+  border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+  background: radial-gradient(circle at 40% 60%, #fff, #8fd3f6 55%, #3f93dc);
+}
+/* Ice puts out the burning shield: flames shrink away, the wood frosts. */
+.fi-sprite.fi-shield.fi-fire.fi-doused .fi-flames {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: fi-douse 0.7s ease-in forwards;
+}
+@keyframes fi-douse {
+  30% {
+    transform: scaleY(1.15);
     opacity: 1;
   }
   to {
-    transform: scale(1.8) translateY(-40%);
+    transform: scale(0.5, 0);
     opacity: 0;
   }
+}
+.fi-sprite.fi-shield.fi-fire.fi-doused {
+  animation: fi-flash 0.4s ease-out;
+}
+.fi-sprite.fi-shield.fi-fire.fi-doused svg {
+  filter: saturate(0.55) brightness(1.1) drop-shadow(0 0 14px #bdeeff);
+  transition: filter 0.6s 0.3s;
+}
+
+/* Flamethrower streams and their sparks, smoke and steam. */
+.fi-bit {
+  position: absolute;
+  opacity: 0;
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+.fi-flare {
+  background: radial-gradient(
+    circle,
+    currentColor 0 28%,
+    color-mix(in srgb, currentColor 55%, transparent) 48%,
+    transparent 70%
+  );
+}
+.fi-flare.fi-fire {
+  filter: drop-shadow(0 0 6px #ff7a1a90);
+}
+.fi-flare.fi-ice {
+  filter: drop-shadow(0 0 5px #4aa8f080);
+}
+.fi-nozzle.fi-fire {
+  background: radial-gradient(
+    #fff,
+    #ffe066 30%,
+    #ff8a1f80 55%,
+    transparent 72%
+  );
+}
+.fi-nozzle.fi-ice {
+  background: radial-gradient(
+    #fff,
+    #d8f6ff 35%,
+    #8fdcff80 55%,
+    transparent 72%
+  );
+}
+.fi-spark.fi-fire {
+  background: #ffe48a;
+  box-shadow: 0 0 6px 2px #ff9a1f;
+}
+.fi-spark.fi-ice,
+.fi-shard.fi-ice {
+  border-radius: 0;
+  background: #fff;
+  clip-path: polygon(
+    50% 0,
+    62% 38%,
+    100% 50%,
+    62% 62%,
+    50% 100%,
+    38% 62%,
+    0 50%,
+    38% 38%
+  );
+  filter: drop-shadow(0 0 3px #8fdcff);
+}
+.fi-shard.fi-ice {
+  background: linear-gradient(135deg, #fff, #9fe2ff);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.fi-shard.fi-fire {
+  background: radial-gradient(#fff6a8, #ff9a1f 60%, #e8401c);
+  box-shadow: 0 0 8px 2px #ff7a1a;
+}
+.fi-smoke {
+  background: radial-gradient(#4a3a4ecc, #4a3a4e00 70%);
+}
+.fi-cloud {
+  background: radial-gradient(#ffffff 0 35%, #f2f6ffcc 50%, #ffffff00 70%);
 }
 
 /* The start card: the rules as pictures. */
@@ -702,6 +945,8 @@
   .fi-critter,
   .fi-play,
   .fi-recharge svg,
+  .fire-ice .fi-flame,
+  .fire-ice .fi-glint,
   .fi-move.locked .fi-lock svg {
     animation: none;
   }

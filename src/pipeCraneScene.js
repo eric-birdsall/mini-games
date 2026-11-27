@@ -368,7 +368,12 @@ export function createPipeCraneScene(canvas, opts) {
           drops.push({ m, phase: k / 14 });
         }
       e.view = { group, water, wheel, far, drops, sign };
-      bounds.push(group.position.clone().add(far).setY(2));
+      const endPoint = group.position.clone().add(far);
+      for (const x of [-0.95, 0.95])
+        for (const y of [0, 3])
+          bounds.push(
+            endPoint.clone().add(new T.Vector3(x, y - endPoint.y, 0)),
+          );
     });
   }
 
@@ -523,6 +528,20 @@ export function createPipeCraneScene(canvas, opts) {
   cursor.rotation.set(-Math.PI / 2, 0, Math.PI / 4);
   cursor.renderOrder = 4;
   scene.add(cursor);
+
+  // A large sunny target shows the next preschool building step.
+  const guide = new T.Mesh(
+    new T.RingGeometry(0.62, 0.84, 40),
+    new T.MeshBasicMaterial({
+      color: "#ffe35b",
+      transparent: true,
+      opacity: 1,
+      depthTest: false,
+    }),
+  );
+  guide.rotation.x = -Math.PI / 2;
+  guide.renderOrder = 5;
+  scene.add(guide);
 
   // --- Spills and splashes ---------------------------------------------
   const puddle = add(
@@ -708,7 +727,11 @@ export function createPipeCraneScene(canvas, opts) {
       cranePos = at(site.cols + 0.6, -2.2);
       crane.position.copy(cranePos);
       crane.rotation.y = 0;
-      bounds.push(cranePos.clone().setY(4.4));
+      // Include the body and cab, not just the crane's centre. This also
+      // keeps the source/outlet signs inside a portrait viewport.
+      for (const x of [-2.6, 2.6])
+        for (const z of [-1.7, 1.7])
+          bounds.push(cranePos.clone().add(new T.Vector3(x, 4.4, z)));
       puddle.visible = false;
       for (const s of splashes) scene.remove(s.m);
       splashes.length = 0;
@@ -733,6 +756,18 @@ export function createPipeCraneScene(canvas, opts) {
       if (x >= 0 && y >= 0 && x < site.cols && y < site.rows)
         return { cell: y * site.cols + x, point: p };
       return { point: p };
+    },
+    nearCell(cell, clientX, clientY) {
+      const p = cellCentre(cell)
+        .setY(FLOOR + 0.08)
+        .project(camera);
+      const r = canvas.getBoundingClientRect();
+      return (
+        Math.hypot(
+          clientX - (r.left + ((p.x + 1) * r.width) / 2),
+          clientY - (r.top + ((1 - p.y) * r.height) / 2),
+        ) <= 32
+      );
     },
     cellPoint: (cell) => cellCentre(cell),
     slotPoint: (i) => new T.Vector3(yardSlots[i].x, 0, yardSlots[i].z),
@@ -854,6 +889,12 @@ export function createPipeCraneScene(canvas, opts) {
         );
         slings.position.set(hookAt.x, hookY - HANG / 2 - 0.2, hookAt.z);
         slings.scale.set(0.025, HANG - 0.4, 0.025);
+      }
+
+      guide.visible = state.guide !== null && state.guide !== undefined;
+      if (guide.visible) {
+        guide.position.copy(cellCentre(state.guide)).setY(FLOOR + 0.08);
+        guide.scale.setScalar(1 + Math.sin(clock * 4) * 0.1);
       }
 
       // Cursor square.

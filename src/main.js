@@ -13,7 +13,7 @@ import {
 } from "./released.js";
 import { LocalMatch } from "./localMatch.js";
 import { resultTrophy } from "./gameResults.js";
-import { pauseBar } from "./pauseActions.js";
+import { pauseBar, connectPauseActions, syncMusic } from "./pauseActions.js";
 import { skipsBackpack } from "../shared/party.js";
 import boulderDashPreview from "./assets/modes/boulder-dash.jpg";
 import sprinklerDodgePreview from "./assets/modes/sprinkler-dodge.jpg";
@@ -62,6 +62,7 @@ import { installReadyOrNot } from "./readyOrNot.js";
 import { installFoodFinder } from "./foodFinder.js";
 import { installFireIce } from "./fireIce.js";
 import { installSeaSweeper } from "./seaSweeper.js";
+import { installKiteDay } from "./kiteDay.js";
 import { PadBridge, activeGame } from "./padBridge.js";
 import { weaponBlockReason } from "../shared/combat.js";
 import { MUSIC_TRACKS } from "./menuMusic.js";
@@ -346,6 +347,7 @@ function showMute() {
 $("#music-mute").onclick = () => {
   audio.music.setMuted(!audio.music.muted);
   showMute();
+  syncMusic();
 };
 showMute();
 
@@ -1315,6 +1317,22 @@ function menuBack() {
   return true;
 }
 $("#menu-back").onclick = menuBack;
+// Home on any pause bar: back to the game selector (the Home Screen game
+// list when the game was opened from it). Leaving the arena reloads, which
+// also drops the match.
+function goToGames() {
+  if (fromGameList) location.assign(gameListUrl);
+  else if ($("#home").hidden) location.assign(location.pathname);
+  else showScreen("game");
+}
+connectPauseActions({
+  home: goToGames,
+  muted: () => audio.music.muted,
+  setMuted: (muted) => {
+    audio.music.setMuted(muted);
+    showMute();
+  },
+});
 // Each home menu step is a dropdown: a button showing the current choice that
 // opens the list of options. The options are the same buttons as before, so
 // their handlers and the URL quick start work unchanged.
@@ -1383,6 +1401,7 @@ installSinkOrFloat(selectedAvatar, audio);
 installKubb(() => botLevel);
 installFireIce(selectedAvatar);
 installSeaSweeper(() => botLevel, selectedAvatar);
+installKiteDay(() => botLevel, selectedAvatar);
 // Picking a standalone game selects it; Start opens it (see `launchers`).
 document.querySelectorAll("#home [data-game]").forEach((entry) => {
   if (GAMES[entry.dataset.game] || !entry.onclick) return;
@@ -1787,15 +1806,12 @@ $("#ready").onclick = () => {
   readyAt = performance.now();
   send({ type: "ready" });
 };
-$("#lock-overlay [data-pause-home]").onclick = () =>
-  location.assign(location.pathname);
 $("#lock-overlay [data-pause-restart]").onclick = () =>
   send({ type: "restart" });
 $("#restart").onclick = $("#results [data-pause-restart]").onclick = () =>
   send({ type: "restart" });
-$("#results-home").onclick = $("#results [data-pause-home]").onclick = $(
-  "#lock-overlay [data-pause-home]",
-).onclick;
+// The pause bars' Home is handled by connectPauseActions (goToGames).
+$("#results-home").onclick = goToGames;
 $("#dev-reset").onclick = () => send({ type: "restart" });
 $("#switch-team").onclick = () => send({ type: "switch" });
 $("#swap-sides").onclick = () => send({ type: "debug", key: "swapSides" });

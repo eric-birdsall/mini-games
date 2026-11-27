@@ -316,7 +316,7 @@ Input handling was checked with synthetic standard Xbox button/axis samples and 
 
 ### Controller in the standalone games
 
-Slipstream, Firefly Recall, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail, Puck Clash, Sink or Float, Look & Find, Fire & Ice and Sea Sweeper run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
+Slipstream, Firefly Recall, Roof Catch, Loop & Glide, Pond Fishing, Target Blaster, River Crossing, Racetrack Builder, Backyard Apple Catch, Pool Noodle Chop, Backyard Flier, Pipe Crane, Perch Hop, Acorn Drop, Backyard Fling, Perfect Pizza, Leaf Piles, Paper Plane Pitch, Big Bad Burger, Shoo Away, Animal Patrol, Comet Dash, Pop Patrol, Kickabout, Skee Ball, Bocce Ball, Kubb, Lantern Trail, Puck Clash, Sink or Float, Look & Find, Fire & Ice, Sea Sweeper and Kite Day run in their own overlays. While one is open, `src/padBridge.js` owns the controller (the menus behind it don't move) and turns it into the keys the game already uses:
 
 | Xbox               | During play                                                                                                                                                                                                                                                                      | On a start, pause or results screen               |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
@@ -330,6 +330,8 @@ Slipstream, Firefly Recall, Roof Catch, Loop & Glide, Pond Fishing, Target Blast
 A game opens with its main button highlighted, not "Back to games". In Firefly Recall, Y X B A (or the D-pad) pick the firefly of the same colour in that spot of the diamond, and Menu pauses (B is the red firefly there, not pause). A game marks its root with `padPlaying()` (true while the controller should steer), optionally `padFaces()` (Y X B A press ↑ ← → ↓ instead of their usual keys) and optionally `padTargets()` (limit navigation to certain buttons). These games use fixed controller buttons; the Controls remapping applies to the arena games. Slipstream's local 2-player mode still needs the keyboard for player two. Leaf Piles' 4-player mode is the exception to one-controller-for-everything: it marks its dialog with `padSeats()` and reads every controller itself, one per corner.
 
 **Apple Catch and Pool Noodle Chop:** choose **2 players** to use two controllers, one per player (leftmost and rightmost stations). Apple Catch uses each stick / D-pad; Pool Noodle uses A / RT. Either controller can pause with B / Menu. Keyboard and split-screen touch remain available. A disconnected controller keeps its seat when it reconnects.
+
+**Kite Day:** choose **2 players** and each controller flies its own kite (stick steers, hold A / RT to reel, X / LT tugs; B / Menu pauses). On the keyboard player one uses A / D and Space, player two ← / → and ↑.
 
 **Sumo Wrestling** uses the menu bridge for start, pause and results. During play each controller drives its own character.
 
@@ -899,6 +901,10 @@ The flight, the course and the crashes are in `shared/backyardFlier.js` (tested 
 
 ### Pipe Crane
 
+**Little Builders** is the default, designed for preschoolers: four or five pipes, one destination, no timer or dead ends. Tap the glowing spot or the big **Place Pipe** button; the crane chooses the right shape and turns it to fit. Filled circles show progress. When the path is ready, press **Water!** and watch it flow, then **Build another**. A / RT on a controller (Space on a keyboard) places the next pipe and starts the water once ready. Wrong taps and early water presses are harmless. The first site is straight, then bends appear; later sites stay just as relaxed. Little Builders keeps its own best score.
+
+Choose **Puzzle Mode** on the start screen for the original game described below, using the menu's selected difficulty.
+
 Open **Game → Pipe Crane** to lay water pipe on a building site. The trenches are already dug. Pipe A (the water main, with a red valve) comes in from the left, and outlet pipe B pokes in from another edge. A crawler crane at the back, with your critter in the cab, swings its boom to wherever the hook goes.
 
 - **Laying pipe:** tap a stack in the pipe yard (straights, corners and T's, plus crosses on Hard) to put one on the hook, turn it with the big ⟳ button (R / E, Q the other way, the mouse wheel or a right-click), then tap a trench to lower it in. Tap a laid pipe to turn it, or drag it to another trench (or back to the yard). Pipes only go in trenches; some trenches are dead ends. Keyboard and controller: the arrows / WASD / stick move the hook over the site and the yard, and Space / A grabs, lowers and lifts.
@@ -906,7 +912,7 @@ Open **Game → Pipe Crane** to lay water pipe on a building site. The trenches 
 - **Winning and losing:** fill every outlet and the job's done; the next site comes on a little sooner and flows a little faster. From a few sites in, there are two outlets (B and C), so you'll need a T. If water reaches an open end, an empty trench or a pipe that doesn't line up, it spills and the game ends. You score one per site finished, and your best is saved per difficulty.
 - **Difficulty:** sets the site size, the countdown, how fast water flows, how many dead-end trenches there are, when two-outlet sites start, and whether crosses are in the yard.
 
-The sites, pipe pieces and water are in `shared/pipeCrane.js` (tested in `tests/pipeCrane.test.js`), the game in `src/pipeCrane.js`, and the 3D site and crane in `src/pipeCraneScene.js`.
+The sites, pipe pieces and water are in `shared/pipeCrane.js` (tested in `tests/pipeCrane.test.js`, including 200 Little Builders sites, unlimited thinking time and harmless wrong taps), the game in `src/pipeCrane.js`, and the 3D site and crane in `src/pipeCraneScene.js`.
 
 ### Look & Find
 
@@ -974,6 +980,19 @@ Open **Game → Sea Sweeper** to clean up a beach, seen from above, with the sea
 The tides, pickups, drop-offs and clock are in `shared/seaSweeper.js` (tested in `tests/seaSweeper.test.js`, which checks full collection on Medium, all 30 pieces of trash across 40 beaches on every difficulty, and all five tides ending without input). The game is in `src/seaSweeper.js`, and the 3D beach in `src/seaSweeperScene.js`.
 
 **Models** (`src/assets/sea-sweeper/`, from [Poly Pizza](https://poly.pizza)). CC0: Mussel Open, Soda Can Crushed, Styrofoam (Kenney); Trash Bag, Bucket, Shovel (Quaternius); Trash Bin (CreativeTrio). [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/): Clam, Nautilus shell, Starfish, Sand dollar (Poly by Google); seashell (Dario Demi, used for the golden shell); Bottle (Plastic) (Zoe XR); Plastic Cup (Zsky); flip flops (Tiff Eidmann). The starfish's textures were shrunk to 256 px; the bin and bucket are recoloured and the golden shell repainted in the game. Each model is laid on the sand in the pose that reads best from the game's camera (`POSE` in `src/seaSweeperScene.js`), and things seen from one side only wobble a little instead of spinning all the way round.
+
+### Kite Day
+
+Open **Game → Kite Day** to fly a kite from the back porch on a windy afternoon, seen side-on, with the critter you picked holding the string.
+
+- **Flying:** hold to reel in (Space, W or ↑; A / RT on a controller; the Reel button or holding the mouse on touch and desktop). The string shortens and the kite climbs back over your head and steadies. Let go and string pays out: the kite reaches farther, but with less lift it sags over to the side, sinks and wobbles. Steer with A / D or ← / → (the stick, or the ◀ ▶ buttons). R (X / LT, or a double-tap on Reel) is a quick tug for a burst of lift.
+- **Wind:** the breeze wanders and leans the kite the way it blows. Before each gust the windsock on the porch post flaps, leaves blow in from upwind and a **Gust!** sign points the way it will push.
+- **Ribbons:** rings float where a kite can reach them, clear of everything else; each one you fly through scores one. Gold ribbons sit high and far out (let the string right out) and score three. Ribbons drift away after a while and new ones appear.
+- **Bumps:** the oak's canopy, the power line, the hedges either side of the porch and the occasional crow (an orange arrow at the edge and a caw warn of it). A bump tumbles the kite and the dog fetches it back to the porch.
+- **Difficulty:** Easy is **Breezy**: gentle gusts, bigger ribbons, no crows and no hearts to lose. Medium (**Gusty**) and Hard (**Blustery**) have three hearts, stronger and more frequent gusts, smaller ribbons and crows. A round lasts two minutes; your best is saved per difficulty.
+- **2 players:** two kites from either end of the porch, five ribbons at a time, no hearts. If the strings cross they **tangle**: both kites wobble and steer slowly until someone reels in. Most points when the clock runs out wins.
+
+The kite, wind, ribbons, hazards and tangles are in `shared/kiteDay.js` (tested in `tests/kiteDay.test.js`, including a ribbon-chasing player scoring on every difficulty and every ribbon being reachable and clear of hazards), the game in `src/kiteDay.js`, and the 3D yard in `src/kiteDayScene.js`.
 
 ### Kubb · Viking Chess
 

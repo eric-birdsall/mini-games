@@ -288,3 +288,63 @@
     height: 64px;
   }
 }
+
+/* Little Builders uses one big action and a picture of each pipe completed. */
+.pipe-modes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.pipe-panel {
+  place-content: safe center;
+}
+.pipe-top {
+  width: max-content;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100% - 20px);
+}
+.pipe-crane[data-mode="little"] .pipe-best {
+  display: none;
+}
+.pipe-progress {
+  letter-spacing: 4px;
+  color: #45833a !important;
+}
+.pipe-crane .pipe-build {
+  min-height: 64px;
+  min-width: 168px;
+  padding: 14px 18px;
+  border: 3px solid white;
+  border-radius: 18px;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #65451f;
+}
+.pipe-crane .pipe-build:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+.pipe-crane[data-mode="little"] .pipe-tools {
+  top: auto;
+  bottom: 70px;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pipe-timer.soon {
+    animation: none;
+  }
+}
+
+.pipe-crane[data-mode="little"] .pipe-timer {
+  font-size: 1rem;
+  padding: 8px 10px;
+}
+.pipe-crane[data-mode="little"] .pipe-progress {
+  letter-spacing: 2px;
+  padding: 7px 8px;
+}
+.pipe-crane[data-mode="little"] footer > span {
+  max-width: 55vw;
+  font-size: 0.85rem;
+}

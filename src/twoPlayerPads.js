@@ -23,7 +23,14 @@ export class TwoPlayerPads {
       const pad = connected.find((p) => p.index === index);
       if (!pad) {
         this.previous.delete(index);
-        return { left: false, right: false, action: false, pause: false };
+        return {
+          left: false,
+          right: false,
+          action: false,
+          hold: false,
+          tug: false,
+          pause: false,
+        };
       }
       const now = padState(pad);
       const was = this.previous.get(index);
@@ -32,6 +39,9 @@ export class TwoPlayerPads {
         left: now.left,
         right: now.right,
         action: !!was && now.action && !was.action,
+        // A / RT held down, and a fresh X / LT press (Kite Day).
+        hold: !!was && now.action,
+        tug: !!was && now.pump && !was.pump,
         pause: !!was && ((now.b && !was.b) || (now.menu && !was.menu)),
       };
     });
